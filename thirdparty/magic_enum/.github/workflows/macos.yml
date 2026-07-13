@@ -1,0 +1,30 @@
+name: macos
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - macos-14 # https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md#xcode (Apple Silicon M1)
+        - macos-15 # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md#xcode (Apple Silicon M2)
+        build_type: [Release, Debug]
+
+    name: "${{ matrix.os }} / ${{ matrix.build_type }}"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Configure
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --parallel --config ${{ matrix.build_type }}
+
+    - name: Test
+      run: ctest --test-dir build --output-on-failure -C ${{ matrix.build_type }}

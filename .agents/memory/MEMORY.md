@@ -1,0 +1,2 @@
+- [Android NDK on Replit](android-ndk-on-replit.md) — no NDK/SDK Nix packages exist; download NDK zip directly from Google; vcpkg needs full clone + Android autotools ports can grab host gcc instead of NDK clang.
+- [Android recomp GPU risk](android-recomp-gpu-risk.md) — UnleashedRecomp-Android (precedent for this kind of Xbox360-recomp Android port) only supports Adreno GPUs; Mali (e.g. Tab A9's Mali-G57) is explicitly unsupported/not planned.
