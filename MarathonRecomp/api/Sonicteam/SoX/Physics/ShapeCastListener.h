@@ -1,0 +1,11 @@
+#pragma once
+
+#include <Marathon.inl>
+#include <Sonicteam/SoX/RefCountObject.h>
+
+namespace Sonicteam::SoX::Physics
+{
+    class ShapeCastListener : public SoX::RefCountObject {};
+
+    MARATHON_ASSERT_SIZEOF(ShapeCastListener, 8);
+}
