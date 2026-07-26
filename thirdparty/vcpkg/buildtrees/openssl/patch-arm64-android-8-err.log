@@ -1,0 +1,4 @@
+Checking patch Configurations/unix-Makefile.tmpl...
+Hunk #1 succeeded at 880 (offset 57 lines).
+Hunk #2 succeeded at 904 (offset 57 lines).
+Applied patch Configurations/unix-Makefile.tmpl cleanly.

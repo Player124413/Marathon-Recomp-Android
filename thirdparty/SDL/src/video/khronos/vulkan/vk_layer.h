@@ -2,7 +2,8 @@
  * Copyright 2015-2023 The Khronos Group Inc.
  * Copyright 2015-2023 Valve Corporation
  * Copyright 2015-2023 LunarG, Inc.
- * SPDX-License-Identifier: Apache-2.0 OR MIT
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
@@ -26,10 +27,7 @@
 #define VK_CURRENT_CHAIN_VERSION 1
 
 // Typedef for use in the interfaces below
-#ifndef IS_DEFINED_PFN_GetPhysicalDeviceProcAddr
 typedef PFN_vkVoidFunction (VKAPI_PTR *PFN_GetPhysicalDeviceProcAddr)(VkInstance instance, const char* pName);
-#define IS_DEFINED_PFN_GetPhysicalDeviceProcAddr
-#endif
 
 // Version negotiation values
 typedef enum VkNegotiateLayerStructType {

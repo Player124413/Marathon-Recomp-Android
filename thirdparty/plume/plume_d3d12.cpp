@@ -3863,6 +3863,7 @@ namespace plume {
         capabilities.maxTextureSize = 16384;
         capabilities.preferHDR = description.dedicatedVideoMemory > (512 * 1024 * 1024);
         capabilities.samplerMirrorClampToEdge = true;
+        capabilities.textureCompressionBC = true; // D3D12 always supports BC formats
 
         // Create descriptor heaps allocator.
         viewHeapAllocator = std::make_unique<D3D12DescriptorHeapAllocator>(this, ShaderDescriptorHeapSize, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

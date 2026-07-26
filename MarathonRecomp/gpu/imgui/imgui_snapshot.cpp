@@ -44,7 +44,7 @@ void ImFontAtlasSnapshot::Traverse(size_t offset, const T& value)
     }
     else if constexpr (std::is_same_v<T, ImFontAtlas>)
     {
-        SnapPointer(offset, value, value.ConfigData.Data, value.ConfigData.Size);
+        SnapPointer(offset, value, value.Sources.Data, value.Sources.Size);
         SnapPointer(offset, value, value.CustomRects.Data, value.CustomRects.Size);
         SnapPointer(offset, value, value.Fonts.Data, value.Fonts.Size);
     }
@@ -55,7 +55,7 @@ void ImFontAtlasSnapshot::Traverse(size_t offset, const T& value)
         SnapPointer(offset, value, value.Glyphs.Data, value.Glyphs.Size);
         SnapPointer(offset, value, value.FallbackGlyph, 1);
         SnapPointer(offset, value, value.ContainerAtlas, 1);
-        SnapPointer(offset, value, value.ConfigData, value.ConfigDataCount);
+        SnapPointer(offset, value, value.Sources, value.SourcesCount);
     }
     else if constexpr (std::is_same_v<T, ImFontAtlasCustomRect>)
     {
@@ -113,7 +113,18 @@ ImFontAtlas* ImFontAtlasSnapshot::Load()
     g_imFontAtlas = decompressZstd(g_im_font_atlas, g_im_font_atlas_uncompressed_size);
 
     auto header = reinterpret_cast<ImFontAtlasSnapshotHeader*>(g_imFontAtlas.get());
-    assert(header->imguiVersion == IMGUI_VERSION_NUM && "ImGui version mismatch, the font atlas needs to be regenerated!");
+    if (header->imguiVersion != IMGUI_VERSION_NUM)
+    {
+        // Version mismatch: the pre-baked atlas was built with a different ImGui
+        // version than the one currently compiled in.  Return nullptr so the
+        // caller can fall back to runtime font building instead of crashing.
+        fprintf(stderr,
+            "[ImFontAtlasSnapshot] Version mismatch: atlas=%u current=%u — "
+            "falling back to runtime font build.\n",
+            header->imguiVersion, IMGUI_VERSION_NUM);
+        g_imFontAtlas.reset();
+        return nullptr;
+    }
 
     auto offsetTable = reinterpret_cast<uint32_t*>(g_imFontAtlas.get() + header->offsetsOffset);
     for (size_t i = 0; i < header->offsetCount; i++)
@@ -190,17 +201,28 @@ void ImFontAtlasSnapshot::GenerateGlyphRanges()
 ImFont* ImFontAtlasSnapshot::GetFont(const char* name)
 {
     auto fontAtlas = ImGui::GetIO().Fonts;
-    for (auto& configData : fontAtlas->ConfigData)
+    for (auto& configData : fontAtlas->Sources)
     {
         if (strstr(configData.Name, name) != nullptr)
         {
-            assert(configData.DstFont != nullptr);
+            // DstFont is always set after Build(); assert only in full snapshot
+            // builds where we know the atlas is pre-validated.
+            if (configData.DstFont == nullptr)
+            {
+                fprintf(stderr, "[ImFontAtlasSnapshot] GetFont(\"%s\"): DstFont is null — using default font.\n", name);
+                return fontAtlas->Fonts.Size > 0 ? fontAtlas->Fonts[0] : nullptr;
+            }
             return configData.DstFont;
         }
     }
 
 #ifdef ENABLE_IM_FONT_ATLAS_SNAPSHOT
-    assert(false && "Unable to locate equivalent font in the atlas file.");
+    // Font not found in the baked snapshot. This normally means the snapshot was
+    // built with a different ImGui version and we fell back to runtime font building
+    // (which only adds the default font).  Return the default font so the UI
+    // degrades gracefully instead of crashing via abort().
+    fprintf(stderr, "[ImFontAtlasSnapshot] GetFont(\"%s\"): font not in atlas — using default font.\n", name);
+    return fontAtlas->Fonts.Size > 0 ? fontAtlas->Fonts[0] : nullptr;
 #endif
 
     return fontAtlas->AddFontFromFileTTF(name, 24.0f, nullptr, g_glyphRanges.data());

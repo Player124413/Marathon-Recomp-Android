@@ -19,4 +19,6 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+#include <stdint.h>
+
 typedef int32_t SYS_ThreadHandle;

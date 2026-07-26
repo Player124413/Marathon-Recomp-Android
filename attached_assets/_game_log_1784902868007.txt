@@ -1,0 +1,717 @@
+=== Marathon Recompiled — session 2026-07-24 16:19:21 ===
+[I][*] === Marathon Recompiled starting ===
+[I][*] Android native build fingerprint: v1.0.0.4fc20d6b-main (Debug)
+[I][*] Config path: /storage/emulated/0/Android/data/com.sega.sonic2006/files/MarathonRecomp/config.toml
+[I][*] SDL video driver config: Auto
+[I][*] Graphics API config: Auto
+[I][*] Saving configuration...
+[W][*] Host Startup
+[E][updateCheckerThread] Error while performing request: Could not resolve hostname
+[I][*] SDL video driver: "Android"
+[W][CreateHostDevice] GPU: Mali-G57 MC2 (vendor=0x13B5 type=1) vram=3740 MiB
+[W][CreateHostDevice] ARM Mali GPU detected (Mali-G57 MC2). All Mali compatibility workarounds applied — see plume log for details.
+[I][*] Saving configuration...
+[W][CreateHostDevice] ARM Mali GPU: all MSAA modes disabled for driver compatibility.
+[W][CreateHostDevice] ARM Mali GPU: shadow resolution capped at 1024 for driver compatibility.
+[W][CreateHostDevice] VkInit: creating DIRECT command queue
+[W][CreateHostDevice] VkInit: creating command lists
+[W][CreateHostDevice] VkInit: creating command fences
+[W][CreateHostDevice] VkInit: creating texture upload queue
+[W][CreateHostDevice] VkInit: creating swap chain (bufferCount=2 window=0xb400006eac265010)
+[W][CreateHostDevice] VkInit: swap chain ctor done
+[W][CreateHostDevice] VkInit: creating semaphores
+[W][CreateHostDevice] VkInit: creating texture descriptor set
+[W][CreateHostDevice] VkInit: texture descriptor set created
+[W][CreateHostDevice] VkInit: blank textures set
+[W][CreateHostDevice] VkInit: creating sampler descriptor set
+[W][CreateHostDevice] VkInit: sampler descriptor set created
+[W][CreateHostDevice] VkInit: creating conditional survey buffer
+[W][CreateHostDevice] VkInit: conditional survey descriptor set created
+[W][CreateHostDevice] VkInit: maxBoundDescriptorSets < 5 — conditional survey disabled for this device
+[W][CreateHostDevice] VkInit: creating pipeline layout
+[W][CreateHostDevice] VkInit: pipeline layout created
+[W][CreateHostDevice] VkInit: creating copy shaders and pipelines
+[W][CreateHostDevice] VkInit: copy depth pipeline done
+[W][CreateHostDevice] VkInit: MSAA resolve pipelines done
+[W][CreateHostDevice] VkInit: gaussian blur shaders done
+[W][CreateHostDevice] VkInit: misc shaders done
+[W][CreateHostDevice] VkInit: creating ImGui backend
+[W][CreateImGuiBackend] VkInit: entering ImGui backend
+[W][CreateImGuiBackend] VkInit: loading ImGui font snapshot
+[W][CreateImGuiBackend] VkInit: ImGui font snapshot version mismatch — falling back to runtime build
+[W][CreateImGuiBackend] VkInit: ImGui font setup complete
+[W][CreateImGuiBackend] VkInit: initializing ImGui utility textures
+[W][operator()] Loading ImGui utility texture: button_window
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (64×64 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (64×64 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: controller
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (256×128 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (256×128 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: kbm
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][operator()] Loading ImGui utility texture: window
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (128×128 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (128×128 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: select_arrow
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (50×50 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (50×50 DXGI fmt 98→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu1
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu7
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu8
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (256×256 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (256×256 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: arrow
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (512×512 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (512×512 DXGI fmt 77→RGBA8)
+[W][CreateImGuiBackend] VkInit: ImGui utility textures initialized
+[W][CreateImGuiBackend] VkInit: initializing options menu
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][CreateImGuiBackend] VkInit: options menu initialized
+[W][CreateImGuiBackend] VkInit: initializing installer wizard
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: ARM Mali NPOT mip clamp — 5243×450 mips 13 → 8 (avoids Mali vkCreateImage driver crash)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (5243×450 mips=8) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (5243×450 DXGI fmt 98→RGBA8)
+[W][CreateImGuiBackend] VkInit: installer wizard initialized
+[W][CreateImGuiBackend] VkInit: ImGui SDL backend done
+[W][CreateImGuiBackend] VkInit: building ImGui font atlas at runtime (snapshot fallback)
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][CreateImGuiBackend] VkInit: ImGui font atlas runtime upload done
+[W][CreateImGuiBackend] VkInit: ImGui font atlas ready
+[W][CreateImGuiBackend] VkInit: ImGui pipeline layout done
+[W][CreateImGuiBackend] VkInit: ImGui shaders done
+[W][CreateImGuiBackend] VkInit: ImGui pipelines done
+[W][CreateHostDevice] VkInit: ImGui backend done
+[W][CreateHostDevice] VkInit: gamma correction pipeline done
+[W][CreateHostDevice] VkInit: calling CheckSwapChain
+[W][android] swapchain resize failed; delaying retry
+[W][CreateHostDevice] VkInit: CheckSwapChain done, calling BeginCommandList
+[W][CreateHostDevice] VkInit: BeginCommandList done
+[W][*] Start Guest Thread
+[W][*] /storage/emulated/0/Android/data/com.sega.sonic2006/files/MarathonRecomp/game/default.xex
+[I][*] Changed resolution: 960x540
+[I][NetDll_WSAStartup] !!! STUB !!!
+[W][CreateDevice] 0x0 0x1 0x0 0x1 0xa0a60 0x1000a0a5c
+
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[I][*] Loading file: archives/system.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\system.arc"
+[I][*] Loading file: archives/sprite.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\sprite.arc"
+[I][*] Loading file: archives/cache.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\cache.arc"
+[I][*] Loading file: archives/particle_data.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\particle_data.arc"
+[I][*] Loading file: archives/shader.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\shader.arc"
+[I][*] Loading file: 
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][ExRegisterTitleTerminateNotification] !!! STUB !!!
+[I][ExCreateThread] 0x1000A0674, 0x0, 0x0, 0x0, 0x8255B848, 0x0, 0x10000001 56053160
+[I][ObDereferenceObject] !!! STUB !!!
+[I][Sonicteam::SoX::Thread] Created thread: NoSyncThread
+[I][ExCreateThread] 0x1000A0660, 0x0, 0x101AE23F8, 0x826FE080, 0x825866A8, 0x1AE23E0, 0x1 D562E84A
+[I][Sonicteam::SoX::Thread] Created thread: NoSyncThread
+[I][ExCreateThread] 0x1000A0660, 0x0, 0x101AE24F8, 0x826FE080, 0x825866A8, 0x1AE24E0, 0x1 230A7158
+[I][*] Loading file: shader/primitive/primitive.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/primitive/primitive.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/skin/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/morph/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/np/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/skin_np/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/morph_np/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/lm/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/lm_np/no_shader.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/primitive/rt_restoration.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/primitive/csd.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: 
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/Common.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/BloomFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/BurnoutBlurFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/ColorCopyFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/ColorCorrectionFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/ColorOutFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/CopyFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/DepthOfFieldFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/MaskCopyFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/MotionBlurFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/PhaseShiftFilter.fx
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/filter/SampleFilter.fx
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer0 (960x540)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer1 (960x540)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_4_0 (240x135)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_4_1 (240x135)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_8_0 (120x67)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_8_1 (120x67)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_16_0 (60x33)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_16_1 (60x33)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_32_0 (30x16)
+[I][sub_825822D0] !!!
+[I][*] Created texture: framebuffer_1_32_1 (30x16)
+[I][sub_825822D0] !!!
+[I][*] Created texture: depthstencil_1_4 (240x135)
+[I][Sonicteam::SpanverseHeap] Allocated 180 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 24 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 160 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 32 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 160 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 400 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 32 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 160 bytes
+[I][*] Loading file: shader/primitive/AcrobataPrimitive.fx
+[I][sub_825822D0] !!!
+[I][Sonicteam::SpanverseHeap] Allocated 36 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 40 bytes
+[I][Sonicteam::SpanverseHeap] Allocated 36 bytes
+[I][*] Loading file: particle/pe/sonicnext
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][*] Loading file: shader/std/pe.fxo
+[I][sub_825822D0] !!!
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC8DB8, 0x826FE080, 0x825866A8, 0x1FC8DA0, 0x1 7E739D1
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC8E38, 0x826FE080, 0x825866A8, 0x1FC8E20, 0x1 6C9ECE1B
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC8EB8, 0x826FE080, 0x825866A8, 0x1FC8EA0, 0x1 315DE5EC
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC8F38, 0x826FE080, 0x825866A8, 0x1FC8F20, 0x1 CA215054
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC8FB8, 0x826FE080, 0x825866A8, 0x1FC8FA0, 0x1 1E205490
+[I][Sonicteam::SoX::Thread] Created thread: FrameSynchronizerThread
+[I][ExCreateThread] 0x1000A0760, 0x0, 0x101FC9038, 0x826FE080, 0x825866A8, 0x1FC9020, 0x1 838898A1
+[I][Sonicteam::SoX::Thread] Created thread: FrustumCullingThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC9238, 0x826FE080, 0x825866A8, 0x1FC9220, 0x1 E3D6FEF0
+[I][Sonicteam::SoX::Thread] Created thread: FrustumCullingThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC92B8, 0x826FE080, 0x825866A8, 0x1FC92A0, 0x1 FD9160CC
+[I][Sonicteam::SoX::Thread] Created thread: FrustumCullingThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC9338, 0x826FE080, 0x825866A8, 0x1FC9320, 0x1 A94868EB
+[I][Sonicteam::SoX::Thread] Created thread: FrustumCullingThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC93B8, 0x826FE080, 0x825866A8, 0x1FC93A0, 0x1 EF8436A2
+[I][Sonicteam::SoX::Thread] Created thread: FrustumCullingThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC9438, 0x826FE080, 0x825866A8, 0x1FC9420, 0x1 EEAA912A
+[I][Sonicteam::SoX::Thread] Created thread: UpdateResourceInFrustumThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC95B8, 0x826FE080, 0x825866A8, 0x1FC95A0, 0x1 5DDC60B8
+[I][Sonicteam::SoX::Thread] Created thread: UpdateResourceInFrustumThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC9638, 0x826FE080, 0x825866A8, 0x1FC9620, 0x1 88B022AA
+[I][Sonicteam::SoX::Thread] Created thread: UpdateResourceInFrustumThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC96B8, 0x826FE080, 0x825866A8, 0x1FC96A0, 0x1 40F4FEF5
+[I][Sonicteam::SoX::Thread] Created thread: UpdateResourceInFrustumThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC9738, 0x826FE080, 0x825866A8, 0x1FC9720, 0x1 5ED038C6
+[I][Sonicteam::SoX::Thread] Created thread: UpdateResourceInFrustumThread
+[I][ExCreateThread] 0x1000A0750, 0x0, 0x101FC97B8, 0x826FE080, 0x825866A8, 0x1FC97A0, 0x1 112EFD66
+[I][*] Loading file: scripts/render/render_default.lua
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][sub_825822D0] !!!
+[I][*] Loading file: sprite/loading/loading_english
+[I][sub_825822D0] !!!
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (256×256 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (256×256 DXGI fmt 77→RGBA8)
+[I][*] CSD freed: 0x101FB8C60
+[I][*] CSD loaded: sprite/loading/loading_english (0x101FD6E60)
+[I][*] CSD modifier(s) redirected: sprite/loading/loading
+[I][Sonicteam::SoX::Thread] Created thread: NoSyncThread
+[I][ExCreateThread] 0x1000A0920, 0x0, 0x101FBBBF8, 0x826FE080, 0x825866A8, 0x1FBBBE0, 0x1 545E9DE2
+[I][*] Loading file: 
+[I][sub_825822D0] !!!
+[I][*] Loading file: archives/cache.arc
+[I][sub_825822D0] !!!
+[I][*] Loading file: archives/enemy.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\enemy.arc"
+[I][*] Loading file: archives/event.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\event.arc"
+[I][*] Loading file: archives/game.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\game.arc"
+[I][*] Loading file: archives/human.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\human.arc"
+[I][*] Loading file: archives/object.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\object.arc"
+[I][*] Loading file: archives/particle.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\particle.arc"
+[I][*] Loading file: archives/scripts.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\scripts.arc"
+[I][*] Loading file: archives/sound.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\sound.arc"
+[I][*] Loading file: archives/stage.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\stage.arc"
+[I][*] Loading file: archives/text.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\text.arc"
+[I][*] Loading file: archives/player.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\xenon\archives\player.arc"
+[I][*] Loading file: archives/enemy_data.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\enemy_data.arc"
+[I][*] Loading file: archives/event_data.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\event_data.arc"
+[I][*] Loading file: archives/particle_data.arc
+[I][sub_825822D0] !!!
+[I][*] Loading file: archives/player_amy.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_amy.arc"
+[I][*] Loading file: archives/player_blaze.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_blaze.arc"
+[I][*] Loading file: archives/player_common.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_common.arc"
+[I][*] Loading file: archives/player_knuckles.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_knuckles.arc"
+[I][*] Loading file: archives/player_omega.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_omega.arc"
+[I][*] Loading file: archives/player_princess.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_princess.arc"
+[I][*] Loading file: archives/player_rouge.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_rouge.arc"
+[I][*] Loading file: archives/player_shadow.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_shadow.arc"
+[I][*] Loading file: archives/player_silver.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_silver.arc"
+[I][*] Loading file: archives/player_sonic.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_sonic.arc"
+[I][*] Loading file: archives/player_supershadow.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_supershadow.arc"
+[I][*] Loading file: archives/player_supersilver.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_supersilver.arc"
+[I][*] Loading file: archives/player_supersonic.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_supersonic.arc"
+[I][*] Loading file: archives/player_tails.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\player_tails.arc"
+[I][*] Loading file: archives/radarmap.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\radarmap.arc"
+[I][*] Loading file: archives/sprite.arc
+[I][sub_825822D0] !!!
+[I][*] Loading file: archives/stage_aqa_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_aqa_a.arc"
+[I][*] Loading file: archives/stage_aqa_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_aqa_b.arc"
+[I][*] Loading file: archives/stage_boss_dr1_dtd.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_dr1_dtd.arc"
+[I][*] Loading file: archives/stage_boss_dr1_wap.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_dr1_wap.arc"
+[I][*] Loading file: archives/stage_boss_dr2.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_dr2.arc"
+[I][*] Loading file: archives/stage_boss_dr3.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_dr3.arc"
+[I][*] Loading file: archives/stage_boss_iblis02.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_iblis02.arc"
+[I][*] Loading file: archives/stage_boss_iblis03.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_iblis03.arc"
+[I][*] Loading file: archives/stage_boss_mefi01.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_mefi01.arc"
+[I][*] Loading file: archives/stage_boss_mefi02.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_mefi02.arc"
+[I][*] Loading file: archives/stage_boss_rct.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_rct.arc"
+[I][*] Loading file: archives/stage_boss_solaris.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_boss_solaris.arc"
+[I][*] Loading file: archives/stage_csc_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_a.arc"
+[I][*] Loading file: archives/stage_csc_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_b.arc"
+[I][*] Loading file: archives/stage_csc_c.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_c.arc"
+[I][*] Loading file: archives/stage_csc_e.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_e.arc"
+[I][*] Loading file: archives/stage_csc_f.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_f.arc"
+[I][*] Loading file: archives/stage_csc_iblis01.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_csc_iblis01.arc"
+[I][*] Loading file: archives/stage_dtd_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_dtd_a.arc"
+[I][*] Loading file: archives/stage_dtd_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_dtd_b.arc"
+[I][*] Loading file: archives/stage_e0003.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0003.arc"
+[I][*] Loading file: archives/stage_e0009.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0009.arc"
+[I][*] Loading file: archives/stage_e0010.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0010.arc"
+[I][*] Loading file: archives/stage_e0012.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0012.arc"
+[I][*] Loading file: archives/stage_e0021.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0021.arc"
+[I][*] Loading file: archives/stage_e0022.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0022.arc"
+[I][*] Loading file: archives/stage_e0023.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0023.arc"
+[I][*] Loading file: archives/stage_e0026.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0026.arc"
+[I][*] Loading file: archives/stage_e0028.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0028.arc"
+[I][*] Loading file: archives/stage_e0031.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0031.arc"
+[I][*] Loading file: archives/stage_e0104.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0104.arc"
+[I][*] Loading file: archives/stage_e0105.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0105.arc"
+[I][*] Loading file: archives/stage_e0106.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0106.arc"
+[I][*] Loading file: archives/stage_e0120.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0120.arc"
+[I][*] Loading file: archives/stage_e0125.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0125.arc"
+[I][*] Loading file: archives/stage_e0206.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0206.arc"
+[I][*] Loading file: archives/stage_e0214.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0214.arc"
+[I][*] Loading file: archives/stage_e0216.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0216.arc"
+[I][*] Loading file: archives/stage_e0221.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0221.arc"
+[I][*] Loading file: archives/stage_e0304.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_e0304.arc"
+[I][*] Loading file: archives/stage_flc_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_flc_a.arc"
+[I][*] Loading file: archives/stage_flc_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_flc_b.arc"
+[I][*] Loading file: archives/stage_kdv_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_kdv_a.arc"
+[I][*] Loading file: archives/stage_kdv_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_kdv_b.arc"
+[I][*] Loading file: archives/stage_kdv_c.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_kdv_c.arc"
+[I][*] Loading file: archives/stage_kdv_d.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_kdv_d.arc"
+[I][*] Loading file: archives/stage_rct_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_rct_a.arc"
+[I][*] Loading file: archives/stage_rct_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_rct_b.arc"
+[I][*] Loading file: archives/stage_tpj_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_tpj_a.arc"
+[I][*] Loading file: archives/stage_tpj_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_tpj_b.arc"
+[I][*] Loading file: archives/stage_tpj_c.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_tpj_c.arc"
+[I][*] Loading file: archives/stage_twn_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_twn_a.arc"
+[I][*] Loading file: archives/stage_twn_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_twn_b.arc"
+[I][*] Loading file: archives/stage_twn_c.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_twn_c.arc"
+[I][*] Loading file: archives/stage_twn_d.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_twn_d.arc"
+[I][*] Loading file: archives/stage_wap_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_wap_a.arc"
+[I][*] Loading file: archives/stage_wap_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_wap_b.arc"
+[I][*] Loading file: archives/stage_wvo_a.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_wvo_a.arc"
+[I][*] Loading file: archives/stage_wvo_b.arc
+[I][sub_825822D0] !!!
+[I][Game] Loading file: "game:\win32\archives\stage_wvo_b.arc"

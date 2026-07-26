@@ -19,14 +19,15 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifndef SDL_POWER_DISABLED
 #ifdef SDL_POWER_PSP
 
+#include "SDL_power.h"
 #include <psppower.h>
 
-bool SDL_GetPowerInfo_PSP(SDL_PowerState *state, int *seconds, int *percent)
+SDL_bool SDL_GetPowerInfo_PSP(SDL_PowerState *state, int *seconds, int *percent)
 {
     int battery = scePowerIsBatteryExist();
     int plugged = scePowerIsPowerOnline();
@@ -54,8 +55,10 @@ bool SDL_GetPowerInfo_PSP(SDL_PowerState *state, int *seconds, int *percent)
         *seconds = scePowerGetBatteryLifeTime() * 60;
     }
 
-    return true; // always the definitive answer on PSP.
+    return SDL_TRUE; /* always the definitive answer on PSP. */
 }
 
-#endif // SDL_POWER_PSP
-#endif // SDL_POWER_DISABLED
+#endif /* SDL_POWER_PSP */
+#endif /* SDL_POWER_DISABLED */
+
+/* vi: set ts=4 sw=4 expandtab: */

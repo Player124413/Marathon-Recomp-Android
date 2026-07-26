@@ -609,6 +609,68 @@ CONFIG_DEFINE_ENUM_LOCALE(EAspectRatio)
     }
 };
 
+CONFIG_DEFINE_LOCALE(InternalResolution)
+{
+    { ELanguage::English,  { "Internal Resolution", "Choose the render resolution used before presentation scaling." } },
+    { ELanguage::Japanese, { "内部解像度", "表示前のレンダリング解像度を選択します" } },
+    { ELanguage::German,   { "Interne Auflösung", "Wähle die interne Renderauflösung vor der Darstellungsskalierung." } },
+    { ELanguage::French,   { "Résolution interne", "Choisis la résolution de rendu avant la mise à l'échelle." } },
+    { ELanguage::Spanish,  { "Resolución interna", "Elige la resolución de renderizado antes del escalado." } },
+    { ELanguage::Italian,  { "Risoluzione interna", "Scegli la risoluzione di rendering prima del ridimensionamento." } }
+};
+
+CONFIG_DEFINE_ENUM_LOCALE(EInternalResolution)
+{
+    {
+        ELanguage::English,
+        {
+            { EInternalResolution::Native,  { "Native", "Render at the display resolution." } },
+            { EInternalResolution::x960x540, { "960x540", "Render at 960x540 and upscale to the display." } },
+            { EInternalResolution::x1280x720, { "720p", "Render at 1280x720 and upscale to the display." } }
+        }
+    },
+    {
+        ELanguage::Japanese,
+        {
+            { EInternalResolution::Native,  { "ネイティブ", "ディスプレイ解像度でレンダリングします" } },
+            { EInternalResolution::x960x540, { "960x540", "960x540でレンダリングして表示に拡大します" } },
+            { EInternalResolution::x1280x720, { "720p", "1280x720でレンダリングして表示に拡大します" } }
+        }
+    },
+    {
+        ELanguage::German,
+        {
+            { EInternalResolution::Native,  { "Nativ", "Mit der Displayauflösung rendern." } },
+            { EInternalResolution::x960x540, { "960x540", "Mit 960x540 rendern und auf die Anzeige skalieren." } },
+            { EInternalResolution::x1280x720, { "720p", "Mit 1280x720 rendern und auf die Anzeige skalieren." } }
+        }
+    },
+    {
+        ELanguage::French,
+        {
+            { EInternalResolution::Native,  { "Native", "Rendre à la résolution de l'écran." } },
+            { EInternalResolution::x960x540, { "960x540", "Rendre en 960x540 puis agrandir à l'écran." } },
+            { EInternalResolution::x1280x720, { "720p", "Rendre en 1280x720 puis agrandir à l'écran." } }
+        }
+    },
+    {
+        ELanguage::Spanish,
+        {
+            { EInternalResolution::Native,  { "Nativa", "Renderizar a la resolución de la pantalla." } },
+            { EInternalResolution::x960x540, { "960x540", "Renderizar a 960x540 y ampliar a la pantalla." } },
+            { EInternalResolution::x1280x720, { "720p", "Renderizar a 1280x720 y ampliar a la pantalla." } }
+        }
+    },
+    {
+        ELanguage::Italian,
+        {
+            { EInternalResolution::Native,  { "Nativa", "Renderizza alla risoluzione del display." } },
+            { EInternalResolution::x960x540, { "960x540", "Renderizza a 960x540 e ingrandisci sul display." } },
+            { EInternalResolution::x1280x720, { "720p", "Renderizza a 1280x720 e ingrandisci sul display." } }
+        }
+    }
+};
+
 CONFIG_DEFINE_LOCALE(ResolutionScale)
 {
     { ELanguage::English,  { "Resolution Scale", "Adjust the internal resolution of the game." } },
@@ -868,6 +930,62 @@ CONFIG_DEFINE_ENUM_LOCALE(ECutsceneAspectRatio)
         {
             { ECutsceneAspectRatio::Original, { "Originale", "Originale: blocca il rapporto d'aspetto dei filmati a 16:9." } },
             { ECutsceneAspectRatio::Unlocked, { "Sbloccato", "Sbloccato: il rapporto d'aspetto verrà regolato in base alle dimensioni della finestra. ATTENZIONE: questa opzione potrebbe causare dei problemi visivi se il rapporto d'aspetto è oltre 16:9." } }
+        }
+    }
+};
+
+CONFIG_DEFINE_LOCALE(SDLVideoDriver)
+{
+    { ELanguage::English,  { "Graphics Driver", "Change the graphics driver used by the application. Requires a restart to apply. Use \"System\" if the game fails to start with the default driver." } },
+    { ELanguage::Japanese, { "グラフィックスドライバー", "アプリケーションが使用するグラフィックスドライバーを変更します。適用するには再起動が必要です。デフォルトドライバーでゲームが起動しない場合は「システム」を選択してください。" } },
+    { ELanguage::German,   { "Grafiktreiber", "Ändere den vom Programm genutzten Grafiktreiber. Erfordert einen Neustart. Nutze \"System\", falls das Spiel mit dem Standardtreiber nicht startet." } },
+    { ELanguage::French,   { "Pilote graphique", "Change le pilote graphique utilisé par l'application. Nécessite un redémarrage. Utilise \"Système\" si le jeu ne démarre pas avec le pilote par défaut." } },
+    { ELanguage::Spanish,  { "Controlador gráfico", "Cambia el controlador gráfico utilizado por la aplicación. Requiere reinicio. Usa \"Sistema\" si el juego no arranca con el controlador predeterminado." } },
+    { ELanguage::Italian,  { "Driver grafico", "Cambia il driver grafico utilizzato dall'applicazione. Richiede un riavvio. Usa \"Sistema\" se il gioco non si avvia con il driver predefinito." } }
+};
+
+CONFIG_DEFINE_ENUM_LOCALE(ESDLVideoDriver)
+{
+    {
+        ELanguage::English,
+        {
+            { ESDLVideoDriver::Auto,   { "Auto", "Auto: let the application pick the best available graphics driver automatically." } },
+            { ESDLVideoDriver::System, { "System", "System: use the platform system graphics driver. Try this if the game fails to start or shows a backend error." } }
+        }
+    },
+    {
+        ELanguage::Japanese,
+        {
+            { ESDLVideoDriver::Auto,   { "自動", "自動: アプリケーションが最適なグラフィックスドライバーを自動的に選択します" } },
+            { ESDLVideoDriver::System, { "システム", "システム: プラットフォームのシステムグラフィックスドライバーを使用します。ゲームが起動しない場合や、バックエンドエラーが表示される場合はこれを試してください。" } }
+        }
+    },
+    {
+        ELanguage::German,
+        {
+            { ESDLVideoDriver::Auto,   { "Automatisch", "Automatisch: Die Anwendung wählt automatisch den besten Grafiktreiber." } },
+            { ESDLVideoDriver::System, { "System", "System: Nutzt den Systemgrafiktreiber der Plattform. Versuche dies, wenn das Spiel nicht startet oder einen Backend-Fehler anzeigt." } }
+        }
+    },
+    {
+        ELanguage::French,
+        {
+            { ESDLVideoDriver::Auto,   { "Automatique", "Automatique : l'application choisit automatiquement le meilleur pilote graphique disponible." } },
+            { ESDLVideoDriver::System, { "Système", "Système : utilise le pilote graphique système de la plateforme. Essayez ceci si le jeu ne démarre pas ou affiche une erreur de backend." } }
+        }
+    },
+    {
+        ELanguage::Spanish,
+        {
+            { ESDLVideoDriver::Auto,   { "Automático", "Automático: la aplicación selecciona automáticamente el mejor controlador gráfico disponible." } },
+            { ESDLVideoDriver::System, { "Sistema", "Sistema: usa el controlador gráfico del sistema de la plataforma. Prueba esto si el juego no arranca o muestra un error de backend." } }
+        }
+    },
+    {
+        ELanguage::Italian,
+        {
+            { ESDLVideoDriver::Auto,   { "Automatico", "Automatico: l'applicazione sceglie automaticamente il miglior driver grafico disponibile." } },
+            { ESDLVideoDriver::System, { "Sistema", "Sistema: usa il driver grafico di sistema della piattaforma. Prova questo se il gioco non si avvia o mostra un errore del backend." } }
         }
     }
 };

@@ -1,0 +1,20 @@
+Downloading https://github.com/google/brotli/archive/v1.1.0.tar.gz -> google-brotli-v1.1.0.tar.gz
+Successfully downloaded google-brotli-v1.1.0.tar.gz
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/google-brotli-v1.1.0.tar.gz
+-- Applying patch install.patch
+-- Applying patch fix-arm-uwp.patch
+-- Applying patch pkgconfig.patch
+-- Applying patch emscripten.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/src/v1.1.0-958bece74c.clean
+-- Configuring arm64-android
+-- Building arm64-android-dbg
+-- Building arm64-android-rel
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlicommon.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlidec.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlienc.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlicommon.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlidec.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlienc.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/share/brotli/usage
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/share/brotli/copyright
+-- Performing post-build validation

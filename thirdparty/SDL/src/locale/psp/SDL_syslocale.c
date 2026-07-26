@@ -19,12 +19,12 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 #include "../SDL_syslocale.h"
 
 #include <psputility.h>
 
-bool SDL_SYS_GetPreferredLocales(char *buf, size_t buflen)
+void SDL_SYS_GetPreferredLocales(char *buf, size_t buflen)
 {
     int current_locale_int = PSP_SYSTEMPARAM_LANGUAGE_ENGLISH;
 
@@ -72,7 +72,6 @@ bool SDL_SYS_GetPreferredLocales(char *buf, size_t buflen)
             SDL_strlcpy(buf, "en_US", buflen);
             break;
     }
-    return true;
 }
 
 /* vi: set ts=4 sw=4 expandtab: */

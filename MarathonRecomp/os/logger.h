@@ -1,6 +1,7 @@
 #pragma once
 
 #include <source_location>
+#include <string>
 
 #define LOG_IMPL(type, func, str)       os::logger::Log(str, os::logger::ELogType::type, func)
 #define LOGF_IMPL(type, func, str, ...) os::logger::Log(fmt::format(str, __VA_ARGS__), os::logger::ELogType::type, func)
@@ -61,4 +62,11 @@ namespace os::logger
 
     void Init();
     void Log(const std::string_view str, ELogType type = ELogType::None, const char* func = nullptr);
+
+#ifdef __ANDROID__
+    // Open (or reopen) a persistent log file written in addition to logcat.
+    // Call once, after the data-root path is known (e.g. after Config::Load).
+    // The file is overwritten per session so it always contains the latest run.
+    void SetLogFilePath(const std::string& path);
+#endif
 }

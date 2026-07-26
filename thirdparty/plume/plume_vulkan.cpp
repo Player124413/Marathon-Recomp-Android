@@ -19,9 +19,28 @@
 #   include "render/plume_dlss.h"
 #endif
 
+// Lightweight logging that goes to Android logcat (with the MarathonRecomp
+// tag) on Android and to stderr on every other platform.  Used by plume
+// internally so it does not need to pull in the engine's logger.h.
+#ifdef __ANDROID__
+#   include <android/log.h>
+#   define PLUME_LOGI(fmt, ...) __android_log_print(ANDROID_LOG_INFO,  "MarathonRecomp", fmt, ##__VA_ARGS__)
+#   define PLUME_LOGW(fmt, ...) __android_log_print(ANDROID_LOG_WARN,  "MarathonRecomp", fmt, ##__VA_ARGS__)
+#   define PLUME_LOGE(fmt, ...) __android_log_print(ANDROID_LOG_ERROR, "MarathonRecomp", fmt, ##__VA_ARGS__)
+#else
+#   define PLUME_LOGI(fmt, ...) fprintf(stdout, "[plume] "   fmt "\n", ##__VA_ARGS__)
+#   define PLUME_LOGW(fmt, ...) fprintf(stderr, "[plume/W] " fmt "\n", ##__VA_ARGS__)
+#   define PLUME_LOGE(fmt, ...) fprintf(stderr, "[plume/E] " fmt "\n", ##__VA_ARGS__)
+#endif
+
 #ifndef NDEBUG
 #   define VULKAN_VALIDATION_LAYER_ENABLED
+// VK_EXT_debug_utils is required for object naming but may be absent on some
+// Android/Samsung-MediaTek devices.  Disable object naming on Android so the
+// extension remains optional and vkCreateInstance does not fail on those GPUs.
+#   ifndef __ANDROID__
 #   define VULKAN_OBJECT_NAMES_ENABLED
+#   endif
 #endif
 
 // TODO:
@@ -971,6 +990,15 @@ namespace plume {
         this->desc = desc;
         this->ownership = true;
 
+        // Guard: Vulkan does not allow zero-dimension images; Mali-G57 hard-crashes
+        // instead of returning an error code when width/height/depth is 0.
+        if (desc.width == 0 || desc.height == 0 || desc.depth == 0 || desc.mipLevels == 0 || desc.arraySize == 0) {
+            fprintf(stderr, "VulkanTexture: rejecting zero-dimension image (%ux%ux%u mips=%u layers=%u)\n",
+                (unsigned)desc.width, (unsigned)desc.height, (unsigned)desc.depth,
+                (unsigned)desc.mipLevels, (unsigned)desc.arraySize);
+            return;
+        }
+
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = toImageType(desc.dimension);
@@ -1195,7 +1223,11 @@ namespace plume {
         
         thread_local std::vector<VkDescriptorBindingFlags> bindingFlags;
         VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = {};
-        if (descriptorSetDesc.lastRangeIsBoundless && (descriptorSetDesc.descriptorRangesCount > 0)) {
+        // Guard bindless flags behind descriptorIndexing capability.  On ARM Mali the
+        // extension features are not enabled on the logical device even though the
+        // physical device reports support; passing UPDATE_AFTER_BIND / PARTIALLY_BOUND /
+        // VARIABLE_DESCRIPTOR_COUNT to vkCreateDescriptorSetLayout faults the driver.
+        if (descriptorSetDesc.lastRangeIsBoundless && (descriptorSetDesc.descriptorRangesCount > 0) && device->capabilities.descriptorIndexing) {
             bindingFlags.clear();
             bindingFlags.resize(descriptorSetDesc.descriptorRangesCount, 0);
             bindingFlags[descriptorSetDesc.descriptorRangesCount - 1] = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
@@ -1208,7 +1240,12 @@ namespace plume {
             setLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
         }
         
+        fprintf(stderr, "DSL-DBG: vkCreateDescriptorSetLayout bindingCount=%u lastBoundless=%d flags=0x%X\n",
+                setLayoutInfo.bindingCount, (int)descriptorSetDesc.lastRangeIsBoundless, setLayoutInfo.flags);
+        fflush(stderr);
         VkResult res = vkCreateDescriptorSetLayout(device->vk, &setLayoutInfo, nullptr, &vk);
+        fprintf(stderr, "DSL-DBG: vkCreateDescriptorSetLayout returned %d vk=%p\n", (int)res, (void*)vk);
+        fflush(stderr);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkCreateDescriptorSetLayout failed with error code 0x%X.\n", res);
             return;
@@ -1254,8 +1291,31 @@ namespace plume {
         thread_local std::vector<VkDescriptorSetLayout> setLayoutHandles;
         setLayoutHandles.clear();
 
+        // Log key device limits once to help diagnose pipeline layout failures.
+        {
+            const auto &lim = device->physicalDeviceProperties.limits;
+            fprintf(stderr, "PL-DBG: maxBoundDescriptorSets=%u maxDescriptorSetSampledImages=%u "
+                    "maxDescriptorSetSamplers=%u maxDescriptorSetStorageBuffers=%u "
+                    "maxPushConstantsSize=%u setCount=%u pushConstCount=%u\n",
+                    lim.maxBoundDescriptorSets,
+                    lim.maxDescriptorSetSampledImages,
+                    lim.maxDescriptorSetSamplers,
+                    lim.maxDescriptorSetStorageBuffers,
+                    lim.maxPushConstantsSize,
+                    desc.descriptorSetDescsCount,
+                    desc.pushConstantRangesCount);
+            fflush(stderr);
+        }
+
         for (uint32_t i = 0; i < desc.descriptorSetDescsCount; i++) {
+            const auto &dsd = desc.descriptorSetDescs[i];
+            uint32_t lastCount = (dsd.descriptorRangesCount > 0) ? dsd.descriptorRanges[dsd.descriptorRangesCount - 1].count : 0;
+            fprintf(stderr, "PL-DBG: creating DSL[%u]: ranges=%u lastRangeIsBoundless=%d boundlessSize=%u lastCount=%u\n",
+                    i, dsd.descriptorRangesCount, (int)dsd.lastRangeIsBoundless, dsd.boundlessRangeSize, lastCount);
+            fflush(stderr);
             VulkanDescriptorSetLayout *setLayout = new VulkanDescriptorSetLayout(device, desc.descriptorSetDescs[i]);
+            fprintf(stderr, "PL-DBG: DSL[%u] done vk=%p\n", i, (void*)setLayout->vk);
+            fflush(stderr);
             descriptorSetLayouts.emplace_back(setLayout);
             setLayoutHandles.emplace_back(setLayout->vk);
         }
@@ -1263,7 +1323,39 @@ namespace plume {
         layoutInfo.pSetLayouts = !setLayoutHandles.empty() ? setLayoutHandles.data() : nullptr;
         layoutInfo.setLayoutCount = uint32_t(setLayoutHandles.size());
 
+        // Guard against null layout handles that would crash vkCreatePipelineLayout.
+        for (uint32_t i = 0; i < uint32_t(setLayoutHandles.size()); i++) {
+            if (setLayoutHandles[i] == VK_NULL_HANDLE) {
+                fprintf(stderr, "PL-DBG: setLayoutHandles[%u] == VK_NULL_HANDLE — aborting vkCreatePipelineLayout\n", i);
+                fflush(stderr);
+                return;
+            }
+        }
+
+        // Guard: refuse to call vkCreatePipelineLayout with more descriptor sets
+        // than the device supports.  Mali-G57 (and many other mobile Vulkan
+        // implementations) report maxBoundDescriptorSets == 4; passing 5 sets
+        // causes a hard GPU driver kill rather than a graceful VK_ERROR_* return.
+        // Callers are expected to have already trimmed the set count, so this is
+        // a final safety net.
+        {
+            const uint32_t maxSets = device->physicalDeviceProperties.limits.maxBoundDescriptorSets;
+            if (layoutInfo.setLayoutCount > maxSets) {
+                fprintf(stderr, "PL-DBG: setLayoutCount=%u exceeds maxBoundDescriptorSets=%u"
+                        " — aborting vkCreatePipelineLayout to prevent driver kill\n",
+                        layoutInfo.setLayoutCount, maxSets);
+                fflush(stderr);
+                return;
+            }
+        }
+
+        fprintf(stderr, "PL-DBG: calling vkCreatePipelineLayout setCount=%u pushConstCount=%u\n",
+                layoutInfo.setLayoutCount, layoutInfo.pushConstantRangeCount);
+        fflush(stderr);
+
         VkResult res = vkCreatePipelineLayout(device->vk, &layoutInfo, nullptr, &vk);
+        fprintf(stderr, "PL-DBG: vkCreatePipelineLayout returned %d\n", (int)res);
+        fflush(stderr);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkCreatePipelineLayout failed with error code 0x%X.\n", res);
             return;
@@ -1385,6 +1477,10 @@ namespace plume {
         stageInfo.pSpecializationInfo = (specInfo.mapEntryCount > 0) ? &specInfo : nullptr;
 
         const VulkanPipelineLayout *pipelineLayout = static_cast<const VulkanPipelineLayout *>(desc.pipelineLayout);
+        if (pipelineLayout->vk == VK_NULL_HANDLE) {
+            fprintf(stderr, "VulkanComputePipeline: pipelineLayout->vk == VK_NULL_HANDLE — skipping vkCreateComputePipelines\n");
+            return;
+        }
         VkComputePipelineCreateInfo pipelineInfo = {};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
         pipelineInfo.layout = pipelineLayout->vk;
@@ -1416,6 +1512,19 @@ namespace plume {
 
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanDevice *device, const RenderGraphicsPipelineDesc &desc) : VulkanPipeline(device, Type::Graphics) {
         assert(desc.pipelineLayout != nullptr);
+
+        // Guard: if the pipeline layout failed to create (e.g. exceeded
+        // maxBoundDescriptorSets), its VkPipelineLayout handle is VK_NULL_HANDLE.
+        // Passing a null handle to vkCreateGraphicsPipelines causes a hard crash
+        // on Mali and undefined behaviour everywhere else.
+        {
+            const VulkanPipelineLayout *pl = static_cast<const VulkanPipelineLayout *>(desc.pipelineLayout);
+            if (pl->vk == VK_NULL_HANDLE) {
+                fprintf(stderr, "VulkanGraphicsPipeline: pipelineLayout->vk == VK_NULL_HANDLE"
+                        " — skipping vkCreateGraphicsPipelines\n");
+                return;
+            }
+        }
 
         thread_local std::vector<VkPipelineShaderStageCreateInfo> stages;
         stages.clear();
@@ -1504,8 +1613,12 @@ namespace plume {
 
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        viewportState.viewportCount = renderTargetCount;
-        viewportState.scissorCount = renderTargetCount;
+        // viewportCount/scissorCount must be ≥ 1 per the Vulkan spec even when
+        // VK_DYNAMIC_STATE_VIEWPORT / VK_DYNAMIC_STATE_SCISSOR are used.
+        // A pure depth-only pass with no color attachments and no depth target would
+        // produce 0 here; clamp to 1 to avoid a driver fault on Mali.
+        viewportState.viewportCount = std::max(renderTargetCount, 1u);
+        viewportState.scissorCount = std::max(renderTargetCount, 1u);
 
         VkPipelineRasterizationStateCreateInfo rasterization = {};
         rasterization.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -1892,7 +2005,13 @@ namespace plume {
         
         uint32_t boundlessRangeSize = 0;
         uint32_t rangeCount = desc.descriptorRangesCount;
-        if (desc.lastRangeIsBoundless) {
+        // Only take the bindless (variable-count) path when the device actually
+        // supports descriptor indexing.  On ARM Mali the feature is disabled even
+        // though the physical device reports it; skipping this block causes the
+        // last range to be counted by the regular loop below as a fixed-size range,
+        // which vkCreateDescriptorPool and vkAllocateDescriptorSets can handle
+        // without any extension features.
+        if (desc.lastRangeIsBoundless && device->capabilities.descriptorIndexing) {
             assert((desc.descriptorRangesCount > 0) && "There must be at least one descriptor set to define the last range as boundless.");
 
             // Ensure at least one entry is created for boundless ranges.
@@ -1922,7 +2041,11 @@ namespace plume {
         allocateInfo.descriptorSetCount = 1;
 
         VkDescriptorSetVariableDescriptorCountAllocateInfo countInfo = {};
-        if (desc.lastRangeIsBoundless) {
+        // VARIABLE_DESCRIPTOR_COUNT alloc info requires the descriptor indexing
+        // feature.  boundlessRangeSize is also 0 here when !descriptorIndexing
+        // (the block that populates it was skipped above), so we must not chain
+        // this structure at all on devices where the feature is disabled.
+        if (desc.lastRangeIsBoundless && device->capabilities.descriptorIndexing) {
             countInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
             countInfo.pDescriptorCounts = &boundlessRangeSize;
             countInfo.descriptorSetCount = 1;
@@ -2057,7 +2180,9 @@ namespace plume {
         poolInfo.pPoolSizes = !poolSizes.empty() ? poolSizes.data() : nullptr;
         poolInfo.poolSizeCount = uint32_t(poolSizes.size());
 
-        if (lastRangeIsBoundless) {
+        // UPDATE_AFTER_BIND pool flag requires the descriptor indexing feature.
+        // Do not set it when the capability is disabled (e.g. ARM Mali).
+        if (lastRangeIsBoundless && device->capabilities.descriptorIndexing) {
             poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
         }
 
@@ -2079,6 +2204,7 @@ namespace plume {
 
         this->commandQueue = commandQueue;
         this->desc = desc;
+        this->renderWindow = desc.renderWindow;
 
         VkResult res;
 
@@ -2109,7 +2235,9 @@ namespace plume {
         surfaceCreateInfo.window = desc.renderWindow;
 
         VulkanInterface *renderInterface = commandQueue->device->renderInterface;
+        PLUME_LOGW("SwapChain ctor step 1: calling vkCreateAndroidSurfaceKHR (window=%p)", (void*)desc.renderWindow);
         res = vkCreateAndroidSurfaceKHR(renderInterface->instance, &surfaceCreateInfo, nullptr, &surface);
+        PLUME_LOGW("SwapChain ctor step 1: done, res=%d surface=%p", (int)res, (void*)surface);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkCreateAndroidSurfaceKHR failed with error code 0x%X.\n", res);
             return;
@@ -2148,7 +2276,9 @@ namespace plume {
 
         VkBool32 presentSupported = false;
         VkPhysicalDevice physicalDevice = commandQueue->device->physicalDevice;
+        PLUME_LOGW("SwapChain ctor step 2: calling vkGetPhysicalDeviceSurfaceSupportKHR (familyIndex=%u)", commandQueue->familyIndex);
         res = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, commandQueue->familyIndex, surface, &presentSupported);
+        PLUME_LOGW("SwapChain ctor step 2: done, res=%d presentSupported=%d", (int)res, (int)presentSupported);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkGetPhysicalDeviceSurfaceSupportKHR failed with error code 0x%X.\n", res);
             return;
@@ -2160,7 +2290,12 @@ namespace plume {
         }
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
+        PLUME_LOGW("SwapChain ctor step 3: calling vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+        PLUME_LOGW("SwapChain ctor step 3: done, compositeAlpha=0x%X usageFlags=0x%X currentTransform=0x%X",
+                   surfaceCapabilities.supportedCompositeAlpha,
+                   surfaceCapabilities.supportedUsageFlags,
+                   (unsigned)surfaceCapabilities.currentTransform);
 
         // Pick an alpha compositing mode
         if (surfaceCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
@@ -2181,16 +2316,24 @@ namespace plume {
         this->desc.textureCount = std::clamp(desc.textureCount, surfaceCapabilities.minImageCount, surfaceCapabilities.maxImageCount);
 
         uint32_t surfaceFormatCount = 0;
+        PLUME_LOGW("SwapChain ctor step 4: calling vkGetPhysicalDeviceSurfaceFormatsKHR (count query)");
         vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, nullptr);
+        PLUME_LOGW("SwapChain ctor step 4: done, surfaceFormatCount=%u", surfaceFormatCount);
 
         std::vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
+        PLUME_LOGW("SwapChain ctor step 5: calling vkGetPhysicalDeviceSurfaceFormatsKHR (data query)");
         vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, surfaceFormats.data());
+        PLUME_LOGW("SwapChain ctor step 5: done");
 
         uint32_t presentModeCount = 0;
+        PLUME_LOGW("SwapChain ctor step 6: calling vkGetPhysicalDeviceSurfacePresentModesKHR (count query)");
         vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+        PLUME_LOGW("SwapChain ctor step 6: done, presentModeCount=%u", presentModeCount);
 
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+        PLUME_LOGW("SwapChain ctor step 7: calling vkGetPhysicalDeviceSurfacePresentModesKHR (data query)");
         vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+        PLUME_LOGW("SwapChain ctor step 7: done");
         immediatePresentModeSupported = std::find(presentModes.begin(), presentModes.end(), VK_PRESENT_MODE_IMMEDIATE_KHR) != presentModes.end();
         mailboxPresentModeSupported = std::find(presentModes.begin(), presentModes.end(), VK_PRESENT_MODE_MAILBOX_KHR) != presentModes.end();
 
@@ -2205,8 +2348,34 @@ namespace plume {
         }
 
         if (compatibleSurfaceFormats.empty()) {
-            fprintf(stderr, "No compatible surface formats were found.\n");
-            return;
+            // On Android (and ARM Mali in general) the display system uses RGBA byte
+            // order, so VK_FORMAT_B8G8R8A8_UNORM is often absent while
+            // VK_FORMAT_R8G8B8A8_UNORM is always present.  Retry with the
+            // byte-swapped equivalent so the swapchain can still be created; the
+            // rendered image will look correct because the gamma-correction blit that
+            // fills the back-buffer already outputs linear RGBA and the GPU sampler
+            // handles the component order transparently.
+            VkFormat fallbackFormat = VK_FORMAT_UNDEFINED;
+            if (requestedFormat == VK_FORMAT_B8G8R8A8_UNORM)
+                fallbackFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            else if (requestedFormat == VK_FORMAT_R8G8B8A8_UNORM)
+                fallbackFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+            if (fallbackFormat != VK_FORMAT_UNDEFINED) {
+                for (uint32_t i = 0; i < surfaceFormatCount; i++) {
+                    if (surfaceFormats[i].format == fallbackFormat) {
+                        compatibleSurfaceFormats.emplace_back(surfaceFormats[i]);
+                        fprintf(stderr, "Requested surface format unavailable; falling back to byte-swapped equivalent (format %d -> %d).\n",
+                                int(requestedFormat), int(fallbackFormat));
+                        break;
+                    }
+                }
+            }
+
+            if (compatibleSurfaceFormats.empty()) {
+                fprintf(stderr, "No compatible surface formats were found.\n");
+                return;
+            }
         }
 
         // Pick the preferred color space, if not available, pick whatever first shows up on the list.
@@ -2338,9 +2507,31 @@ namespace plume {
         createInfo.imageExtent.width = width;
         createInfo.imageExtent.height = height;
         createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        // Mask the requested usage flags against what the surface actually supports.
+        // VK_IMAGE_USAGE_SAMPLED_BIT is absent from surfaceCapabilities.supportedUsageFlags on
+        // many Android/Mali devices; requesting it unconditionally causes vkCreateSwapchainKHR
+        // to crash (driver fault) instead of returning a clean error code.
+        {
+            constexpr VkImageUsageFlags requestedUsage =
+                VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT     |
+                VK_IMAGE_USAGE_SAMPLED_BIT;
+            createInfo.imageUsage = requestedUsage & surfaceCapabilities.supportedUsageFlags;
+            // COLOR_ATTACHMENT is non-negotiable for rendering; bail if absent.
+            if (!(createInfo.imageUsage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
+                fprintf(stderr, "Surface does not support VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT (supportedUsageFlags=0x%X).\n",
+                        surfaceCapabilities.supportedUsageFlags);
+                return false;
+            }
+        }
+
         createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        // Use the surface's current transform rather than hard-coding IDENTITY.
+        // On Android devices in landscape (e.g. Samsung Galaxy Tab A9 SM-X110), the
+        // compositor reports VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR; passing IDENTITY
+        // in that case causes vkCreateSwapchainKHR to crash on Mali drivers.
+        createInfo.preTransform = surfaceCapabilities.currentTransform;
         createInfo.compositeAlpha = pickedAlphaFlag;
         createInfo.presentMode = requiredPresentMode;
         createInfo.clipped = VK_TRUE;
@@ -2406,6 +2597,56 @@ namespace plume {
         return (vk == VK_NULL_HANDLE) || (windowWidth != width) || (windowHeight != height) || (requiredPresentMode != createdPresentMode);
     }
 
+    bool VulkanSwapChain::recreateSurface(RenderWindow newRenderWindow) {
+#   if defined(__ANDROID__)
+        VulkanInterface *renderInterface = commandQueue->device->renderInterface;
+
+        // The old surface may still have presents in flight on the queue; make sure the
+        // device is fully idle before destroying the swap chain images underneath them.
+        vkDeviceWaitIdle(commandQueue->device->vk);
+
+        releaseImageViews();
+        releaseSwapChain();
+
+        if (surface != VK_NULL_HANDLE) {
+            vkDestroySurfaceKHR(renderInterface->instance, surface, nullptr);
+            surface = VK_NULL_HANDLE;
+        }
+
+        renderWindow = newRenderWindow;
+        if (renderWindow == nullptr) {
+            return false;
+        }
+
+        VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+        surfaceCreateInfo.window = renderWindow;
+
+        VkResult res = vkCreateAndroidSurfaceKHR(renderInterface->instance, &surfaceCreateInfo, nullptr, &surface);
+        if (res != VK_SUCCESS) {
+            fprintf(stderr, "vkCreateAndroidSurfaceKHR failed with error code 0x%X.\n", res);
+            surface = VK_NULL_HANDLE;
+            return false;
+        }
+
+        // Composite alpha support belongs to the surface, so re-pick it for the new one.
+        // The picked surface format is a physical device property and carries over.
+        VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(commandQueue->device->physicalDevice, surface, &surfaceCapabilities);
+        if (surfaceCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
+            pickedAlphaFlag = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        }
+        else if (surfaceCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+            pickedAlphaFlag = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+        }
+
+        return true;
+#   else
+        (void)newRenderWindow;
+        return false;
+#   endif
+    }
+
     void VulkanSwapChain::setVsyncEnabled(bool vsyncEnabled) {
         // Immediate mode must be supported and the presentation mode will only be used on the next resize.
         // needsResize() will return as true as long as the created and required present mode do not match.
@@ -2439,11 +2680,22 @@ namespace plume {
     }
 
     RenderWindow VulkanSwapChain::getWindow() const {
-        return desc.renderWindow;
+        return renderWindow;
     }
 
     bool VulkanSwapChain::isEmpty() const {
         return (vk == VK_NULL_HANDLE) || (width == 0) || (height == 0);
+    }
+
+    RenderFormat VulkanSwapChain::getFormat() const {
+        // Reverse-map the Vulkan surface format back to a RenderFormat.
+        // Only the two formats that the swapchain BGRA↔RGBA fallback can produce are listed;
+        // everything else returns UNKNOWN (caller must check).
+        switch (pickedSurfaceFormat.format) {
+        case VK_FORMAT_B8G8R8A8_UNORM:  return RenderFormat::B8G8R8A8_UNORM;
+        case VK_FORMAT_R8G8B8A8_UNORM:  return RenderFormat::R8G8B8A8_UNORM;
+        default:                         return RenderFormat::UNKNOWN;
+        }
     }
 
     uint32_t VulkanSwapChain::getRefreshRate() const {
@@ -2466,8 +2718,8 @@ namespace plume {
 #   elif defined(PLUME_SDL_VULKAN_ENABLED)
         SDL_GetWindowSizeInPixels(desc.renderWindow, (int *)(&dstWidth), (int *)(&dstHeight));
 #   elif defined(__ANDROID__)
-        dstWidth = ANativeWindow_getWidth(desc.renderWindow);
-        dstHeight = ANativeWindow_getHeight(desc.renderWindow);
+        dstWidth = ANativeWindow_getWidth(renderWindow);
+        dstHeight = ANativeWindow_getHeight(renderWindow);
 #   elif defined(__linux__)
         XWindowAttributes attributes;
         XGetWindowAttributes(desc.renderWindow.display, desc.renderWindow.window, &attributes);
@@ -2486,7 +2738,18 @@ namespace plume {
         assert(signalSemaphore != nullptr);
 
         VulkanCommandSemaphore *interfaceSemaphore = static_cast<VulkanCommandSemaphore *>(signalSemaphore);
-        VkResult res = vkAcquireNextImageKHR(commandQueue->device->vk, vk, UINT64_MAX, interfaceSemaphore->vk, VK_NULL_HANDLE, textureIndex);
+        // Use a finite 2-second timeout instead of UINT64_MAX.  On ARM Mali (e.g. Galaxy Tab A9
+        // Mali-G57), a GPU driver fault silently kills the GPU context without ever signalling the
+        // semaphore; vkAcquireNextImageKHR with UINT64_MAX would then block the render thread
+        // forever.  A finite timeout lets us detect the stall, log it, and return false so the
+        // caller invalidates the swapchain and enters the retry path — identical to the finite
+        // timeout already used in waitForCommandFence().
+        constexpr uint64_t kAcquireTimeoutNs = 2000000000ULL; // 2 seconds
+        VkResult res = vkAcquireNextImageKHR(commandQueue->device->vk, vk, kAcquireTimeoutNs, interfaceSemaphore->vk, VK_NULL_HANDLE, textureIndex);
+        if (res == VK_TIMEOUT) {
+            fprintf(stderr, "vkAcquireNextImageKHR timed out after 2s — GPU context may be lost (driver fault); invalidating swapchain\n");
+            return false;
+        }
         if ((res != VK_SUCCESS) && (res != VK_SUBOPTIMAL_KHR)) {
             return false;
         }
@@ -2618,12 +2881,55 @@ namespace plume {
             subpass.pDepthStencilAttachment = &depthReference;
         }
 
+        // ARM Mali is a Tile-Based Deferred Renderer (TBDR).  Without explicit
+        // external subpass dependencies the driver may not flush tile data to main
+        // memory between render passes, causing the next pass to read stale values.
+        // Add minimal external deps (VK_DEPENDENCY_BY_REGION_BIT so the driver can
+        // still tile-optimise within a pass) to guarantee correct ordering.
+        std::vector<VkSubpassDependency> subpassDependencies;
+        if (device->description.vendor == RenderDeviceVendor::ARM) {
+            VkSubpassDependency entryDep = {};
+            entryDep.srcSubpass      = VK_SUBPASS_EXTERNAL;
+            entryDep.dstSubpass      = 0;
+            entryDep.srcStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+                                     | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+                                     | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            entryDep.dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+                                     | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+                                     | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            entryDep.srcAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                     | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            entryDep.dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+                                     | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                     | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
+                                     | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            entryDep.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+            subpassDependencies.push_back(entryDep);
+
+            VkSubpassDependency exitDep = {};
+            exitDep.srcSubpass      = 0;
+            exitDep.dstSubpass      = VK_SUBPASS_EXTERNAL;
+            exitDep.srcStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+                                    | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+                                    | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            exitDep.dstStageMask    = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+                                    | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            exitDep.srcAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                    | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            exitDep.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT
+                                    | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+            exitDep.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+            subpassDependencies.push_back(exitDep);
+        }
+
         VkRenderPassCreateInfo passInfo = {};
         passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         passInfo.pAttachments = attachments.data();
         passInfo.attachmentCount = uint32_t(attachments.size());
         passInfo.pSubpasses = &subpass;
         passInfo.subpassCount = 1;
+        passInfo.pDependencies = subpassDependencies.empty() ? nullptr : subpassDependencies.data();
+        passInfo.dependencyCount = uint32_t(subpassDependencies.size());
 
         res = vkCreateRenderPass(device->vk, &passInfo, nullptr, &renderPass);
         if (res != VK_SUCCESS) {
@@ -2951,6 +3257,13 @@ namespace plume {
         }
         case VulkanPipeline::Type::Graphics: {
             const VulkanGraphicsPipeline *graphicsPipeline = static_cast<const VulkanGraphicsPipeline *>(interfacePipeline);
+            // Guard: if vkCreateGraphicsPipelines failed (e.g. render-pass format mismatch on
+            // Mali, or any other driver rejection), graphicsPipeline->vk is VK_NULL_HANDLE.
+            // Passing a null handle to vkCmdBindPipeline causes a hard GPU driver crash on Mali.
+            if (graphicsPipeline->vk == VK_NULL_HANDLE) {
+                fprintf(stderr, "VulkanCommandList::setPipeline: skipping null graphics pipeline (creation failed)\n");
+                break;
+            }
             vkCmdBindPipeline(vk, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->vk);
             break;
         }
@@ -3635,7 +3948,20 @@ namespace plume {
         assert(fence != nullptr);
 
         VulkanCommandFence *interfaceFence = static_cast<VulkanCommandFence *>(fence);
-        VkResult res = vkWaitForFences(device->vk, 1, &interfaceFence->vk, VK_TRUE, UINT64_MAX);
+        // Use a finite 5-second timeout instead of UINT64_MAX. On Mali (and other mobile
+        // drivers), a GPU driver fault (e.g. vkCmdBindPipeline with a null handle, or an
+        // incompatible render-pass/pipeline combination) silently kills the GPU context
+        // without ever signalling the fence. UINT64_MAX would then hang the app forever.
+        // A 5-second timeout lets us log the event and continue; subsequent frames will
+        // either recover (if the GPU context survives) or produce further log entries.
+        constexpr uint64_t kFenceTimeoutNs = 5000000000ULL; // 5 seconds
+        VkResult res = vkWaitForFences(device->vk, 1, &interfaceFence->vk, VK_TRUE, kFenceTimeoutNs);
+        if (res == VK_TIMEOUT) {
+            fprintf(stderr, "vkWaitForFences timed out after 5s — GPU context may be lost (driver fault); skipping fence reset\n");
+            // Do NOT reset the fence: it was never signalled, so resetting it would leave
+            // the next frame's submission unsynchronised and likely crash immediately.
+            return;
+        }
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkWaitForFences failed with error code 0x%X.\n", res);
             return;
@@ -4119,6 +4445,18 @@ namespace plume {
         // Fill description.
         description.dedicatedVideoMemory = memoryHeapSize;
 
+        // Always log the selected device — essential for crash post-mortems.
+        PLUME_LOGI("Vulkan device  : %s", physicalDeviceProperties.deviceName);
+        PLUME_LOGI("  vendorID     : 0x%04X", physicalDeviceProperties.vendorID);
+        PLUME_LOGI("  deviceID     : 0x%04X", physicalDeviceProperties.deviceID);
+        PLUME_LOGI("  driverVer    : 0x%08X", physicalDeviceProperties.driverVersion);
+        PLUME_LOGI("  apiVersion   : %u.%u.%u",
+            VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion),
+            VK_VERSION_MINOR(physicalDeviceProperties.apiVersion),
+            VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
+        PLUME_LOGI("  vram         : %llu MiB",
+            (unsigned long long)(memoryHeapSize / (1024ULL * 1024ULL)));
+
         // Fill capabilities.
         capabilities.geometryShader = deviceFeatures.features.geometryShader;
         capabilities.raytracing = rayTracingSupported;
@@ -4130,14 +4468,31 @@ namespace plume {
         capabilities.scalarBlockLayout = scalarBlockLayoutSupported;
         capabilities.bufferDeviceAddress = bufferDeviceAddressSupported;
         capabilities.samplerMirrorClampToEdge = supportedOptionalExtensions.find(VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME) != supportedOptionalExtensions.end();
-        capabilities.presentWait = presentWaitSupported;
+        // ARM Mali drivers may advertise VK_KHR_present_wait but fault when the
+        // feature is actually exercised (vkWaitForPresentKHR returns driver errors
+        // or kills the process on some Valhall / Bifrost firmware versions).
+        // Disable it unconditionally for ARM so the engine uses fence-based
+        // present pacing instead, which is safe on all tested Mali devices.
+        capabilities.presentWait = presentWaitSupported && (description.vendor != RenderDeviceVendor::ARM);
         capabilities.displayTiming = supportedOptionalExtensions.find(VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME) != supportedOptionalExtensions.end();
         capabilities.maxTextureSize = physicalDeviceProperties.limits.maxImageDimension2D;
         capabilities.preferHDR = memoryHeapSize > (512 * 1024 * 1024);
         capabilities.dynamicDepthBias = true;
-        capabilities.queryPools = true;
+        // Only enable timestamp query pools when the device actually supports them
+        // (timestampPeriod == 0 means no support) and we are not on ARM Mali where
+        // vkCmdWriteTimestamp is known to cause intermittent GPU faults on some
+        // driver versions (the profiler simply shows zeros when disabled).
+        capabilities.queryPools = (physicalDeviceProperties.limits.timestampPeriod > 0.0f) &&
+                                   (description.vendor != RenderDeviceVendor::ARM);
         capabilities.uma = (description.type == RenderDeviceType::INTEGRATED) && hasHostVisibleDeviceLocalMemory;
         capabilities.gpuUploadHeap = capabilities.uma;
+        capabilities.maxBoundDescriptorSets = physicalDeviceProperties.limits.maxBoundDescriptorSets;
+        // BC (S3TC/DXTC) texture compression — VkPhysicalDeviceFeatures::textureCompressionBC.
+        // ARM Mali-G57 and many other mobile Vulkan implementations report this as VK_FALSE,
+        // meaning BC-format textures cannot be uploaded directly and must be software-decoded
+        // to RGBA8 before use.  The engine's LoadTexture() checks this flag and falls back to
+        // bc_software_decode.h when it is false.
+        capabilities.textureCompressionBC = (bool)deviceFeatures.features.textureCompressionBC;
 
 #   if defined(__APPLE__)
         // MoltenVK supports triangle fans but does so via compute shaders to translate to lists, since it has to
@@ -4145,11 +4500,80 @@ namespace plume {
         // so force disable native triangle fan support and rely on the game to emulate fans if needed.
         capabilities.triangleFan = false;
 #   else
-        capabilities.triangleFan = true;
+        // ARM Mali (Valhall and earlier) has known driver crashes when triangle fan
+        // primitives are used in complex scenes.  Force list re-indexing, the same
+        // path MoltenVK uses, so the engine never issues fan draw calls on Mali.
+        capabilities.triangleFan = (description.vendor != RenderDeviceVendor::ARM);
 #   endif
 
         // Fill Vulkan-only capabilities.
-        loadStoreOpNoneSupported = supportedOptionalExtensions.find(VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME) != supportedOptionalExtensions.end();
+        // ARM Mali drivers may advertise VK_EXT_load_store_op_none but crash inside
+        // vkCreateRenderPass or during command-buffer execution when NONE ops are
+        // actually used.  Unconditionally disable the extension for ARM so the code
+        // always falls back to explicit LOAD / STORE operations instead.
+        loadStoreOpNoneSupported = (description.vendor != RenderDeviceVendor::ARM) &&
+            supportedOptionalExtensions.find(VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME) != supportedOptionalExtensions.end();
+
+        // ── ARM Mali additional runtime capability overrides ─────────────────
+        // Mali-G57 (MediaTek Helio G99, Galaxy Tab A9 SM-X110) and related
+        // Valhall/Bifrost parts may advertise these features correctly but
+        // trigger hard GPU driver kills when the features are actually used.
+        // Disable them all unconditionally for ARM so the engine takes the
+        // safe fall-back paths instead.
+        if (description.vendor == RenderDeviceVendor::ARM)
+        {
+            // VK_GOOGLE_DISPLAY_TIMING: frame-pacing via display timestamps
+            // crashes on some Mali Valhall firmware; use fence pacing instead.
+            if (capabilities.displayTiming)
+            {
+                capabilities.displayTiming = false;
+                PLUME_LOGW("ARM Mali: displayTiming disabled (driver compatibility).");
+            }
+
+            // Descriptor indexing (bindless texture arrays): some Mali Valhall
+            // firmware versions crash when variable-count arrays are populated
+            // at runtime even though the feature bits are reported as supported.
+            if (capabilities.descriptorIndexing)
+            {
+                capabilities.descriptorIndexing = false;
+                PLUME_LOGW("ARM Mali: descriptorIndexing disabled (driver compatibility).");
+            }
+
+            // robustness2 / nullDescriptor: null resource handles passed to
+            // Vulkan may trigger GPU faults on some Mali Valhall drivers.
+            if (nullDescriptorSupported)
+            {
+                nullDescriptorSupported = false;
+                PLUME_LOGW("ARM Mali: nullDescriptor disabled (driver compatibility).");
+            }
+
+            // VK_EXT_scalar_block_layout: some Mali driver versions miscompile
+            // shaders that rely on scalar layout, causing GPU faults at draw.
+            if (capabilities.scalarBlockLayout)
+            {
+                capabilities.scalarBlockLayout = false;
+                PLUME_LOGW("ARM Mali: scalarBlockLayout disabled (driver compatibility).");
+            }
+        }
+
+        // Log the final capability set — written to the persistent log file
+        // so we can see exactly what was active in a crash post-mortem.
+        PLUME_LOGI("Capabilities   : geometryShader=%d descriptorIndexing=%d"
+                   " scalarBlockLayout=%d nullDescriptor=%d",
+                   (int)capabilities.geometryShader,
+                   (int)capabilities.descriptorIndexing,
+                   (int)capabilities.scalarBlockLayout,
+                   (int)nullDescriptorSupported);
+        PLUME_LOGI("               : presentWait=%d displayTiming=%d"
+                   " queryPools=%d triangleFan=%d loadStoreOpNone=%d"
+                   " maxBoundDescriptorSets=%u textureCompressionBC=%d",
+                   (int)capabilities.presentWait,
+                   (int)capabilities.displayTiming,
+                   (int)capabilities.queryPools,
+                   (int)capabilities.triangleFan,
+                   (int)loadStoreOpNoneSupported,
+                   capabilities.maxBoundDescriptorSets,
+                   (int)capabilities.textureCompressionBC);
 
         if (!nullDescriptorSupported) {
             nullBuffer = createBuffer(RenderBufferDesc::DefaultBuffer(16, RenderBufferFlag::VERTEX));
@@ -4475,7 +4899,14 @@ namespace plume {
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "plume";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        // Request 1.1 on Android: Mali-G57 devices (MediaTek Helio G99) may
+        // only expose Vulkan 1.1.  All 1.2+ features Plume uses are checked
+        // via individual extension queries anyway.
+#ifdef __ANDROID__
+        appInfo.apiVersion = VK_API_VERSION_1_1;
+#else
         appInfo.apiVersion = VK_API_VERSION_1_2;
+#endif
 
         VkInstanceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

@@ -15,7 +15,9 @@
 #include <ui/message_window.h>
 #include <decompressor.h>
 #include <exports.h>
+#ifndef __ANDROID__
 #include <nfd.h>
+#endif
 #include <sdl_listener.h>
 
 #include <res/images/installer/install_001.dds.h>
@@ -472,6 +474,7 @@ static void DrawProgressBar(ImVec2 originMin, ImVec2 originMax, float progress)
     drawList->AddRectFilled(gaugeMin, { gaugeMin.x + (gaugeMax.x - gaugeMin.x) * progress, gaugeMax.y }, IM_COL32(112, 250, 255, 255 * g_alphaMotion), Scale(10, true));
 }
 
+#ifndef __ANDROID__
 static bool ConvertPathSet(const nfdpathset_t *pathSet, std::list<std::filesystem::path> &filePaths)
 {
     nfdpathsetsize_t pathSetCount = 0;
@@ -525,9 +528,17 @@ static void PickerThreadProcess()
 
     g_currentPickerResultsReady = true;
 }
+#endif // !__ANDROID__
 
 static void PickerStart(bool folderMode)
 {
+#ifdef __ANDROID__
+    // No native file dialog on Android — immediately signal empty results.
+    g_currentPickerResults.clear();
+    g_currentPickerFolderMode = folderMode;
+    g_currentPickerResultsReady = true;
+    g_currentPickerVisible = false;
+#else
     if (g_currentPickerThread != nullptr)
     {
         g_currentPickerThread->join();
@@ -552,6 +563,7 @@ static void PickerStart(bool folderMode)
         PickerThreadProcess();
     else
         g_currentPickerThread = std::make_unique<std::thread>(PickerThreadProcess);
+#endif // __ANDROID__
 }
 
 static void PickerShow(bool folderMode)
@@ -1363,7 +1375,9 @@ bool InstallerWizard::Run(std::filesystem::path installPath, bool skipGame)
     g_installPath = installPath;
 
     EmbeddedPlayer::Init();
+#ifndef __ANDROID__
     NFD_Init();
+#endif
 
     // Guarantee that one controller is initialised.
     // We'll rely on SDL's event loop to get the controller events.
@@ -1396,7 +1410,9 @@ bool InstallerWizard::Run(std::filesystem::path installPath, bool skipGame)
     Fader::FadeIn(0);
     ButtonWindow::Close();
     GameWindow::SetFullscreenCursorVisibility(false);
+#ifndef __ANDROID__
     NFD_Quit();
+#endif
     EmbeddedPlayer::Shutdown();
     InstallerWizard::Shutdown();
 

@@ -19,7 +19,7 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifndef SDL_pipewire_h_
 #define SDL_pipewire_h_
@@ -27,19 +27,21 @@
 #include "../SDL_sysaudio.h"
 #include <pipewire/pipewire.h>
 
+/* Hidden "this" pointer for the audio functions */
+#define _THIS SDL_AudioDevice *this
+
 struct SDL_PrivateAudioData
 {
     struct pw_thread_loop *loop;
     struct pw_stream *stream;
     struct pw_context *context;
+    struct SDL_DataQueue *buffer;
 
-    char *node_name;
-
-    Sint32 stride; // Bytes-per-frame
+    size_t input_buffer_packet_size;
+    Sint32 stride; /* Bytes-per-frame */
     int stream_init_status;
-
-    // Set in GetDeviceBuf, filled in AudioThreadIterate, queued in PlayDevice
-    struct pw_buffer *pw_buf;
 };
 
-#endif // SDL_pipewire_h_
+#endif /* SDL_pipewire_h_ */
+
+/* vi: set ts=4 sw=4 expandtab: */

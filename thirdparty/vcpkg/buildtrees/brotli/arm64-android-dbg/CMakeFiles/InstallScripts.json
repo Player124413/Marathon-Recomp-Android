@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-dbg/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

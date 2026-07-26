@@ -20,6 +20,7 @@ namespace plume {
 
     struct RenderBuffer {
         virtual ~RenderBuffer() { }
+        virtual bool isValid() const { return true; }
         virtual void *map(uint32_t subresource = 0, const RenderRange *readRange = nullptr) = 0;
         virtual void unmap(uint32_t subresource = 0, const RenderRange *writtenRange = nullptr) = 0;
         virtual std::unique_ptr<RenderBufferFormattedView> createBufferFormattedView(RenderFormat format) = 0;
@@ -34,10 +35,12 @@ namespace plume {
 
     struct RenderTextureView {
         virtual ~RenderTextureView() { }
+        virtual bool isValid() const { return true; }
     };
 
     struct RenderTexture {
         virtual ~RenderTexture() { }
+        virtual bool isValid() const { return true; }
         virtual std::unique_ptr<RenderTextureView> createTextureView(const RenderTextureViewDesc &desc) const = 0;
         virtual void setName(const std::string &name) = 0;
     };
@@ -48,6 +51,7 @@ namespace plume {
 
     struct RenderShader {
         virtual ~RenderShader() { }
+        virtual bool isValid() const { return true; }
         virtual void setName(const std::string &name) = 0;
     };
 
@@ -57,12 +61,19 @@ namespace plume {
 
     struct RenderPipeline {
         virtual ~RenderPipeline() { }
+        virtual bool isValid() const { return true; }
         virtual void setName(const std::string &name) = 0;
         virtual RenderPipelineProgram getProgram(const std::string &name) const = 0;
     };
 
     struct RenderPipelineLayout {
         virtual ~RenderPipelineLayout() { }
+
+        // Returns false if the underlying API object was not created successfully
+        // (e.g. vkCreatePipelineLayout returned an error or the device limit for
+        // maxBoundDescriptorSets was exceeded).  Callers should check this before
+        // creating pipelines that reference this layout.
+        virtual bool isValid() const { return true; }
     };
 
     struct RenderCommandFence {
@@ -99,7 +110,15 @@ namespace plume {
         virtual uint32_t getTextureCount() const = 0;
         virtual bool acquireTexture(RenderCommandSemaphore *signalSemaphore, uint32_t *textureIndex) = 0;
         virtual RenderWindow getWindow() const = 0;
+        // Returns the actual pixel format chosen for the swapchain surface.
+        // May differ from the requested format (e.g. R8G8B8A8 instead of B8G8R8A8 on Android/Mali).
+        // Default returns UNKNOWN; only the Vulkan backend overrides this currently.
+        virtual RenderFormat getFormat() const { return RenderFormat::UNKNOWN; }
         virtual bool isEmpty() const = 0;
+        // Recreates the presentation surface on a new native window. Android replaces the
+        // ANativeWindow across background/foreground; the old surface then presents into a
+        // dead window. Backends without this capability return false.
+        virtual bool recreateSurface(RenderWindow renderWindow) { (void)renderWindow; return false; }
 
         // Only valid if displayTiming is enabled in capabilities.
         virtual uint32_t getRefreshRate() const = 0;

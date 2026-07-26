@@ -1,2 +1,14 @@
 - [Android NDK on Replit](android-ndk-on-replit.md) — no NDK/SDK Nix packages exist; download NDK zip directly from Google; vcpkg needs full clone + Android autotools ports can grab host gcc instead of NDK clang.
+- [Android settings TOML direct](android-settings-toml-direct.md) — no SharedPreferences for game settings; read/patch config.toml directly (SansNope pattern); correct TOML enum values documented.
 - [Android recomp GPU risk](android-recomp-gpu-risk.md) — UnleashedRecomp-Android (precedent for this kind of Xbox360-recomp Android port) only supports Adreno GPUs; Mali (e.g. Tab A9's Mali-G57) is explicitly unsupported/not planned.
+- [Mali first-frame crash fixes](mali-first-frame-crash.md) — eight root causes fixed; latest: vkAcquireNextImageKHR UINT64_MAX hang, replaced with 2s finite timeout.
+- [KeWaitForMultipleObjects semaphore deadlock](ke-wait-multiple-semaphore-deadlock.md) — post-archive hang on Mali; fixed by type-dispatching Semaphore in wait loop + notify g_keSetEventGeneration on semaphore release.
+- [Recomp-to-Android host-tools split](recomp-android-host-tools-split.md) — mid-build code-gen tools (PPC/shader recompilers) must be built natively and passed as prebuilt paths, never cross-compiled to the target.
+- [imgui-implot-downgrade](imgui-implot-downgrade.md) — imgui 1.92→1.91.9b + implot 1.1→0.17 required; v1.91.9b still renames ConfigData→Sources and drops const from CalcTextSizeA/AddText.
+- [android-platform-guards](android-platform-guards.md) — xma_decoder, nfd, and x11/ANativeWindow all need __ANDROID__ guards; ANativeWindow comes from info.info.android.window via SDL_SysWMinfo.
+- [dxc-bin-host-arch](dxc-bin-host-arch.md) — dxc-bin CMakeLists must use CMAKE_HOST_SYSTEM_PROCESSOR when CMAKE_CROSSCOMPILING is ON; otherwise picks arm64 for Android cross-compiles.
+- [Android internal resolution](android-internal-resolution.md) — keep the swapchain at display size while rendering the guest at a selectable 960×540 or 720p intermediary target.
+- [Android config consistency](android-config-consistency.md) — native enum settings require matching locale tables and Android TOML UI keys before APK packaging can succeed.
+- [Android APK verification](android-apk-verification.md) — verify versionCode, archive size, APK hash, and extracted libmain.so hash; ZIP totals can be misleading.
+- [Android file path cache](android-file-path-cache.md) — if Android opens a case-corrected cached path, retain that resolved path for later file-size queries.
+- [ImGui snapshot version-mismatch fallback](imgui-snapshot-version-fallback.md) — assert on IMGUI_VERSION_NUM mismatch causes abort() on Android Debug; replace with nullptr return + runtime fallback in video.cpp + GetFont() graceful degradation.

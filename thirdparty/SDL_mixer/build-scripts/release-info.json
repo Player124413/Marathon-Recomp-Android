@@ -1,86 +1,69 @@
 {
-  "name": "SDL3_mixer",
+  "name": "SDL2_mixer",
   "remote": "libsdl-org/SDL_mixer",
   "dependencies": {
     "SDL": {
-      "startswith": "3.4",
+      "startswith": "2.",
       "repo": "libsdl-org/SDL"
     }
   },
   "version": {
-    "file": "include/SDL3_mixer/SDL_mixer.h",
+    "file": "include/SDL_mixer.h",
     "re_major": "^#define SDL_MIXER_MAJOR_VERSION\\s+([0-9]+)$",
     "re_minor": "^#define SDL_MIXER_MINOR_VERSION\\s+([0-9]+)$",
-    "re_micro": "^#define SDL_MIXER_MICRO_VERSION\\s+([0-9]+)$"
+    "re_micro": "^#define SDL_MIXER_PATCHLEVEL\\s+([0-9]+)$"
   },
   "source": {
     "checks": [
-      "src/SDL_mixer.c",
-      "include/SDL3_mixer/SDL_mixer.h",
-      "test/testmixer.c"
+      "include/SDL_mixer.h",
+      "src/music.c",
+      "src/codecs/music_minimp3.c"
     ]
   },
   "dmg": {
     "project": "Xcode/SDL_mixer.xcodeproj",
-    "path": "Xcode/build/SDL3_mixer.dmg",
-    "scheme": "SDL3_mixer.dmg",
+    "path": "Xcode/build/SDL2_mixer.dmg",
+    "scheme": "Create DMG",
     "build-xcconfig": "Xcode/pkg-support/build.xcconfig",
     "dependencies": {
       "SDL": {
-        "artifact": "SDL3-*.dmg"
+        "artifact": "SDL2-*.dmg"
       }
     }
   },
   "mingw": {
-    "cmake": {
+    "autotools": {
       "archs": ["x86", "x64"],
       "args": [
-        "-DBUILD_SHARED_LIBS=ON",
-        "-DSDLMIXER_FLAC=ON",
-        "-DSDLMIXER_FLAC_DRFLAC=ON",
-        "-DSDLMIXER_FLAC_LIBFLAC=OFF",
-        "-DSDLMIXER_GME=ON",
-        "-DSDLMIXER_MOD=ON",
-        "-DSDLMIXER_MOD_XMP=ON",
-        "-DSDLMIXER_MP3=ON",
-        "-DSDLMIXER_MP3_DRMP3=ON",
-        "-DSDLMIXER_MP3_MPG123=OFF",
-        "-DSDLMIXER_MIDI=ON",
-        "-DSDLMIXER_MIDI_FLUIDSYNTH=OFF",
-        "-DSDLMIXER_MIDI_TIMIDITY=ON",
-        "-DSDLMIXER_OPUS=ON",
-        "-DSDLMIXER_VORBIS_STB=ON",
-        "-DSDLMIXER_VORBIS_TREMOR=OFF",
-        "-DSDLMIXER_VORBIS_VORBISFILE=OFF",
-        "-DSDLMIXER_WAVE=ON",
-        "-DSDLMIXER_WAVPACK=ON",
-        "-DSDLMIXER_RELOCATABLE=ON",
-        "-DSDLMIXER_TESTS=OFF",
-        "-DSDLMIXER_VENDORED=OFF",
-        "-DCMAKE_C_FLAGS=-I@<@PROJECT_ROOT@>@/VisualC/external/include",
-        "-DSDLMIXER_DYNAMIC_GME=@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@/libgme.dll",
-        "-DSDLMIXER_DYNAMIC_WAVPACK=@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@/libwavpack-1.dll",
-        "-DSDLMIXER_DYNAMIC_OPUSFILE=@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@/libopusfile-0.dll",
-        "-DSDLMIXER_DYNAMIC_MOD_XMP=@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@/libxmp.dll"
-      ],
-      "shared-static": "args"
+        "--with-sdl-prefix=@<@DEP_PREFIX@>@",
+        "CFLAGS=-O2 -I@<@DEP_PREFIX@>@/include -I@<@DEP_PREFIX@>@/include/SDL2",
+        "LDFLAGS=-Wl,-s -L@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@ -L@<@DEP_PREFIX@>@/lib -lSDL2",
+        "GME_CFLAGS=-I@<@PROJECT_ROOT@>@/VisualC/external/include",
+        "GME_LIBS=-L@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@",
+        "OPUSFILE_CFLAGS=-I@<@PROJECT_ROOT@>@/VisualC/external/include",
+        "OPUSFILE_LIBS=-L@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@",
+        "WAVPACK_CFLAGS=-I@<@PROJECT_ROOT@>@/VisualC/external/include",
+        "WAVPACK_LIBS=-L@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@",
+        "XMP_CFLAGS=-I@<@PROJECT_ROOT@>@/VisualC/external/include",
+        "XMP_LIBS=-L@<@PROJECT_ROOT@>@/VisualC/external/optional/@<@ARCH@>@"
+      ]
     },
     "files": {
       "": [
-        "build-scripts/pkg-support/mingw/INSTALL.md.in:INSTALL.md",
-        "build-scripts/pkg-support/mingw/Makefile",
+        "CHANGES.txt",
         "LICENSE.txt",
-        "README.md"
+        "README.txt",
+        "mingw/pkg-support/Makefile"
       ],
       "cmake": [
-        "build-scripts/pkg-support/mingw/cmake/SDL3_mixerConfig.cmake",
-        "build-scripts/pkg-support/mingw/cmake/SDL3_mixerConfigVersion.cmake"
+        "mingw/pkg-support/cmake/sdl2_mixer-config.cmake",
+        "mingw/pkg-support/cmake/sdl2_mixer-config-version.cmake"
       ]
     },
     "dependencies": {
       "SDL": {
-        "artifact": "SDL3-devel-*-mingw.tar.gz",
-        "install-command": "make install-@<@ARCH@>@ DESTDIR=@<@PREFIX@>@"
+        "artifact": "SDL2-devel-*-mingw.tar.gz",
+        "install-command": "make install-package arch=@<@TRIPLET@>@ prefix=@<@PREFIX@>@"
       }
     }
   },
@@ -93,231 +76,79 @@
       "projects": [
         "VisualC/SDL_mixer.vcxproj"
       ],
-      "prebuilt": [
-        "VisualC/external/optional/@<@ARCH@>@/*"
-      ],
       "files-lib": {
         "": [
-          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL3_mixer.dll"
-        ],
-        "optional": [
-          "VisualC/external/optional/@<@ARCH@>@/libgme.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libogg-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libopus-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libopusfile-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libwavpack-1.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libxmp.dll",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.gme.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.ogg-vorbis.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.opus.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.opusfile.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.wavpack.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.xmp.txt"
+          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL2_mixer.dll"
         ]
       },
       "files-devel": {
         "lib/@<@ARCH@>@": [
-          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL3_mixer.dll",
-          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL3_mixer.lib",
-          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL3_mixer.pdb"
-        ],
-        "lib/@<@ARCH@>@/optional": [
-          "VisualC/external/optional/@<@ARCH@>@/libgme.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libogg-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libopus-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libopusfile-0.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libwavpack-1.dll",
-          "VisualC/external/optional/@<@ARCH@>@/libxmp.dll",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.gme.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.ogg-vorbis.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.opus.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.opusfile.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.wavpack.txt",
-          "VisualC/external/optional/@<@ARCH@>@/LICENSE.xmp.txt"
-        ]
-      }
-    },
-    "cmake": {
-      "archs": [
-        "arm64"
-      ],
-      "args": [
-        "-DSDLMIXER_SNDFILE=ON",
-        "-DSDLMIXER_FLAC=ON",
-        "-DSDLMIXER_FLAC_DRFLAC=ON",
-        "-DSDLMIXER_FLAC_LIBFLAC=OFF",
-        "-DSDLMIXER_GME=ON",
-        "-DSDLMIXER_MOD=ON",
-        "-DSDLMIXER_MOD_XMP=ON",
-        "-DSDLMIXER_MP3=ON",
-        "-DSDLMIXER_MP3_DRMP3=ON",
-        "-DSDLMIXER_MP3_MPG123=OFF",
-        "-DSDLMIXER_MIDI=ON",
-        "-DSDLMIXER_MIDI_FLUIDSYNTH=OFF",
-        "-DSDLMIXER_MIDI_TIMIDITY=ON",
-        "-DSDLMIXER_OPUS=ON",
-        "-DSDLMIXER_VORBIS_STB=ON",
-        "-DSDLMIXER_VORBIS_TREMOR=OFF",
-        "-DSDLMIXER_VORBIS_VORBISFILE=OFF",
-        "-DSDLMIXER_WAVE=ON",
-        "-DSDLMIXER_WAVPACK=ON",
-        "-DSDLMIXER_RELOCATABLE=ON",
-        "-DSDLMIXER_TESTS=OFF",
-        "-DSDLMIXER_DEPS_SHARED=ON",
-        "-DSDLMIXER_VENDORED=ON"
-      ],
-      "files-lib": {
-        "": [
-          "bin/SDL3_mixer.dll"
-        ],
-        "optional": [
-          "bin/gme.dll",
-          "bin/libxmp.dll",
-          "bin/ogg-0.dll",
-          "bin/opus-0.dll",
-          "bin/opusfile-0.dll",
-          "bin/libwavpack-1.dll",
-          "share/licenses/SDL3_mixer/optional/LICENSE.gme.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.ogg-vorbis.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.opus.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.opusfile.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.wavpack.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.xmp.txt"
-        ]
-      },
-      "files-devel": {
-        "lib/@<@ARCH@>@": [
-          "bin/SDL3_mixer.dll",
-          "bin/SDL3_mixer.pdb",
-          "lib/SDL3_mixer.lib"
-        ],
-        "lib/@<@ARCH@>@/optional": [
-          "bin/gme.dll",
-          "bin/libxmp.dll",
-          "bin/ogg-0.dll",
-          "bin/opus-0.dll",
-          "bin/opusfile-0.dll",
-          "bin/libwavpack-1.dll",
-          "share/licenses/SDL3_mixer/optional/LICENSE.gme.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.ogg-vorbis.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.opus.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.opusfile.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.wavpack.txt",
-          "share/licenses/SDL3_mixer/optional/LICENSE.xmp.txt"
+          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL2_mixer.dll",
+          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL2_mixer.lib",
+          "VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@/SDL2_mixer.pdb"
         ]
       }
     },
     "files-lib": {
       "": [
-        "build-scripts/pkg-support/msvc/@<@ARCH@>@/INSTALL.md.in:INSTALL.md",
-        "LICENSE.txt",
-        "README.md"
+        "README.txt"
+      ],
+      "optional": [
+        "VisualC/external/optional/@<@ARCH@>@/libgme.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libogg-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libopus-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libopusfile-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libwavpack-1.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libxmp.dll",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.gme.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.ogg-vorbis.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.opus.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.opusfile.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.wavpack.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.xmp.txt"
       ]
     },
     "files-devel": {
       "": [
-        "build-scripts/pkg-support/msvc/INSTALL.md.in:INSTALL.md",
+        "CHANGES.txt",
         "LICENSE.txt",
-        "README.md"
+        "README.txt"
+      ],
+      "include": [
+        "include/SDL_mixer.h"
+      ],
+      "lib/@<@ARCH@>@/optional": [
+        "VisualC/external/optional/@<@ARCH@>@/libgme.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libogg-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libopus-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libopusfile-0.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libwavpack-1.dll",
+        "VisualC/external/optional/@<@ARCH@>@/libxmp.dll",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.gme.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.ogg-vorbis.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.opus.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.opusfile.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.wavpack.txt",
+        "VisualC/external/optional/@<@ARCH@>@/LICENSE.xmp.txt"
       ],
       "cmake": [
-        "build-scripts/pkg-support/msvc/cmake/SDL3_mixerConfig.cmake.in:SDL3_mixerConfig.cmake",
-        "build-scripts/pkg-support/msvc/cmake/SDL3_mixerConfigVersion.cmake.in:SDL3_mixerConfigVersion.cmake",
-        "cmake/sdlcpu.cmake"
-      ],
-      "include/SDL3_mixer": [
-          "include/SDL3_mixer/SDL_mixer.h"
+        "VisualC/pkg-support/cmake/sdl2_mixer-config.cmake",
+        "VisualC/pkg-support/cmake/sdl2_mixer-config-version.cmake"
       ]
     },
     "dependencies": {
       "SDL": {
-        "artifact": "SDL3-devel-*-VC.zip",
+        "artifact": "SDL2-devel-*-VC.zip",
         "copy": [
           {
-            "src": "lib/@<@ARCH@>@/SDL3.*",
+            "src": "lib/@<@ARCH@>@/SDL2.*",
             "dst": "../SDL/VisualC/@<@PLATFORM@>@/@<@CONFIGURATION@>@"
           },
           {
-            "src": "include/SDL3/*",
-            "dst": "../SDL/include/SDL3"
+            "src": "include/*",
+            "dst": "../SDL/include"
           }
         ]
-      }
-    }
-  },
-  "android": {
-    "cmake": {
-      "args": [
-        "-DBUILD_SHARED_LIBS=ON",
-        "-DSDLMIXER_SNDFILE=ON",
-        "-DSDLMIXER_FLAC=ON",
-        "-DSDLMIXER_FLAC_DRFLAC=ON",
-        "-DSDLMIXER_FLAC_LIBFLAC=OFF",
-        "-DSDLMIXER_GME=OFF",
-        "-DSDLMIXER_MOD=OFF",
-        "-DSDLMIXER_MOD_XMP=OFF",
-        "-DSDLMIXER_MP3=ON",
-        "-DSDLMIXER_MP3_DRMP3=ON",
-        "-DSDLMIXER_MP3_MPG123=OFF",
-        "-DSDLMIXER_MIDI=ON",
-        "-DSDLMIXER_MIDI_FLUIDSYNTH=OFF",
-        "-DSDLMIXER_MIDI_TIMIDITY=ON",
-        "-DSDLMIXER_OPUS=OFF",
-        "-DSDLMIXER_VORBIS_STB=ON",
-        "-DSDLMIXER_VORBIS_TREMOR=OFF",
-        "-DSDLMIXER_VORBIS_VORBISFILE=OFF",
-        "-DSDLMIXER_WAVE=ON",
-        "-DSDLMIXER_WAVPACK=OFF",
-        "-DSDLMIXER_TESTS=OFF",
-        "-DSDLMIXER_VENDORED=ON"
-      ]
-    },
-    "modules": {
-      "SDL3_mixer-shared": {
-        "type": "library",
-        "library": "lib/libSDL3_mixer.so",
-        "includes": {
-          "SDL3_mixer": ["include/SDL3_mixer/*.h"]
-        }
-      },
-      "SDL3_mixer": {
-        "type": "interface",
-        "export-libraries": [":SDL3_mixer-shared"]
-      }
-    },
-    "abis": [
-      "armeabi-v7a",
-      "arm64-v8a",
-      "x86",
-      "x86_64"
-    ],
-    "api-minimum": 21,
-    "api-target": 35,
-    "ndk-minimum": 28,
-    "aar-files": {
-      "": [
-        "build-scripts/pkg-support/android/aar/__main__.py.in:__main__.py",
-        "build-scripts/pkg-support/android/aar/description.json.in:description.json"
-      ],
-      "META-INF": [
-        "LICENSE.txt"
-      ],
-      "cmake": [
-        "cmake/sdlcpu.cmake",
-        "build-scripts/pkg-support/android/aar/cmake/SDL3_mixerConfig.cmake",
-        "build-scripts/pkg-support/android/aar/cmake/SDL3_mixerConfigVersion.cmake.in:SDL3_mixerConfigVersion.cmake"
-      ]
-    },
-    "files": {
-      "": [
-        "build-scripts/pkg-support/android/INSTALL.md.in:INSTALL.md",
-        "LICENSE.txt",
-        "README.md"
-      ]
-    },
-    "dependencies": {
-      "SDL": {
-        "artifact": "SDL3-devel-*-android.zip"
       }
     }
   }

@@ -1,0 +1,21 @@
+# ninja log v7
+2	187	1783946571970281447	CMakeFiles/png_static.dir/pngget.c.o	589f7996d25f4545
+1	252	1783946571969054054	CMakeFiles/png_static.dir/pngerror.c.o	98bdf9dec1359f0f
+189	260	1783946572154894195	CMakeFiles/png_static.dir/pngmem.c.o	367b04edd69675b
+1	560	1783946571966814857	CMakeFiles/png_static.dir/png.c.o	431ebc2d58980e0b
+252	576	1783946572218814857	CMakeFiles/png_static.dir/pngpread.c.o	a7caef3cf28a7257
+560	683	1783946572526814857	CMakeFiles/png_static.dir/pngrio.c.o	6dfffe6d34306229
+260	840	1783946572226814857	CMakeFiles/png_static.dir/pngread.c.o	5d69cccc8d28e2db
+840	1098	1783946572806814857	CMakeFiles/png_static.dir/pngset.c.o	42159a7ddf3e5d69
+1098	1361	1783946573065686728	CMakeFiles/png_static.dir/pngtrans.c.o	9b7e4c898390c1c3
+684	1583	1783946572651154869	CMakeFiles/png_static.dir/pngrutil.c.o	6b2c53b83b6061ca
+1361	1594	1783946573394814857	CMakeFiles/png_static.dir/pngwio.c.o	44d64e778f643210
+1594	1805	1783946573561669653	CMakeFiles/png_static.dir/pngwtran.c.o	600a7eb5cbf3f68e
+1583	1872	1783946573546814857	CMakeFiles/png_static.dir/pngwrite.c.o	2cd34dc23cf6ce12
+576	1900	1783946572542814857	CMakeFiles/png_static.dir/pngrtran.c.o	82b7c88f659e74cf
+1873	1947	1783946573838814857	CMakeFiles/png_static.dir/arm/arm_init.c.o	3f689f70a0b10c7e
+1900	2063	1783946573866814857	CMakeFiles/png_static.dir/arm/filter_neon_intrinsics.c.o	f2536a6431b4e537
+1947	2108	1783946573915076676	CMakeFiles/png_static.dir/arm/palette_neon_intrinsics.c.o	4cc885ede66c79a0
+1805	2282	1783946573770814857	CMakeFiles/png_static.dir/pngwutil.c.o	ed5f6e736fcd40f
+2282	2299	1783946574246814857	libpng16.a	1b1f05f1a2b01d9d
+2299	2330	1783946574262814857	CMakeFiles/install.util	beed43a7eb939ab0

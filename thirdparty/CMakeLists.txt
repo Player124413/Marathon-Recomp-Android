@@ -6,16 +6,19 @@ set(MSDF_ATLAS_NO_ARTERY_FONT ON)
 set(MSDFGEN_DISABLE_PNG ON)
 
 set(SDL2MIXER_DEPS_SHARED OFF)
-set(SDL2MIXER_VENDORED ON)
+# SDL2MIXER_VENDORED=ON would require cloning ogg/vorbis external submodules.
+# Use STB for Vorbis (single-header, no submodule needed) and disable vendored.
+set(SDL2MIXER_VENDORED OFF)
 set(SDL2MIXER_FLAC OFF)
 set(SDL2MIXER_MOD OFF)
 set(SDL2MIXER_MP3 OFF)
 set(SDL2MIXER_MIDI OFF)
 set(SDL2MIXER_OPUS OFF)
-set(SDL2MIXER_VORBIS "VORBISFILE")
+set(SDL2MIXER_VORBIS "STB")
 set(SDL2MIXER_WAVPACK OFF)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR ANDROID)
     set(PLUME_SDL_VULKAN_ENABLED ON CACHE BOOL "")
 endif()
 
@@ -41,12 +44,28 @@ else()
 endif()
 
 add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/msdf-atlas-gen")
-add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/nativefiledialog-extended")
 add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/o1heap")
 add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/SDL")
 add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/SDL_mixer")
 add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/plume")
-add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/ffmpeg-core")
+
+if (ANDROID)
+    # nativefiledialog-extended has no Android backend (requires GTK3 on Linux).
+    # Create a stub nfd::nfd interface so CMake targets can link against it
+    # without pulling in GTK headers that don't exist on Android.
+    if (NOT TARGET nfd)
+        add_library(nfd INTERFACE)
+        add_library(nfd::nfd ALIAS nfd)
+    endif()
+
+    # ffmpeg-core has no Android prebuilts; create a stub interface target.
+    if (NOT TARGET ffmpeg)
+        add_library(ffmpeg INTERFACE)
+    endif()
+else()
+    add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/nativefiledialog-extended")
+    add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/ffmpeg-core")
+endif()
 
 if (APPLE)
     add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/MoltenVK")

@@ -18,38 +18,27 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
 
 #ifndef SDL_sensor_c_h_
 #define SDL_sensor_c_h_
 
-struct SDL_SensorDriver;
+#include "SDL_config.h"
 
-// Useful functions and variables from SDL_sensor.c
+struct _SDL_SensorDriver;
 
-// Initialization and shutdown functions
-extern bool SDL_InitSensors(void);
-extern void SDL_QuitSensors(void);
+/* Useful functions and variables from SDL_sensor.c */
+#include "SDL_sensor.h"
 
-// Return whether the sensor system is currently initialized
-extern bool SDL_SensorsInitialized(void);
+/* Function to get the next available sensor instance ID */
+extern SDL_SensorID SDL_GetNextSensorInstanceID(void);
 
-// Return whether the sensors are currently locked
-extern bool SDL_SensorsLocked(void);
+/* Initialization and shutdown functions */
+extern int SDL_SensorInit(void);
+extern void SDL_SensorQuit(void);
 
-// Make sure we currently have the sensors locked
-extern void SDL_AssertSensorsLocked(void) SDL_ASSERT_CAPABILITY(SDL_event_lock);
+/* Internal event queueing functions */
+extern int SDL_PrivateSensorUpdate(SDL_Sensor *sensor, Uint64 timestamp_us, float *data, int num_values);
 
-extern void SDL_LockSensors(void) SDL_ACQUIRE(SDL_event_lock);
-extern void SDL_UnlockSensors(void) SDL_RELEASE(SDL_event_lock);
+#endif /* SDL_sensor_c_h_ */
 
-// Function to return whether there are any sensors opened by the application
-extern bool SDL_SensorsOpened(void);
-
-// Update an individual sensor, used by gamepad sensor fusion
-extern void SDL_UpdateSensor(SDL_Sensor *sensor);
-
-// Internal event queueing functions
-extern void SDL_SendSensorUpdate(Uint64 timestamp, SDL_Sensor *sensor, Uint64 sensor_timestamp, float *data, int num_values);
-
-#endif // SDL_sensor_c_h_
+/* vi: set ts=4 sw=4 expandtab: */

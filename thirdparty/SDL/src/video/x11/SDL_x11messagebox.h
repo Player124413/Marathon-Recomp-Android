@@ -24,8 +24,10 @@
 
 #ifdef SDL_VIDEO_DRIVER_X11
 
-extern bool X11_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonID);
+extern int X11_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid);
 
-#endif // SDL_VIDEO_DRIVER_X11
+#endif /* SDL_VIDEO_DRIVER_X11 */
 
-#endif // SDL_x11messagebox_h_
+#endif /* SDL_x11messagebox_h_ */
+
+/* vi: set ts=4 sw=4 expandtab: */

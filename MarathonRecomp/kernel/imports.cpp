@@ -10,6 +10,8 @@
 #include "heap.h"
 #include "memory.h"
 #include <memory>
+#include <chrono>
+#include <thread>
 #include "xam.h"
 #include "xdm.h"
 #include <user/config.h>
@@ -72,7 +74,29 @@ struct Event final : KernelObject, HostObject<XKEVENT>
         }
         else
         {
-            assert(false && "Unhandled timeout value.");
+            // Finite timeout: poll with 1 ms sleep intervals until deadline.
+            auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+            if (manualReset)
+            {
+                while (!signaled)
+                {
+                    if (std::chrono::steady_clock::now() >= deadline)
+                        return STATUS_TIMEOUT;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+            }
+            else
+            {
+                while (true)
+                {
+                    bool expected = true;
+                    if (signaled.compare_exchange_weak(expected, false))
+                        break;
+                    if (std::chrono::steady_clock::now() >= deadline)
+                        return STATUS_TIMEOUT;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+            }
         }
 
         return STATUS_SUCCESS;
@@ -148,8 +172,20 @@ struct Semaphore final : KernelObject, HostObject<XKSEMAPHORE>
         }
         else
         {
-            assert(false && "Unhandled timeout value.");
-            return STATUS_TIMEOUT;
+            // Finite timeout: poll with 1 ms sleep intervals until deadline.
+            auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+            while (true)
+            {
+                uint32_t currentCount = count.load();
+                if (currentCount != 0)
+                {
+                    if (count.compare_exchange_weak(currentCount, currentCount - 1))
+                        return STATUS_SUCCESS;
+                }
+                if (std::chrono::steady_clock::now() >= deadline)
+                    return STATUS_TIMEOUT;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }
     }
 
@@ -1094,25 +1130,22 @@ bool KeResetEvent(XKEVENT* pEvent)
 uint32_t KeWaitForSingleObject(XDISPATCHER_HEADER* Object, uint32_t WaitReason, uint32_t WaitMode, bool Alertable, be<int64_t>* Timeout)
 {
     const uint32_t timeout = GuestTimeoutToMilliseconds(Timeout);
-    assert(timeout == INFINITE);
+    // NOTE: finite timeouts are now supported via the polling path in Event::Wait
+    // and Semaphore::Wait; do NOT assert(timeout == INFINITE) here.
 
     switch (Object->Type)
     {
         case 0:
         case 1:
-            QueryKernelObject<Event>(*Object)->Wait(timeout);
-            break;
+            return QueryKernelObject<Event>(*Object)->Wait(timeout);
 
         case 5:
-            QueryKernelObject<Semaphore>(*Object)->Wait(timeout);
-            break;
+            return QueryKernelObject<Semaphore>(*Object)->Wait(timeout);
 
         default:
             assert(false && "Unrecognized kernel object type.");
             return STATUS_TIMEOUT;
     }
-
-    return STATUS_SUCCESS;
 }
 
 static std::vector<size_t> g_tlsFreeIndices;
@@ -1430,6 +1463,11 @@ uint32_t NtReleaseSemaphore(Semaphore* Handle, uint32_t ReleaseCount, int32_t* P
     if (PreviousCount != nullptr)
         *PreviousCount = ByteSwap(previousCount);
 
+    // Wake any KeWaitForMultipleObjects "wait any" loops sleeping on
+    // g_keSetEventGeneration so they re-poll and see the released semaphore.
+    ++g_keSetEventGeneration;
+    g_keSetEventGeneration.notify_all();
+
     return STATUS_SUCCESS;
 }
 
@@ -1673,34 +1711,45 @@ void NetDll_XNetGetTitleXnAddr()
 
 uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* Objects, uint32_t WaitType, uint32_t WaitReason, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
 {
-    // FIXME: This function is only accounting for events.
+    // Dispatch a single wait on any kernel object type we recognise.
+    // Previously this function only handled Events (type 0/1); Semaphores
+    // (type 5) released via KeReleaseSemaphore would never wake the
+    // wait-any polling loop because that loop sleeps on g_keSetEventGeneration
+    // which only KeSetEvent increments — causing a permanent hang after
+    // archive loading on Mali devices (Samsung Galaxy Tab A9 etc.).
+    auto waitOne = [](XDISPATCHER_HEADER& hdr, uint32_t timeoutMs) -> uint32_t
+    {
+        switch (hdr.Type)
+        {
+            case 0:
+            case 1:
+                return QueryKernelObject<Event>(hdr)->Wait(timeoutMs);
+            case 5:
+                return QueryKernelObject<Semaphore>(hdr)->Wait(timeoutMs);
+            default:
+                assert(false && "Unrecognized kernel object type in KeWaitForMultipleObjects.");
+                return STATUS_TIMEOUT;
+        }
+    };
 
     const uint64_t timeout = GuestTimeoutToMilliseconds(Timeout);
-    assert(timeout == INFINITE);
+    // NOTE: finite timeouts supported via Event::Wait / Semaphore::Wait polling path.
 
     if (WaitType == 0) // Wait all
     {
         for (size_t i = 0; i < Count; i++)
-            QueryKernelObject<Event>(*Objects[i])->Wait(timeout);
+            waitOne(*Objects[i], timeout);
     }
-    else
+    else // Wait any
     {
-        thread_local std::vector<Event*> s_events;
-        s_events.resize(Count);
-
-        for (size_t i = 0; i < Count; i++)
-            s_events[i] = QueryKernelObject<Event>(*Objects[i]);
-
         while (true)
         {
             uint32_t generation = g_keSetEventGeneration.load();
 
             for (size_t i = 0; i < Count; i++)
             {
-                if (s_events[i]->Wait(0) == STATUS_SUCCESS)
-                {
+                if (waitOne(*Objects[i], 0) == STATUS_SUCCESS)
                     return STATUS_WAIT_0 + i;
-                }
             }
 
             g_keSetEventGeneration.wait(generation);
@@ -1721,6 +1770,14 @@ uint32_t KeReleaseSemaphore(XKSEMAPHORE* semaphore, uint32_t increment, uint32_t
 {
     auto* object = QueryKernelObject<Semaphore>(semaphore->Header);
     object->Release(adjustment, nullptr);
+    // Wake any KeWaitForMultipleObjects "wait any" loops that are sleeping on
+    // g_keSetEventGeneration.  Without this bump the polling loop never sees
+    // the freshly-signalled semaphore: it waits on g_keSetEventGeneration
+    // which is only incremented by KeSetEvent, not by semaphore releases.
+    // This caused a permanent hang on Mali/Android after archive loading
+    // when the engine synchronised its worker threads via semaphores.
+    ++g_keSetEventGeneration;
+    g_keSetEventGeneration.notify_all();
     return STATUS_SUCCESS;
 }
 

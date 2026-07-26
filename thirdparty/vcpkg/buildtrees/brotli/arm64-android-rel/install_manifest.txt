@@ -1,0 +1,14 @@
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/tools/brotli/brotli
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/libbrotlienc.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/libbrotlidec.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/libbrotlicommon.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/include/brotli/decode.h
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/include/brotli/encode.h
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/include/brotli/port.h
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/include/brotli/shared_dictionary.h
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/include/brotli/types.h
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/share/unofficial-brotli/unofficial-brotli-config.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/share/unofficial-brotli/unofficial-brotli-config-release.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlicommon.pc
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlidec.pc
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/lib/pkgconfig/libbrotlienc.pc

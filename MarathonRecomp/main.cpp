@@ -24,6 +24,10 @@
 #include <os/logger.h>
 #include <os/process.h>
 #include <os/registry.h>
+#include <version.h>
+#ifdef __ANDROID__
+#include <os/android/storage_android.h>
+#endif
 #include <ui/game_window.h>
 #include <ui/installer_wizard.h>
 #include <mod/mod_loader.h>
@@ -126,11 +130,30 @@ uint32_t LdrLoadModule(const std::filesystem::path &path)
     const auto loadResult = LoadFile(path);
     if (loadResult.empty())
     {
-        assert("Failed to load module" && false);
-        return 0;
+        char text[512];
+        snprintf(text, sizeof(text),
+            "Failed to load the game executable:\n%s\n\n"
+            "Make sure your game files are complete and that default.xex "
+            "is a valid Xbox 360 XEX2 executable.",
+            path.string().c_str());
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), text, GameWindow::s_pWindow);
+        std::_Exit(1);
     }
 
     const auto image = Image::ParseImage(loadResult.data(), loadResult.size());
+
+    if (image.data == nullptr || image.entry_point == 0)
+    {
+        char text[512];
+        snprintf(text, sizeof(text),
+            "Failed to parse the game executable:\n%s\n\n"
+            "The file does not appear to be a valid XEX2 or ELF image. "
+            "Make sure you have copied a proper Xbox 360 game dump, not an ISO "
+            "or other container format.",
+            path.string().c_str());
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), text, GameWindow::s_pWindow);
+        std::_Exit(1);
+    }
 
     memcpy(g_memory.Translate(image.base), image.data.get(), image.size);
     g_xdbfWrapper = XDBFWrapper(static_cast<uint8_t*>(g_memory.Translate(image.resource_offset)), image.resource_size);
@@ -165,6 +188,23 @@ int main(int argc, char *argv[])
 {
 #ifdef _WIN32
     timeBeginPeriod(1);
+#endif
+#ifdef __ANDROID__
+    // LauncherActivity.java is the app's actual entry point and never starts
+    // SDLActivity (which is what ends up calling into this SDL_main) until it has
+    // verified GetDataRoot()/game/default.xex exists, so this should be unreachable
+    // in normal use. It's kept as a defense-in-depth check - e.g. against a stale
+    // "resume" intent to SDLActivity after the user deleted the game files - since
+    // InstallerWizard below assumes a desktop file-picker/ImGui flow that has not
+    // been adapted for a touchscreen and would not be a usable fallback here.
+    if (!os::android::HasGameFiles())
+    {
+        os::logger::Init();
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Marathon Recompiled",
+            "Game files were not found. Please restart the app and use the "
+            "launcher screen to select your dumped game files.", nullptr);
+        std::_Exit(1);
+    }
 #endif
 
     os::process::CheckConsole();
@@ -210,6 +250,53 @@ int main(int argc, char *argv[])
     }
 
     Config::Load();
+
+#ifdef __ANDROID__
+    // Open the persistent log file now that the config path (= data root) is
+    // known.  Every subsequent log call is written here in addition to logcat,
+    // so the file survives a GPU driver crash and the launcher can display it.
+    {
+        const auto logPath = (Config::GetConfigPath().parent_path() / "_game_log.txt").string();
+        os::logger::SetLogFilePath(logPath);
+    }
+    LOGN("=== Marathon Recompiled starting ===");
+    LOGFN("Android native build fingerprint: {}", g_versionString);
+    LOGFN("Config path: {}", Config::GetConfigPath().string());
+#endif
+
+    // Use config-specified SDL video driver when no command-line override was given.
+    if (sdlVideoDriver == nullptr && Config::SDLVideoDriver != ESDLVideoDriver::Auto)
+    {
+        switch (Config::SDLVideoDriver)
+        {
+            case ESDLVideoDriver::System:
+#ifdef __ANDROID__
+                sdlVideoDriver = "android";
+#elif defined(__linux__)
+                sdlVideoDriver = "x11";
+#endif
+                break;
+            default:
+                break;
+        }
+    }
+
+#ifdef __ANDROID__
+    // Touch a sentinel file before any rendering starts.  If the process is
+    // killed by a GPU driver crash the file survives; LauncherActivity checks
+    // for it on resume and shows a helpful error dialog instead of silently
+    // returning to the launcher with a black screen.
+    {
+        std::error_code _ec;
+        std::ofstream(Config::GetConfigPath().parent_path() / "_crash_sentinel").flush();
+    }
+    LOGFN("SDL video driver config: {}",
+        Config::SDLVideoDriver == ESDLVideoDriver::Auto   ? "Auto" :
+        Config::SDLVideoDriver == ESDLVideoDriver::System ? "System" : "Unknown");
+    LOGFN("Graphics API config: {}",
+        Config::GraphicsAPI == EGraphicsAPI::Auto   ? "Auto" :
+        Config::GraphicsAPI == EGraphicsAPI::Vulkan ? "Vulkan" : "Unknown");
+#endif
 
     if (forceInstallationCheck)
     {
@@ -329,8 +416,28 @@ int main(int argc, char *argv[])
 
     GuestThread::Start({ entry, 0, 0 });
 
+
+#ifdef __ANDROID__
+    // Clean exit: remove the sentinel so the launcher knows we didn't crash.
+    {
+        std::error_code _ec;
+        std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", _ec);
+    }
+#endif
+
     return 0;
 }
+
+#ifdef __ANDROID__
+// SDL_MAIN_HANDLED (set for all platforms in CMakeLists.txt) suppresses SDL's
+// usual #define main SDL_main remap, so on Android - where there is no process
+// entry point and SDL2main's JNI glue instead calls a function literally named
+// SDL_main from a native thread - that symbol has to be provided explicitly.
+extern "C" int SDL_main(int argc, char *argv[])
+{
+    return main(argc, argv);
+}
+#endif
 
 GUEST_FUNCTION_STUB(__imp__vsprintf);
 GUEST_FUNCTION_STUB(__imp___vsnprintf);

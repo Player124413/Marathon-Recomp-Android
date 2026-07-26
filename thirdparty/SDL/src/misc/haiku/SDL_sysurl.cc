@@ -18,21 +18,20 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
 
 #include "../SDL_sysurl.h"
 #include <Url.h>
 
-bool SDL_SYS_OpenURL(const char *url)
+int SDL_SYS_OpenURL(const char *url)
 {
-#if B_BEOS_VERSION <= B_HAIKU_VERSION_1_BETA_5
+#if B_HAIKU_VERSION <= B_HAIKU_VERSION_1_BETA_5
     BUrl burl(url);
 #else
     BUrl burl(url, true);
 #endif
     const status_t rc = burl.OpenWithPreferredApplication(false);
-    if (rc != B_NO_ERROR) {
-        return SDL_SetError("URL open failed (err=%d)", (int)rc);
-    }
-    return true;
+    return (rc == B_NO_ERROR) ? 0 : SDL_SetError("URL open failed (err=%d)", (int) rc);
 }
+
+/* vi: set ts=4 sw=4 expandtab: */
+

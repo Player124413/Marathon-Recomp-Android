@@ -1,0 +1,2 @@
+include("${CMAKE_CURRENT_LIST_DIR}/cmake-vars-arm64-android-rel.cmake.log")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake-vars-arm64-android-dbg.cmake.log")

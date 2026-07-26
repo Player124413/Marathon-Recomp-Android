@@ -1,0 +1,10 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/brotlicommon.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/brotlidec.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/brotlienc.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/brotli.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/edit_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/rebuild_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/list_install_components.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/install.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/install/local.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/brotli/arm64-android-rel/CMakeFiles/install/strip.dir

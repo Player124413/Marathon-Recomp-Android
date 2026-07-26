@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/x64-linux-rel/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

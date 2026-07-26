@@ -1,0 +1,15 @@
+# This is a generated file.  Do not edit.
+buildinfo.configure.tool: cmake
+buildinfo.configure.command: /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/bin/cmake
+buildinfo.configure.version: 4.3.3
+buildinfo.configure.args:
+buildinfo.configure.generator: Ninja
+buildinfo.configure.make: /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja
+buildinfo.host.cpu: x86_64
+buildinfo.host.os: Linux
+buildinfo.target.cpu: aarch64
+buildinfo.target.os: Android
+buildinfo.target.flags: UNIX VCPKG CROSS
+buildinfo.compiler: Clang
+buildinfo.compiler.version: 18.0.3
+buildinfo.sysroot: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot

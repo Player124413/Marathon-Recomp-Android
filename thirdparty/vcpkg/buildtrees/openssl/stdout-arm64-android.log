@@ -1,0 +1,35 @@
+-- Using cached openssl-openssl-openssl-3.4.0.tar.gz
+-- Cleaning sources at /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/src/nssl-3.4.0-821e8e5bdc.clean. Use --editable to skip cleaning for the packages you specify.
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/openssl-openssl-openssl-3.4.0.tar.gz
+-- Applying patch cmake-config.patch
+-- Applying patch command-line-length.patch
+-- Applying patch script-prefix.patch
+-- Applying patch asm-armcap.patch
+-- Applying patch windows/install-layout.patch
+-- Applying patch windows/install-pdbs.patch
+-- Applying patch unix/android-cc.patch
+-- Applying patch unix/move-openssldir.patch
+-- Applying patch unix/no-empty-dirs.patch
+-- Applying patch unix/no-static-libs-for-shared.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/src/nssl-3.4.0-821e8e5bdc.clean
+-- Getting CMake variables for arm64-android
+-- Getting CMake variables for arm64-android-dbg
+-- Getting CMake variables for arm64-android-rel
+-- Configuring arm64-android-dbg
+-- Configuring arm64-android-rel
+-- Building arm64-android-dbg
+CMake Error at scripts/cmake/vcpkg_execute_build_process.cmake:134 (message):
+    Command failed: /nix/store/8dl5ryfna3hjqhvnkw7srm6wnka6agxl-gnumake-4.4.1/bin/make V=1 -j 3 -f Makefile build_sw
+    Working Directory: /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-dbg/
+    See logs for more information:
+      /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/build-arm64-android-dbg-out.log
+      /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/build-arm64-android-dbg-err.log
+
+Call Stack (most recent call first):
+  scripts/cmake/vcpkg_build_make.cmake:136 (vcpkg_execute_build_process)
+  scripts/cmake/vcpkg_install_make.cmake:2 (vcpkg_build_make)
+  /home/runner/workspace/ports/openssl/unix/portfile.cmake:119 (vcpkg_install_make)
+  /home/runner/workspace/ports/openssl/portfile.cmake:72 (include)
+  scripts/ports.cmake:206 (include)
+
+

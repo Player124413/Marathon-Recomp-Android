@@ -73,8 +73,11 @@ struct FindHandle : KernelObject
             lpFindFileData->dwFileAttributes = ByteSwap(FILE_ATTRIBUTE_NORMAL);
 
         strncpy(lpFindFileData->cFileName, (const char *)(iterator->first.c_str()), sizeof(lpFindFileData->cFileName));
-        lpFindFileData->nFileSizeLow = ByteSwap(uint32_t(iterator->second.first >> 32U));
-        lpFindFileData->nFileSizeHigh = ByteSwap(uint32_t(iterator->second.first));
+        lpFindFileData->cFileName[sizeof(lpFindFileData->cFileName) - 1] = '\0'; // ensure null termination
+        // nFileSizeLow holds the low 32 bits; nFileSizeHigh holds the high 32 bits.
+        // They were previously swapped, making every file appear to have size 0 on 32-bit sizes.
+        lpFindFileData->nFileSizeLow  = ByteSwap(uint32_t(iterator->second.first));
+        lpFindFileData->nFileSizeHigh = ByteSwap(uint32_t(iterator->second.first >> 32U));
         lpFindFileData->ftCreationTime = {};
         lpFindFileData->ftLastAccessTime = {};
         lpFindFileData->ftLastWriteTime = {};
@@ -114,6 +117,8 @@ FileHandle* XCreateFileA
         std::filesystem::path cachedPath = FindInPathCache(filePath.string());
         if (!cachedPath.empty()) {
             fileStream.open(cachedPath, fileOpenMode);
+            if (fileStream.is_open())
+                filePath = std::move(cachedPath);
         }
     }
 
@@ -380,7 +385,7 @@ uint32_t XWriteFile(FileHandle* hFile, const void* lpBuffer, uint32_t nNumberOfB
         return FALSE;
 
     if (lpNumberOfBytesWritten != nullptr)
-        *lpNumberOfBytesWritten = uint32_t(hFile->stream.gcount());
+        *lpNumberOfBytesWritten = nNumberOfBytesToWrite; // gcount() tracks reads, not writes
 
     return TRUE;
 }

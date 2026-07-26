@@ -60,6 +60,7 @@ namespace plume {
         VulkanBuffer() = default;
         VulkanBuffer(VulkanDevice *device, VulkanPool *pool, const RenderBufferDesc &desc);
         ~VulkanBuffer() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
         void *map(uint32_t subresource, const RenderRange *readRange) override;
         void unmap(uint32_t subresource, const RenderRange *writtenRange) override;
         std::unique_ptr<RenderBufferFormattedView> createBufferFormattedView(RenderFormat format) override;
@@ -93,6 +94,7 @@ namespace plume {
         VulkanTexture(VulkanDevice *device, VulkanPool *pool, const RenderTextureDesc &desc);
         VulkanTexture(VulkanDevice *device, VkImage image);
         ~VulkanTexture() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
         void createImageView(VkFormat format);
         std::unique_ptr<RenderTextureView> createTextureView(const RenderTextureViewDesc &desc) const override;
         void setName(const std::string &name) override;
@@ -106,6 +108,7 @@ namespace plume {
 
         VulkanTextureView(const VulkanTexture *texture, const RenderTextureViewDesc &desc);
         ~VulkanTextureView() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
     };
 
     struct VulkanAccelerationStructure : RenderAccelerationStructure {
@@ -136,6 +139,8 @@ namespace plume {
 
         VulkanPipelineLayout(VulkanDevice *device, const RenderPipelineLayoutDesc &desc);
         ~VulkanPipelineLayout() override;
+
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
     };
 
     struct VulkanShader : RenderShader {
@@ -146,6 +151,7 @@ namespace plume {
 
         VulkanShader(VulkanDevice *device, const void *data, uint64_t size, const char *entryPointName, RenderShaderFormat format);
         ~VulkanShader() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
         virtual void setName(const std::string &name) override;
     };
 
@@ -188,6 +194,7 @@ namespace plume {
 
         VulkanGraphicsPipeline(VulkanDevice *device, const RenderGraphicsPipelineDesc &desc);
         ~VulkanGraphicsPipeline() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
         void setName(const std::string &name) override;
         RenderPipelineProgram getProgram(const std::string &name) const override;
         static VkRenderPass createRenderPass(VulkanDevice *device, const VkFormat *renderTargetFormat, uint32_t renderTargetCount, VkFormat depthTargetFormat, VkSampleCountFlagBits sampleCount);
@@ -226,6 +233,7 @@ namespace plume {
         VkSwapchainKHR vk = VK_NULL_HANDLE;
         VulkanCommandQueue *commandQueue = nullptr;
         VkSurfaceKHR surface = VK_NULL_HANDLE;
+        RenderWindow renderWindow = {};
 #if defined(__APPLE__)
         std::unique_ptr<CocoaWindow> windowWrapper;
 #endif
@@ -256,7 +264,9 @@ namespace plume {
         uint32_t getTextureCount() const override;
         bool acquireTexture(RenderCommandSemaphore *signalSemaphore, uint32_t *textureIndex) override;
         RenderWindow getWindow() const override;
+        RenderFormat getFormat() const override;
         bool isEmpty() const override;
+        bool recreateSurface(RenderWindow renderWindow) override;
         uint32_t getRefreshRate() const override;
         void getWindowSize(uint32_t &dstWidth, uint32_t &dstHeight) const;
         void releaseSwapChain();

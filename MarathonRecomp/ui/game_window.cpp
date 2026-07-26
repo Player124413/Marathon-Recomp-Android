@@ -214,6 +214,8 @@ void GameWindow::Init(const char* sdlVideoDriver)
     }
 #elif defined(PLUME_SDL_VULKAN_ENABLED)
     s_renderWindow = s_pWindow;
+#elif defined(__ANDROID__)
+    s_renderWindow = info.info.android.window;
 #elif defined(__linux__)
     s_renderWindow = { info.info.x11.display, info.info.x11.window };
 #elif defined(__APPLE__)
@@ -227,6 +229,22 @@ void GameWindow::Init(const char* sdlVideoDriver)
 
     SDL_ShowWindow(s_pWindow);
 }
+
+#ifdef __ANDROID__
+plume::RenderWindow GameWindow::GetAndroidNativeWindow()
+{
+    if (s_pWindow == nullptr)
+        return nullptr;
+
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+
+    if (SDL_GetWindowWMInfo(s_pWindow, &info) != SDL_TRUE)
+        return nullptr;
+
+    return info.info.android.window;
+}
+#endif
 
 void GameWindow::Update()
 {

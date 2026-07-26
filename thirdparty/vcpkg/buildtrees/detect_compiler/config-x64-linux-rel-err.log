@@ -1,0 +1,20 @@
+#COMPILER_HASH#94c6803471dc37f66a2a1b842717517a1869bd0c
+#COMPILER_C_HASH#43d1880ccd51d9ef64523e6964495ea32da09ba8
+#COMPILER_C_VERSION#18.0.3
+#COMPILER_C_ID#Clang
+#COMPILER_C_PATH#/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang
+#COMPILER_CXX_HASH#8399b4af6c6b5b3dfa0bf6d810b0f46310b083d0
+#COMPILER_CXX_VERSION#18.0.3
+#COMPILER_CXX_ID#Clang
+#COMPILER_CXX_PATH#/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang++
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    BUILD_SHARED_LIBS
+    CMAKE_INSTALL_BINDIR
+    CMAKE_INSTALL_LIBDIR
+    VCPKG_PLATFORM_TOOLSET
+    VCPKG_SET_CHARSET_FLAG
+    _VCPKG_ROOT_DIR
+
+

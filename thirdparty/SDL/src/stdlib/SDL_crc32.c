@@ -18,7 +18,10 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../SDL_internal.h"
+
+#include "SDL_stdinc.h"
+
 
 /* Public domain CRC implementation adapted from:
    http://home.thep.lu.se/~bjorn/crc/crc32_simple.c
@@ -28,12 +31,6 @@
 */
 /* NOTE: DO NOT CHANGE THIS ALGORITHM
    There is code that relies on this in the joystick code
-*/
-/* If you're looking for a faster CRC32 implementation,
-   the crc32() in zlib is a convenient option.
-
-   This is also Zlib licensed and extremely fast:
-       https://github.com/corsix/fast-crc32
 */
 
 static Uint32 crc32_for_byte(Uint32 r)
@@ -47,10 +44,12 @@ static Uint32 crc32_for_byte(Uint32 r)
 
 Uint32 SDL_crc32(Uint32 crc, const void *data, size_t len)
 {
-    // As an optimization we can precalculate a 256 entry table for each byte
+    /* As an optimization we can precalculate a 256 entry table for each byte */
     size_t i;
     for (i = 0; i < len; ++i) {
         crc = crc32_for_byte((Uint8)crc ^ ((const Uint8 *)data)[i]) ^ crc >> 8;
     }
     return crc;
 }
+
+/* vi: set ts=4 sw=4 expandtab: */

@@ -528,14 +528,13 @@ static void DrawOption
             {
                 Game_PlaySound("window_close");
 
+                // Treat back as confirm (keep the new value) instead of cancel.
+                // Previously this reverted config->Value to s_oldValue, which
+                // meant pressing B while adjusting a setting would silently undo
+                // the change — now it behaves identically to pressing A.
                 if (config->Value != s_oldValue)
                 {
-                    config->Value = s_oldValue;
-
                     VideoConfigValueChangedCallback(config);
-
-                    if (config->Callback)
-                        config->Callback(config);
 
                     if (config->ApplyCallback)
                         config->ApplyCallback(config);
@@ -838,6 +837,9 @@ static void DrawOptions(ImVec2 min, ImVec2 max)
 
         case OptionsMenuCategory::Video:
         {
+            DrawOption(rowCount++, &Config::GraphicsAPI, !OptionsMenu::s_isPause, cmnReason);
+            DrawOption(rowCount++, &Config::SDLVideoDriver, !OptionsMenu::s_isPause, cmnReason);
+
             // TODO: implement buffer resize.
             DrawOption(rowCount++, &Config::WindowSize, false, devReason, 0, 0, 1, false);
 

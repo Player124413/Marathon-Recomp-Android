@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "WhBxMOKiIamldhHQxnjoR"
+uri = "file://android-apk/app/build/outputs/apk/debug/app-debug.apk"
+type = "unspecified"
+title = "Marathon Recompiled — archive loading fix APK"

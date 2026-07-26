@@ -1,0 +1,8 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/zlib.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/test.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/edit_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/rebuild_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/list_install_components.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/install.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/install/local.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/arm64-android-dbg/CMakeFiles/install/strip.dir

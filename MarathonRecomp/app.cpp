@@ -48,14 +48,21 @@ PPC_FUNC(sub_8262A568)
     };
 
     auto pRenderConfig = reinterpret_cast<RenderConfig*>(g_memory.Translate(ctx.r4.u32));
-    pRenderConfig->Width = Video::s_viewportWidth;
-    pRenderConfig->Height = Video::s_viewportHeight;
+    // Android can enter the guest thread before SDL has delivered the first
+    // valid surface size. During that window the Vulkan swapchain reports 0x0.
+    // Never pass that transient size to the guest: it uses this config to
+    // allocate render targets, and Mali-G57 aborts in the driver when given a
+    // zero extent instead of returning a normal Vulkan error.
+    const uint32_t safeWidth = Video::s_viewportWidth != 0 ? Video::s_viewportWidth : 960;
+    const uint32_t safeHeight = Video::s_viewportHeight != 0 ? Video::s_viewportHeight : 540;
+    pRenderConfig->Width = safeWidth;
+    pRenderConfig->Height = safeHeight;
 
     auto pAudioEngine = Sonicteam::AudioEngineXenon::GetInstance();
     pAudioEngine->m_MusicVolume = Config::MusicVolume * Config::MasterVolume;
     pAudioEngine->m_EffectsVolume = Config::EffectsVolume * Config::MasterVolume;
 
-    LOGFN_UTILITY("Changed resolution: {}x{}", pRenderConfig->Width.get(), pRenderConfig->Height.get());
+    LOGFN_UTILITY("Changed resolution: {}x{}", safeWidth, safeHeight);
 
     __imp__sub_8262A568(ctx, base);
 

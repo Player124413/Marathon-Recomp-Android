@@ -18,30 +18,33 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_JOYSTICK_PS2
 
-// This is the PS2 implementation of the SDL joystick API
+/* This is the PS2 implementation of the SDL joystick API */
 #include <libmtap.h>
 #include <libpad.h>
 #include <ps2_joystick_driver.h>
 
-#include <stdio.h> // For the definition of NULL
+#include <stdio.h> /* For the definition of NULL */
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "../SDL_sysjoystick.h"
 #include "../SDL_joystick_c.h"
 
-#define PS2_MAX_PORT      2 // each ps2 has 2 ports
-#define PS2_MAX_SLOT      4 // maximum - 4 slots in one multitap
-#define MAX_CONTROLLERS   (PS2_MAX_PORT * PS2_MAX_SLOT)
+#include "SDL_events.h"
+#include "SDL_error.h"
+#include "SDL_timer.h"
+
+#define PS2_MAX_PORT 2 /* each ps2 has 2 ports */
+#define PS2_MAX_SLOT 4 /* maximum - 4 slots in one multitap */
+#define MAX_CONTROLLERS (PS2_MAX_PORT * PS2_MAX_SLOT)
 #define PS2_ANALOG_STICKS 2
 #define PS2_ANALOG_AXIS   2
-#define PS2_BUTTONS       16  // this is total physical buttons, but we steal the 4 from the dpad for a hat switch.
+#define PS2_BUTTONS       16
 #define PS2_TOTAL_AXIS    (PS2_ANALOG_STICKS * PS2_ANALOG_AXIS)
-
-#define PS2_HAT_MASK 0xF0  // mask out bits 4-7 (that's the dpad, which we treat as a hat elsewhere).
 
 struct JoyInfo
 {
@@ -86,20 +89,23 @@ static inline uint8_t rumble_status(uint8_t index)
     return info->rumble_ready == 1;
 }
 
-// Function to scan the system for joysticks.
-static bool PS2_JoystickInit(void)
+/* Function to scan the system for joysticks.
+ *  Joystick 0 should be the system default joystick.
+ *  This function should return 0, or -1 on an unrecoverable error.
+ */
+static int PS2_JoystickInit(void)
 {
     uint32_t port = 0;
     uint32_t slot = 0;
 
     if (init_joystick_driver(true) < 0) {
-        return false;
+        return -1;
     }
 
     for (port = 0; port < PS2_MAX_PORT; port++) {
         mtapPortOpen(port);
     }
-    // it can fail - we dont care, we will check it more strictly when padPortOpen
+    /* it can fail - we dont care, we will check it more strictly when padPortOpen */
 
     for (slot = 0; slot < PS2_MAX_SLOT; slot++) {
         for (port = 0; port < PS2_MAX_PORT; port++) {
@@ -120,32 +126,25 @@ static bool PS2_JoystickInit(void)
                 info->slot = (uint8_t)slot;
                 info->opened = 1;
                 enabled_pads++;
-                SDL_PrivateJoystickAdded(enabled_pads);
             }
         }
     }
 
-    return (enabled_pads > 0);
+    return enabled_pads > 0 ? 0 : -1;
 }
 
-// Function to return the number of joystick devices plugged in right now
+/* Function to return the number of joystick devices plugged in right now */
 static int PS2_JoystickGetCount(void)
 {
     return (int)enabled_pads;
 }
 
-// Function to cause any queued joystick insertions to be processed
+/* Function to cause any queued joystick insertions to be processed */
 static void PS2_JoystickDetect(void)
 {
 }
 
-static bool PS2_JoystickIsDevicePresent(Uint16 vendor_id, Uint16 product_id, Uint16 version, const char *name)
-{
-    // We don't override any other drivers
-    return false;
-}
-
-// Function to get the device-dependent name of a joystick
+/* Function to get the device-dependent name of a joystick */
 static const char *PS2_JoystickGetDeviceName(int index)
 {
     if (index >= 0 && index < enabled_pads) {
@@ -156,41 +155,41 @@ static const char *PS2_JoystickGetDeviceName(int index)
     return NULL;
 }
 
-// Function to get the device-dependent path of a joystick
+/* Function to get the device-dependent path of a joystick */
 static const char *PS2_JoystickGetDevicePath(int index)
 {
     return NULL;
 }
 
-// Function to get the Steam virtual gamepad slot of a joystick
+/* Function to get the Steam virtual gamepad slot of a joystick */
 static int PS2_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
 {
     return -1;
 }
 
-// Function to get the player index of a joystick
+/* Function to get the player index of a joystick */
 static int PS2_JoystickGetDevicePlayerIndex(int device_index)
 {
     return -1;
 }
 
-// Function to set the player index of a joystick
+/* Function to set the player index of a joystick */
 static void PS2_JoystickSetDevicePlayerIndex(int device_index, int player_index)
 {
 }
 
-// Function to return the stable GUID for a plugged in device
-static SDL_GUID PS2_JoystickGetDeviceGUID(int device_index)
+/* Function to return the stable GUID for a plugged in device */
+static SDL_JoystickGUID PS2_JoystickGetDeviceGUID(int device_index)
 {
-    // the GUID is just the name for now
+    /* the GUID is just the name for now */
     const char *name = PS2_JoystickGetDeviceName(device_index);
     return SDL_CreateJoystickGUIDForName(name);
 }
 
-// Function to get the current instance id of the joystick located at device_index
+/* Function to get the current instance id of the joystick located at device_index */
 static SDL_JoystickID PS2_JoystickGetDeviceInstanceID(int device_index)
 {
-    return device_index + 1;
+    return device_index;
 }
 
 static void PS2_WaitPadReady(int port, int slot)
@@ -258,38 +257,38 @@ static void PS2_InitializePad(int port, int slot)
     This should fill the nbuttons and naxes fields of the joystick structure.
     It returns 0, or -1 if there is an error.
 */
-static bool PS2_JoystickOpen(SDL_Joystick *joystick, int device_index)
+static int PS2_JoystickOpen(SDL_Joystick *joystick, int device_index)
 {
-    struct JoyInfo *info = &joyInfo[device_index];
+    int index = joystick->instance_id;
+    struct JoyInfo *info = &joyInfo[index];
 
     if (!info->opened) {
         if (padPortOpen(info->port, info->slot, (void *)info->padBuf) > 0) {
             info->opened = 1;
         } else {
-            return false;
+            return -1;
         }
     }
     PS2_InitializePad(info->port, info->slot);
-
-    joystick->nbuttons = PS2_BUTTONS - 4;  // we steal 4 (the d-pad) for a hat switch.
+    
+    joystick->nbuttons = PS2_BUTTONS;
     joystick->naxes = PS2_TOTAL_AXIS;
-    joystick->nhats = 1;  // treat the dpad buttons as a hat.
+    joystick->nhats = 0;
+    joystick->instance_id = device_index;
 
-    SDL_SetBooleanProperty(SDL_GetJoystickProperties(joystick), SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, true);
-
-    return true;
+    return 0;
 }
 
-// Rumble functionality
-static bool PS2_JoystickRumble(SDL_Joystick *joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble)
+/* Rumble functionality */
+static int PS2_JoystickRumble(SDL_Joystick *joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble)
 {
     char actAlign[6];
     int res;
-    int index = (int)(joystick->instance_id - 1);
+    int index = joystick->instance_id;
     struct JoyInfo *info = &joyInfo[index];
 
     if (!rumble_status(index)) {
-        return false;
+        return -1;
     }
 
     // Initial value
@@ -301,31 +300,37 @@ static bool PS2_JoystickRumble(SDL_Joystick *joystick, Uint16 low_frequency_rumb
     actAlign[5] = 0xff;
 
     res = padSetActDirect(info->port, info->slot, actAlign);
-    return (res == 1);
+    return res == 1 ? 0 : -1;
 }
 
-// Rumble functionality
-static bool PS2_JoystickRumbleTriggers(SDL_Joystick *joystick, Uint16 left, Uint16 right)
+/* Rumble functionality */
+static int PS2_JoystickRumbleTriggers(SDL_Joystick *joystick, Uint16 left, Uint16 right)
 {
-    return SDL_Unsupported();
+    return -1;
 }
 
-// LED functionality
-static bool PS2_JoystickSetLED(SDL_Joystick *joystick, Uint8 red, Uint8 green, Uint8 blue)
+/* Capability detection */
+static Uint32 PS2_JoystickGetCapabilities(SDL_Joystick *joystick)
 {
-    return SDL_Unsupported();
+    return SDL_JOYCAP_RUMBLE;
 }
 
-// General effects
-static bool PS2_JoystickSendEffect(SDL_Joystick *joystick, const void *data, int size)
+/* LED functionality */
+static int PS2_JoystickSetLED(SDL_Joystick *joystick, Uint8 red, Uint8 green, Uint8 blue)
 {
-    return SDL_Unsupported();
+    return -1;
 }
 
-// Sensor functionality
-static bool PS2_JoystickSetSensorsEnabled(SDL_Joystick *joystick, bool enabled)
+/* General effects */
+static int PS2_JoystickSendEffect(SDL_Joystick *joystick, const void *data, int size)
 {
-    return SDL_Unsupported();
+    return -1;
+}
+
+/* Sensor functionality */
+static int PS2_JoystickSetSensorsEnabled(SDL_Joystick *joystick, SDL_bool enabled)
+{
+    return -1;
 }
 
 /*  Function to update the state of a joystick - called as a device poll.
@@ -340,59 +345,29 @@ static void PS2_JoystickUpdate(SDL_Joystick *joystick)
     uint16_t mask, previous, current;
     struct padButtonStatus buttons;
     uint8_t all_axis[PS2_TOTAL_AXIS];
-    int index = (int)(joystick->instance_id - 1);
+    int index = joystick->instance_id;
     struct JoyInfo *info = &joyInfo[index];
     int state = padGetState(info->port, info->slot);
-    Uint64 timestamp = SDL_GetTicksNS();
 
     if (state != PAD_STATE_DISCONN && state != PAD_STATE_EXECCMD && state != PAD_STATE_ERROR) {
-        int ret = padRead(info->port, info->slot, &buttons); // port, slot, buttons
+        int ret = padRead(info->port, info->slot, &buttons); /* port, slot, buttons */
         if (ret != 0) {
-            // Buttons
-            const int32_t current_buttons = (0xffff ^ buttons.btns);
-            const int32_t previous_buttons = info->btns;
-            if (previous_buttons != current_buttons) {  // did any buttons change?
-                if ((previous_buttons & ~PS2_HAT_MASK) != (current_buttons & ~PS2_HAT_MASK)) {  // did non-dpad buttons change?
-                    uint8_t buttonidx = 0;
-                    i = 0;
-                    while (i < PS2_BUTTONS-4) {
-                        if ((buttonidx < 4) || (buttonidx > 7)) {  // skip dpad (we treat it as a hat).
-                            mask = (1 << buttonidx);
-                            previous = previous_buttons & mask;
-                            current = current_buttons & mask;
-                            if (previous != current) {
-                                SDL_SendJoystickButton(timestamp, joystick, i, (current != 0));
-                            }
-                            i++;
-                        }
-                        buttonidx++;
+            /* Buttons */
+            int32_t pressed_buttons = 0xffff ^ buttons.btns;
+            ;
+            if (info->btns != pressed_buttons) {
+                for (i = 0; i < PS2_BUTTONS; i++) {
+                    mask = (1 << i);
+                    previous = info->btns & mask;
+                    current = pressed_buttons & mask;
+                    if (previous != current) {
+                        SDL_PrivateJoystickButton(joystick, i, current ? SDL_PRESSED : SDL_RELEASED);
                     }
                 }
-
-                if ((previous_buttons & PS2_HAT_MASK) != (current_buttons & PS2_HAT_MASK)) {  // did dpad buttons change?
-                    // The PS2 dpad looks like 4 buttons at this level, but we treat it as a hat switch, so apps that are talking to SDL_Joystick can hope to do basic directional things without a configuration step.
-                    // (but they should _really_ be using the gamepad API.)
-                    Uint8 hat = SDL_HAT_CENTERED;
-                    #define HATSTATE(ps2bit, sdlenum) if (current_buttons & (1 << ps2bit)) { hat |= SDL_HAT_##sdlenum; }
-                    HATSTATE(4, UP);
-                    HATSTATE(5, RIGHT);
-                    HATSTATE(6, DOWN);
-                    HATSTATE(7, LEFT);
-                    #undef HATSTATE
-                    // this is a physical d-pad on the device, so it probably _can't_ send opposing buttons at the same time, but just in case, cancel them out.
-                    if ((hat & (SDL_HAT_UP|SDL_HAT_DOWN)) == (SDL_HAT_UP|SDL_HAT_DOWN)) {
-                        hat &= ~(SDL_HAT_UP|SDL_HAT_DOWN);
-                    }
-                    if ((hat & (SDL_HAT_LEFT|SDL_HAT_RIGHT)) == (SDL_HAT_LEFT|SDL_HAT_RIGHT)) {
-                        hat &= ~(SDL_HAT_LEFT|SDL_HAT_RIGHT);
-                    }
-                    SDL_SendJoystickHat(timestamp, joystick, 0, hat);
-                }
-
-                info->btns = current_buttons;
             }
+            info->btns = pressed_buttons;
 
-            // Analog
+            /* Analog */
             all_axis[0] = buttons.ljoy_h;
             all_axis[1] = buttons.ljoy_v;
             all_axis[2] = buttons.rjoy_h;
@@ -402,7 +377,7 @@ static void PS2_JoystickUpdate(SDL_Joystick *joystick)
                 previous_axis = info->analog_state[i];
                 current_axis = all_axis[i];
                 if (previous_axis != current_axis) {
-                    SDL_SendJoystickAxis(timestamp, joystick, i, convert_u8_to_s16(current_axis));
+                    SDL_PrivateJoystickAxis(joystick, i, convert_u8_to_s16(current_axis));
                 }
 
                 info->analog_state[i] = current_axis;
@@ -411,31 +386,30 @@ static void PS2_JoystickUpdate(SDL_Joystick *joystick)
     }
 }
 
-// Function to close a joystick after use
+/* Function to close a joystick after use */
 static void PS2_JoystickClose(SDL_Joystick *joystick)
 {
-    int index = (int)(joystick->instance_id - 1);
+    int index = joystick->instance_id;
     struct JoyInfo *info = &joyInfo[index];
     padPortClose(info->port, info->slot);
     info->opened = 0;
 }
 
-// Function to perform any system-specific joystick related cleanup
+/* Function to perform any system-specific joystick related cleanup */
 static void PS2_JoystickQuit(void)
 {
     deinit_joystick_driver(true);
 }
 
-static bool PS2_GetGamepadMapping(int device_index, SDL_GamepadMapping *out)
+static SDL_bool PS2_GetGamepadMapping(int device_index, SDL_GamepadMapping *out)
 {
-    return false;
+    return SDL_FALSE;
 }
 
 SDL_JoystickDriver SDL_PS2_JoystickDriver = {
     PS2_JoystickInit,
     PS2_JoystickGetCount,
     PS2_JoystickDetect,
-    PS2_JoystickIsDevicePresent,
     PS2_JoystickGetDeviceName,
     PS2_JoystickGetDevicePath,
     PS2_JoystickGetDeviceSteamVirtualGamepadSlot,
@@ -446,6 +420,7 @@ SDL_JoystickDriver SDL_PS2_JoystickDriver = {
     PS2_JoystickOpen,
     PS2_JoystickRumble,
     PS2_JoystickRumbleTriggers,
+    PS2_JoystickGetCapabilities,
     PS2_JoystickSetLED,
     PS2_JoystickSendEffect,
     PS2_JoystickSetSensorsEnabled,
@@ -455,4 +430,6 @@ SDL_JoystickDriver SDL_PS2_JoystickDriver = {
     PS2_GetGamepadMapping,
 };
 
-#endif // SDL_JOYSTICK_PS2
+#endif /* SDL_JOYSTICK_PS2 */
+
+/* vi: set ts=4 sw=4 expandtab: */

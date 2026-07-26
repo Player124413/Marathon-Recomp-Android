@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Shim: the Nix pkg-config wrapper replaces PKG_CONFIG_PATH with
+# PKG_CONFIG_PATH_x86_64_unknown_linux_gnu, breaking cross-compile builds
+# that set PKG_CONFIG_PATH directly. This shim merges both.
+if [[ -n "${PKG_CONFIG_PATH:-}" ]]; then
+    export PKG_CONFIG_PATH_x86_64_unknown_linux_gnu="${PKG_CONFIG_PATH}${PKG_CONFIG_PATH_x86_64_unknown_linux_gnu:+:${PKG_CONFIG_PATH_x86_64_unknown_linux_gnu}}"
+fi
+exec /nix/store/kziakdyc992ag9m3qlry2m56ak2ynhl5-pkg-config-0.29.2/bin/pkg-config "$@"

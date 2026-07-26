@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launcher palette: dark navy + Sonic blue -->
+    <color name="bg_dark">#FF0B1120</color>
+    <color name="bg_card">#FF141D2E</color>
+    <color name="bg_section">#FF1A2640</color>
+
+    <color name="accent_blue">#FF00A8FF</color>
+    <color name="accent_blue_dark">#FF0076B4</color>
+
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFB0BEC5</color>
+    <color name="text_hint">#FF607080</color>
+
+    <color name="divider">#FF1E2D40</color>
+    <color name="button_play_bg">#FF00A8FF</color>
+    <color name="button_play_text">#FF000000</color>
+    <color name="button_secondary_bg">#FF1E2D40</color>
+    <color name="button_settings_bg">#FF1A2236</color>
+
+    <color name="status_ready">#FF4CAF50</color>
+    <color name="status_missing">#FFFFB300</color>
+</resources>

@@ -1,0 +1,10 @@
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/libpng16d.a
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/libpng.a
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/pkgconfig/libpng16.pc
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/libpng/libpng16.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/libpng/libpng16-debug.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/libpng16d.a
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/cmake/PNG/PNGTargets.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/cmake/PNG/PNGTargets-debug.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/cmake/PNG/PNGConfig.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/cmake/PNG/PNGConfigVersion.cmake

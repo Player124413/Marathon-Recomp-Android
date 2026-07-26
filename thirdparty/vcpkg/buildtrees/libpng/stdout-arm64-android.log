@@ -1,0 +1,21 @@
+Downloading https://github.com/glennrp/libpng/archive/v1.6.44.tar.gz -> glennrp-libpng-v1.6.44.tar.gz
+Successfully downloaded glennrp-libpng-v1.6.44.tar.gz
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/glennrp-libpng-v1.6.44.tar.gz
+-- Applying patch cmake.patch
+-- Applying patch libm.patch
+-- Applying patch pkgconfig.patch
+-- Applying patch fix-msa-support-for-mips.patch
+-- Applying patch fix-tools-static.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/libpng/src/v1.6.44-58a090cbad.clean
+-- Configuring arm64-android
+-- Building arm64-android-dbg
+-- Building arm64-android-rel
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/share/png/vcpkg-cmake-wrapper.cmake
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/share/libpng/libpng-config.cmake
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/lib/pkgconfig/libpng16.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/pkgconfig/libpng16.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib/pkgconfig/libpng.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/lib/pkgconfig/libpng.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/share/libpng/usage
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/share/libpng/copyright
+-- Performing post-build validation

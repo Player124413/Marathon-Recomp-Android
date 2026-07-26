@@ -18,10 +18,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_TIMER_PSP
 
+#include "SDL_thread.h"
+#include "SDL_timer.h"
+#include "SDL_error.h"
 #include "../SDL_timer_c.h"
 #include <stdlib.h>
 #include <time.h>
@@ -29,12 +32,35 @@
 #include <pspthreadman.h>
 #include <psprtc.h>
 
+static Uint64 start_tick;
 
-Uint64 SDL_GetPerformanceCounter(void)
+static Uint64 PSP_Ticks(void)
 {
     Uint64 ticks;
     sceRtcGetCurrentTick(&ticks);
     return ticks;
+}
+
+void SDL_TicksInit(void)
+{
+    if (start_tick == 0) {
+        start_tick = PSP_Ticks();
+    }
+}
+
+void SDL_TicksQuit(void)
+{
+}
+
+/* return ticks as milliseconds */
+Uint64 SDL_GetTicks64(void)
+{
+    return (PSP_Ticks() - start_tick) / 1000ULL;
+}
+
+Uint64 SDL_GetPerformanceCounter(void)
+{
+    return PSP_Ticks();
 }
 
 Uint64 SDL_GetPerformanceFrequency(void)
@@ -42,13 +68,16 @@ Uint64 SDL_GetPerformanceFrequency(void)
     return sceRtcGetTickResolution();
 }
 
-void SDL_SYS_DelayNS(Uint64 ns)
+void SDL_Delay(Uint32 ms)
 {
-    const Uint64 max_delay = 0xffffffffLL * SDL_NS_PER_US;
-    if (ns > max_delay) {
-        ns = max_delay;
+    const Uint32 max_delay = 0xffffffffUL / 1000;
+    if (ms > max_delay) {
+        ms = max_delay;
     }
-    sceKernelDelayThreadCB((SceUInt)SDL_NS_TO_US(ns));
+    sceKernelDelayThreadCB(ms * 1000);
 }
 
-#endif // SDL_TIMER_PSP
+#endif /* SDL_TIMER_PSP */
+
+/* vim: ts=4 sw=4
+ */

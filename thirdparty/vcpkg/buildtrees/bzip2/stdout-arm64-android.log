@@ -1,0 +1,12 @@
+Downloading bzip2-1.0.8.tar.gz, trying https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
+Successfully downloaded bzip2-1.0.8.tar.gz
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/bzip2-1.0.8.tar.gz
+-- Applying patch fix-import-export-macros.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/src/bzip2-1-336d4794a3.clean
+-- Configuring arm64-android
+-- Building arm64-android-dbg
+-- Building arm64-android-rel
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/lib/pkgconfig/bzip2.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/debug/lib/pkgconfig/bzip2.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/share/bzip2/copyright
+-- Performing post-build validation

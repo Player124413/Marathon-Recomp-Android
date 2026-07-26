@@ -12,37 +12,45 @@
 
 /* Print out all the scancodes we have, just to verify them */
 
+#include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_test.h>
+#include "SDL.h"
+#include "SDL_test.h"
 
 int main(int argc, char *argv[])
 {
-    SDL_Scancode scancode;
     SDLTest_CommonState *state;
+    SDL_Scancode scancode;
 
-    /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, 0);
     if (!state) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLTest_CommonCreateState failed: %s\n", SDL_GetError());
         return 1;
     }
 
-    /* Parse commandline */
+    /* Enable standard application logging */
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+
     if (!SDLTest_CommonDefaultArgs(state, argc, argv)) {
         return 1;
     }
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
+    if (!SDLTest_CommonInit(state)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-    for (scancode = 0; scancode < SDL_SCANCODE_COUNT; ++scancode) {
-        SDL_Log("Scancode #%d, \"%s\"", scancode,
+    for (scancode = 0; scancode < SDL_NUM_SCANCODES; ++scancode) {
+        SDL_Log("Scancode #%d, \"%s\"\n", scancode,
                 SDL_GetScancodeName(scancode));
     }
-    SDL_Quit();
-    SDLTest_CommonDestroyState(state);
+    SDLTest_CommonQuit(state);
     return 0;
 }

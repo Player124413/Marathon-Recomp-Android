@@ -19,7 +19,7 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_VIDEO_DRIVER_WAYLAND
 
@@ -32,9 +32,8 @@
 
 #include "SDL_waylandshmbuffer.h"
 #include "SDL_waylandvideo.h"
-#include "single-pixel-buffer-v1-client-protocol.h"
 
-static bool SetTempFileSize(int fd, off_t size)
+static int SetTempFileSize(int fd, off_t size)
 {
 #ifdef HAVE_POSIX_FALLOCATE
     sigset_t set, old_set;
@@ -54,16 +53,16 @@ static bool SetTempFileSize(int fd, off_t size)
     sigprocmask(SIG_SETMASK, &old_set, NULL);
 
     if (ret == 0) {
-        return true;
+        return 0;
     } else if (ret != EINVAL && errno != EOPNOTSUPP) {
-        return false;
+        return -1;
     }
 #endif
 
     if (ftruncate(fd, size) < 0) {
-        return false;
+        return -1;
     }
-    return true;
+    return 0;
 }
 
 static int CreateTempFD(off_t size)
@@ -78,7 +77,7 @@ static int CreateTempFD(off_t size)
 #endif
     {
         static const char template[] = "/sdl-shared-XXXXXX";
-        const char *xdg_path;
+        char *xdg_path;
         char tmp_path[PATH_MAX];
 
         xdg_path = SDL_getenv("XDG_RUNTIME_DIR");
@@ -94,11 +93,11 @@ static int CreateTempFD(off_t size)
             return -1;
         }
 
-        // Need to manually unlink the temp files, or they can persist after close and fill up the temp storage.
+        /* Need to manually unlink the temp files, or they can persist after close and fill up the temp storage. */
         unlink(tmp_path);
     }
 
-    if (!SetTempFileSize(fd, size)) {
+    if (SetTempFileSize(fd, size) < 0) {
         close(fd);
         return -1;
     }
@@ -108,106 +107,65 @@ static int CreateTempFD(off_t size)
 
 static void buffer_handle_release(void *data, struct wl_buffer *wl_buffer)
 {
-    // NOP
+    /* NOP */
 }
 
 static struct wl_buffer_listener buffer_listener = {
     buffer_handle_release
 };
 
-struct Wayland_SHMPool
-{
-    struct wl_shm_pool *shm_pool;
-    void *shm_pool_memory;
-    int shm_pool_size;
-    int offset;
-};
-
-Wayland_SHMPool *Wayland_AllocSHMPool(int size)
+int Wayland_AllocSHMBuffer(int width, int height, struct Wayland_SHMBuffer *shmBuffer)
 {
     SDL_VideoDevice *vd = SDL_GetVideoDevice();
-    SDL_VideoData *data = vd->internal;
-
-    if (size <= 0) {
-        return NULL;
-    }
-
-    Wayland_SHMPool *shmPool = SDL_calloc(1, sizeof(Wayland_SHMPool));
-    if (!shmPool) {
-        return NULL;
-    }
-
-    shmPool->shm_pool_size = (size + 15) & (~15);
-
-    const int shm_fd = CreateTempFD(shmPool->shm_pool_size);
-    if (shm_fd < 0) {
-        SDL_free(shmPool);
-        SDL_SetError("Creating SHM buffer failed.");
-        return NULL;
-    }
-
-    shmPool->shm_pool_memory = mmap(NULL, shmPool->shm_pool_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    if (shmPool->shm_pool_memory == MAP_FAILED) {
-        shmPool->shm_pool_memory = NULL;
-        close(shm_fd);
-        SDL_free(shmPool);
-        SDL_SetError("mmap() failed.");
-        return NULL;
-    }
-
-    shmPool->shm_pool = wl_shm_create_pool(data->shm, shm_fd, shmPool->shm_pool_size);
-    close(shm_fd);
-
-    return shmPool;
-}
-
-struct wl_buffer *Wayland_AllocBufferFromPool(Wayland_SHMPool *shmPool, int width, int height, void **data)
-{
+    SDL_VideoData *data = vd->driverdata;
+    struct wl_shm_pool *shm_pool;
+    int shm_fd;
+    int stride;
     const Uint32 SHM_FMT = WL_SHM_FORMAT_ARGB8888;
 
-    if (!shmPool || !width || !height || !data) {
-        return NULL;
+    if (!shmBuffer) {
+        return SDL_InvalidParamError("shmBuffer");
     }
 
-    *data = (Uint8 *)shmPool->shm_pool_memory + shmPool->offset;
-    struct wl_buffer *buffer = wl_shm_pool_create_buffer(shmPool->shm_pool, shmPool->offset, width, height, width * 4, SHM_FMT);
-    wl_buffer_add_listener(buffer, &buffer_listener, shmPool);
+    stride = width * 4;
+    shmBuffer->shm_data_size = stride * height;
 
-    shmPool->offset += width * height * 4;
-
-    return buffer;
-}
-
-void Wayland_ReleaseSHMPool(Wayland_SHMPool *shmPool)
-{
-    if (shmPool) {
-        wl_shm_pool_destroy(shmPool->shm_pool);
-        munmap(shmPool->shm_pool_memory, shmPool->shm_pool_size);
-        SDL_free(shmPool);
+    shm_fd = CreateTempFD(shmBuffer->shm_data_size);
+    if (shm_fd < 0) {
+        return SDL_SetError("Creating SHM buffer failed.");
     }
+
+    shmBuffer->shm_data = mmap(NULL, shmBuffer->shm_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shmBuffer->shm_data == MAP_FAILED) {
+        shmBuffer->shm_data = NULL;
+        close(shm_fd);
+        return SDL_SetError("mmap() failed.");
+    }
+
+    SDL_assert(shmBuffer->shm_data != NULL);
+
+    shm_pool = wl_shm_create_pool(data->shm, shm_fd, shmBuffer->shm_data_size);
+    shmBuffer->wl_buffer = wl_shm_pool_create_buffer(shm_pool, 0, width, height, stride, SHM_FMT);
+    wl_buffer_add_listener(shmBuffer->wl_buffer, &buffer_listener, shmBuffer);
+
+    wl_shm_pool_destroy(shm_pool);
+    close(shm_fd);
+
+    return 0;
 }
 
-struct wl_buffer *Wayland_CreateSinglePixelBuffer(Uint32 r, Uint32 g, Uint32 b, Uint32 a)
+void Wayland_ReleaseSHMBuffer(struct Wayland_SHMBuffer *shmBuffer)
 {
-    SDL_VideoData *viddata = SDL_GetVideoDevice()->internal;
-
-    // The single-pixel buffer protocol is preferred, as the compositor can choose an optimal format.
-    if (viddata->single_pixel_buffer_manager) {
-        return wp_single_pixel_buffer_manager_v1_create_u32_rgba_buffer(viddata->single_pixel_buffer_manager, r, g, b, a);
-    } else {
-        Wayland_SHMPool *pool = Wayland_AllocSHMPool(4);
-        if (!pool) {
-            return NULL;
+    if (shmBuffer) {
+        if (shmBuffer->wl_buffer) {
+            wl_buffer_destroy(shmBuffer->wl_buffer);
+            shmBuffer->wl_buffer = NULL;
         }
-
-        void *mem;
-        struct wl_buffer *wl_buffer = Wayland_AllocBufferFromPool(pool, 1, 1, &mem);
-
-        const Uint8 pixel[4] = { r >> 24, g >> 24, b >> 24, a >> 24 };
-        SDL_memcpy(mem, pixel, sizeof(pixel));
-
-        Wayland_ReleaseSHMPool(pool);
-        return wl_buffer;
+        if (shmBuffer->shm_data) {
+            munmap(shmBuffer->shm_data, shmBuffer->shm_data_size);
+            shmBuffer->shm_data = NULL;
+        }
+        shmBuffer->shm_data_size = 0;
     }
 }
 

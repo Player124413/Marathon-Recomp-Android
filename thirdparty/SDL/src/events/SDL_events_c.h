@@ -22,54 +22,42 @@
 #ifndef SDL_events_c_h_
 #define SDL_events_c_h_
 
-#include "SDL_internal.h"
+#include "../SDL_internal.h"
 
-// Useful functions and variables from SDL_events.c
+/* Useful functions and variables from SDL_events.c */
+#include "SDL_events.h"
+#include "SDL_thread.h"
 #include "../video/SDL_sysvideo.h"
 
 #include "SDL_clipboardevents_c.h"
 #include "SDL_displayevents_c.h"
 #include "SDL_dropevents_c.h"
+#include "SDL_gesture_c.h"
 #include "SDL_keyboard_c.h"
 #include "SDL_mouse_c.h"
 #include "SDL_touch_c.h"
-#include "SDL_pen_c.h"
 #include "SDL_windowevents_c.h"
 
-// The event mutex
-//
-// This mutex prevents multiple threads from watching multiple events
-// simultaneously and also protects resources like joysticks that may
-// be accessed from multiple threads and also generate events.
-extern SDL_Mutex *SDL_event_lock;
-extern void SDL_CreateEventLock(void);
-extern void SDL_DestroyEventLock(void);
-
-// Start and stop the event processing loop
-extern bool SDL_StartEventLoop(void);
+/* Start and stop the event processing loop */
+extern int SDL_StartEventLoop(void);
 extern void SDL_StopEventLoop(void);
 extern void SDL_QuitInterrupt(void);
 
-extern void SDL_SendAppEvent(SDL_EventType eventType);
-extern void SDL_SendKeymapChangedEvent(void);
-extern void SDL_SendLocaleChangedEvent(void);
-extern void SDL_SendSystemThemeChangedEvent(void);
+extern int SDL_SendAppEvent(SDL_EventType eventType);
+extern int SDL_SendSysWMEvent(SDL_SysWMmsg *message);
+extern int SDL_SendKeymapChangedEvent(void);
+extern int SDL_SendLocaleChangedEvent(void);
 
-extern void *SDL_AllocateTemporaryMemory(size_t size);
-extern const char *SDL_CreateTemporaryString(const char *string);
-extern void *SDL_ClaimTemporaryMemory(const void *mem);
-extern void SDL_FreeTemporaryMemory(void);
+extern int SDL_SendQuit(void);
 
-extern void SDL_PumpEventMaintenance(void);
-
-extern void SDL_SendQuit(void);
-
-extern bool SDL_InitEvents(void);
-extern void SDL_QuitEvents(void);
+extern int SDL_EventsInit(void);
+extern void SDL_EventsQuit(void);
 
 extern void SDL_SendPendingSignalEvents(void);
 
-extern bool SDL_InitQuit(void);
+extern int SDL_QuitInit(void);
 extern void SDL_QuitQuit(void);
 
-#endif // SDL_events_c_h_
+#endif /* SDL_events_c_h_ */
+
+/* vi: set ts=4 sw=4 expandtab: */

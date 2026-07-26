@@ -405,3 +405,9 @@ FodyWeavers.xsd
 UnleashedRecompLib/build
 UnleashedRecompLib/ppc*
 .ndk-tools/
+
+# Android Studio / Gradle local overrides
+android-apk/local.properties
+
+# Prebuilt libmain.so copied in by build-android.sh (build output, not source)
+android-apk/app/jniLibs/

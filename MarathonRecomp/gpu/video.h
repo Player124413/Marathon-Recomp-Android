@@ -7,6 +7,7 @@
 #include <plume_render_interface.h>
 #include <os/logger.h>
 #include <cstdint>
+#include <android_atomic_ref_polyfill.h>
 
 #define D3DCLEAR_TARGET  0x1
 #define D3DCLEAR_ZBUFFER 0x10

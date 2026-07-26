@@ -13,6 +13,7 @@ The list below represents a combination of high-priority work, nice-to-have feat
 
 ## Plot Items
 
+- add `PlotBubbles` (see MATLAB bubble chart)
 - add non-zero references for `PlotBars` etc.
 - fix appearance of `PlotBars` spacing
 
@@ -78,7 +79,6 @@ Ideally every `PlotX` function should use our faster rendering pipeline when it 
 |PlotDummy|-|-|-|-|
 
 ## Completed
-- add `PlotBubbles` (see MATLAB bubble chart)
 - add exploding to `PlotPieChart` (on legend hover)
 - make BeginPlot take fewer args:
 - make query a tool -> `DragRect`

@@ -82,6 +82,9 @@ namespace plume {
         NVIDIA = 0x10DE,
         INTEL = 0x8086,
         APPLE = 0x106B,
+        ARM = 0x13B5,   // Mali GPUs
+        QUALCOMM = 0x5143, // Adreno GPUs
+        IMAGINATION = 0x1010, // PowerVR GPUs
     };
     
     enum class RenderFormat {
@@ -1808,6 +1811,24 @@ namespace plume {
 
         // Query Pools.
         bool queryPools = false;
+
+        // Pipeline layout descriptor set limit.
+        // Vulkan: VkPhysicalDeviceLimits::maxBoundDescriptorSets (spec minimum 4;
+        //   Mali-G57 and many mobile parts report exactly 4; desktop GPUs typically 8+).
+        // D3D12 / Metal: no equivalent hard limit — default to 8 so features that
+        //   require more than 4 sets are not needlessly disabled on those backends.
+        // Callers that build pipeline layouts with N descriptor sets must check
+        // this value and reduce their set count (or disable the feature) when
+        // N > maxBoundDescriptorSets, rather than letting vkCreatePipelineLayout
+        // trigger a hard GPU driver kill.
+        uint32_t maxBoundDescriptorSets = 8;
+
+        // BC (S3TC/DXTC) texture compression support.
+        // Vulkan: VkPhysicalDeviceFeatures::textureCompressionBC.
+        // D3D12 / Metal: always true on hardware that supports those APIs.
+        // When false, BC-format textures must be software-decoded before upload
+        // (e.g. certain ARM Mali drivers on Android may not expose this feature).
+        bool textureCompressionBC = false;
     };
 
     struct RenderInterfaceCapabilities {

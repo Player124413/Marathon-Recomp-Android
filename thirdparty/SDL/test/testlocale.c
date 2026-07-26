@@ -9,21 +9,22 @@
   including commercial applications, and to alter it and redistribute it
   freely.
 */
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_test.h>
+#include <stdio.h>
+#include "SDL.h"
+#include "SDL_test.h"
+
+/* !!! FIXME: move this to the test framework */
 
 static void log_locales(void)
 {
-    SDL_Locale **locales = SDL_GetPreferredLocales(NULL);
+    SDL_Locale *locales = SDL_GetPreferredLocales();
     if (!locales) {
         SDL_Log("Couldn't determine locales: %s", SDL_GetError());
     } else {
-        int i;
+        SDL_Locale *l;
         unsigned int total = 0;
         SDL_Log("Locales, in order of preference:");
-        for (i = 0; locales[i]; ++i) {
-            const SDL_Locale *l = locales[i];
+        for (l = locales; l->language; l++) {
             const char *c = l->country;
             SDL_Log(" - %s%s%s", l->language, c ? "_" : "", c ? c : "");
             total++;
@@ -35,15 +36,18 @@ static void log_locales(void)
 
 int main(int argc, char **argv)
 {
-    int i;
-    int listen = 0;
     SDLTest_CommonState *state;
+    SDL_bool listen = SDL_FALSE;
+    int i = 1;
 
-    /* Initialize test framework */
-    state = SDLTest_CommonCreateState(argv, 0);
+    state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
     if (!state) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLTest_CommonCreateState failed: %s\n", SDL_GetError());
         return 1;
     }
+
+    /* Enable standard application logging */
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     /* Parse commandline */
     for (i = 1; i < argc;) {
@@ -51,10 +55,9 @@ int main(int argc, char **argv)
 
         consumed = SDLTest_CommonArg(state, i);
         if (!consumed) {
-            if (SDL_strcmp(argv[1], "--listen") == 0) {
-                listen = 1;
+            if (SDL_strcmp("--listen", argv[i]) == 0) {
+                listen = SDL_TRUE;
                 consumed = 1;
-                state->flags |= SDL_INIT_VIDEO;
             }
         }
         if (consumed <= 0) {
@@ -66,31 +69,25 @@ int main(int argc, char **argv)
         i += consumed;
     }
 
-    /* Print locales and languages */
-    if (SDLTest_CommonInit(state) == false) {
+    if (!SDLTest_CommonInit(state)) {
         return 1;
     }
 
+    /* Print locales and languages */
     log_locales();
 
     if (listen) {
-        int done = 0;
-        while (!done) {
+        SDL_bool keep_going = SDL_TRUE;
+        while (keep_going) {
             SDL_Event e;
-            SDLTest_CommonEvent(state, &e, &done);
             while (SDL_PollEvent(&e)) {
-                if (e.type == SDL_EVENT_QUIT) {
-                    done = 1;
-                } else if (e.type == SDL_EVENT_LOCALE_CHANGED) {
-                    SDL_Log("Saw SDL_EVENT_LOCALE_CHANGED event!");
+                if (e.type == SDL_QUIT) {
+                    keep_going = SDL_FALSE;
+                } else if (e.type == SDL_LOCALECHANGED) {
+                    SDL_Log("Saw SDL_LOCALECHANGED event!");
                     log_locales();
                 }
             }
-
-            for (i = 0; i < state->num_windows; i++) {
-                SDL_RenderPresent(state->renderers[i]);
-            }
-
             SDL_Delay(10);
         }
     }
@@ -99,3 +96,5 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+/* vi: set ts=4 sw=4 expandtab: */

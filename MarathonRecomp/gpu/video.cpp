@@ -13,6 +13,7 @@
 #include <kernel/function.h>
 #include <kernel/heap.h>
 #include <hid/hid.h>
+#include <hid/virtual_touch.h>
 #include <kernel/memory.h>
 #include <kernel/xdbf.h>
 #include <plume_render_interface.h>
@@ -34,7 +35,18 @@
 #include <user/config.h>
 #include <sdl_listener.h>
 #include <xxHashMap.h>
+#include <os/logger.h>
 #include <os/process.h>
+#include <user/paths.h>
+
+#ifdef __ANDROID__
+#include <filesystem>
+#endif
+
+// Software BC (block compression) decoder used when the Vulkan device does not
+// expose textureCompressionBC (common on ARM Mali drivers for Android).
+// Outputs RGBA8 so the engine can upload an R8G8B8A8_UNORM texture instead.
+#include "bc_software_decode.h"
 
 #if defined(ASYNC_PSO_DEBUG) || defined(PSO_CACHING)
 #include <magic_enum/magic_enum.hpp>
@@ -374,7 +386,19 @@ static std::unique_ptr<RenderCommandFence> g_discardCommandFence;
 static std::unique_ptr<RenderSwapChain> g_swapChain;
 static bool g_swapChainValid;
 
+#ifdef __ANDROID__
+// Timestamp (SDL_GetTicks64) before which CheckSwapChain will skip resize attempts.
+// Used to back off after a failed surface/swapchain creation.
+static uint64_t g_androidSwapchainRetryAfterMs;
+#endif
+
 static constexpr RenderFormat BACKBUFFER_FORMAT = RenderFormat::B8G8R8A8_UNORM;
+
+// Tracks the swapchain surface format last used to build the gamma correction pipeline.
+// On Mali, the swapchain falls back to R8G8B8A8 instead of the default B8G8R8A8; the
+// gamma correction pipeline's render pass must match the actual swapchain format or the
+// GPU driver will fault when the first present frame is executed.
+static RenderFormat g_swapChainFormat = RenderFormat::UNKNOWN;
 
 static std::unique_ptr<RenderCommandSemaphore> g_acquireSemaphores[NUM_FRAMES];
 static std::unique_ptr<RenderCommandSemaphore> g_renderSemaphores[NUM_FRAMES];
@@ -395,6 +419,10 @@ static std::unique_ptr<RenderDescriptorSet> g_samplerDescriptorSet;
 static constexpr uint32_t CONDITIONAL_SURVEY_MAX = 64;
 static std::unique_ptr<RenderBuffer> g_conditionalSurveyBuffer;
 static std::unique_ptr<RenderDescriptorSet> g_conditionalSurveyDescriptorSet;
+// False on devices whose Vulkan maxBoundDescriptorSets < 5 (e.g. Mali-G57).
+// When false the conditional survey set is not added to the pipeline layout and
+// the feature is silently disabled so the device can still render the game.
+static bool g_conditionalSurveyEnabled = true;
 
 enum
 {
@@ -1541,11 +1569,13 @@ static void ExecuteCopyCommandList(const T& function)
 {
     std::lock_guard lock(g_copyMutex);
 
+    LOGF_WARNING("{}", "VkInit: submitting synchronous texture upload");
     g_copyCommandList->begin();
     function();
     g_copyCommandList->end();
     g_copyQueue->executeCommandLists(g_copyCommandList.get(), g_copyCommandFence.get());
     g_copyQueue->waitForCommandFence(g_copyCommandFence.get());
+    LOGF_WARNING("{}", "VkInit: synchronous texture upload complete");
 }
 
 static constexpr uint32_t PITCH_ALIGNMENT = 0x100;
@@ -1571,30 +1601,187 @@ struct ImGuiPushConstants
 
 extern ImFontBuilderIO g_fontBuilderIO;
 
-static void CreateImGuiBackend()
+static bool CreateImGuiBackend()
 {
+    LOGF_WARNING("{}", "VkInit: entering ImGui backend");
+    if (ImGui::GetCurrentContext() == nullptr)
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui context is missing");
+        return false;
+    }
+
     ImGuiIO& io = ImGui::GetIO();
+    if (io.Fonts == nullptr)
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font atlas is missing");
+        return false;
+    }
+
     io.IniFilename = nullptr;
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
 #ifdef ENABLE_IM_FONT_ATLAS_SNAPSHOT
+    LOGF_WARNING("{}", "VkInit: loading ImGui font snapshot");
     IM_DELETE(io.Fonts);
     io.Fonts = ImFontAtlasSnapshot::Load();
+    bool fontAtlasFromSnapshot = (io.Fonts != nullptr);
+    if (!fontAtlasFromSnapshot)
+    {
+        // Snapshot version mismatch (e.g. after an ImGui upgrade) — fall back to
+        // runtime font building so the game still starts instead of crashing.
+        LOGF_WARNING("{}", "VkInit: ImGui font snapshot version mismatch — falling back to runtime build");
+        io.Fonts = IM_NEW(ImFontAtlas)();
+        io.Fonts->AddFontDefault();
+        ImFontAtlasSnapshot::GenerateGlyphRanges();
+    }
+    else
+    {
+        LOGF_WARNING("{}", "VkInit: ImGui font snapshot loaded");
+    }
 #else
+    bool fontAtlasFromSnapshot = false;
+    LOGF_WARNING("{}", "VkInit: adding ImGui default font");
     io.Fonts->AddFontDefault();
+    LOGF_WARNING("{}", "VkInit: generating ImGui glyph ranges");
     ImFontAtlasSnapshot::GenerateGlyphRanges();
 #endif
 
-    InitImGuiUtils();
+    LOGF_WARNING("{}", "VkInit: ImGui font setup complete");
+    LOGF_WARNING("{}", "VkInit: initializing ImGui utility textures");
+    if (!InitImGuiUtils())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui utility texture initialization failed");
+        return false;
+    }
+    LOGF_WARNING("{}", "VkInit: ImGui utility textures initialized");
+    LOGF_WARNING("{}", "VkInit: initializing options menu");
     OptionsMenu::Init();
+    LOGF_WARNING("{}", "VkInit: options menu initialized");
+    LOGF_WARNING("{}", "VkInit: initializing installer wizard");
     InstallerWizard::Init();
+    LOGF_WARNING("{}", "VkInit: installer wizard initialized");
 
-    ImGui_ImplSDL2_InitForOther(GameWindow::s_pWindow);
+    if (GameWindow::s_pWindow == nullptr)
+    {
+        LOGF_ERROR("{}", "VkInit: SDL window is missing before ImGui initialization");
+        return false;
+    }
+    if (!ImGui_ImplSDL2_InitForOther(GameWindow::s_pWindow))
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui SDL backend initialization failed");
+        return false;
+    }
+    LOGF_WARNING("{}", "VkInit: ImGui SDL backend done");
 
 #ifdef ENABLE_IM_FONT_ATLAS_SNAPSHOT
-    g_imFontTexture = LoadTexture(
-        decompressZstd(g_im_font_atlas_texture, g_im_font_atlas_texture_uncompressed_size).get(), g_im_font_atlas_texture_uncompressed_size);
+    if (fontAtlasFromSnapshot)
+    {
+        // Happy path: pre-built DDS atlas texture is valid for this ImGui version.
+        LOGF_WARNING("{}", "VkInit: loading ImGui font texture");
+        g_imFontTexture = LoadTexture(
+            decompressZstd(g_im_font_atlas_texture, g_im_font_atlas_texture_uncompressed_size).get(), g_im_font_atlas_texture_uncompressed_size);
+        if (!g_imFontTexture || !g_imFontTexture->texture || !g_imFontTexture->texture->isValid() ||
+            !g_imFontTexture->textureView || !g_imFontTexture->textureView->isValid())
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font texture creation failed");
+            return false;
+        }
+        LOGF_WARNING("{}", "VkInit: ImGui font texture done");
+    }
+    else
+    {
+        // Fallback: snapshot version-mismatched — build and upload the font atlas at runtime.
+        // This is the same path as the non-snapshot development build.
+        LOGF_WARNING("{}", "VkInit: building ImGui font atlas at runtime (snapshot fallback)");
+        io.Fonts->FontBuilderIO = &g_fontBuilderIO;
+        io.Fonts->Build();
+
+        g_imFontTexture = std::make_unique<GuestTexture>(ResourceType::Texture);
+
+        uint8_t* pixels;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+        RenderTextureDesc textureDesc;
+        textureDesc.dimension = RenderTextureDimension::TEXTURE_2D;
+        textureDesc.width = width;
+        textureDesc.height = height;
+        textureDesc.depth = 1;
+        textureDesc.mipLevels = 1;
+        textureDesc.arraySize = 1;
+        textureDesc.format = RenderFormat::R8G8B8A8_UNORM;
+
+        g_imFontTexture->textureHolder = g_device->createTexture(textureDesc);
+        if (!g_imFontTexture->textureHolder)
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font texture allocation returned null");
+            return false;
+        }
+        g_imFontTexture->texture = g_imFontTexture->textureHolder.get();
+        if (!g_imFontTexture->texture->isValid())
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font texture allocation failed");
+            return false;
+        }
+
+        uint32_t rowPitch = (width * 4 + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
+        uint32_t slicePitch = (rowPitch * height + PLACEMENT_ALIGNMENT - 1) & ~(PLACEMENT_ALIGNMENT - 1);
+        auto uploadBuffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(slicePitch));
+        if (!uploadBuffer || !uploadBuffer->isValid())
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font upload buffer allocation failed");
+            return false;
+        }
+        uint8_t* mappedMemory = reinterpret_cast<uint8_t*>(uploadBuffer->map());
+        if (!mappedMemory)
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font upload buffer map failed");
+            return false;
+        }
+
+        if (rowPitch == (width * 4))
+        {
+            memcpy(mappedMemory, pixels, static_cast<size_t>(width) * height * 4);
+        }
+        else
+        {
+            for (size_t i = 0; i < height; i++)
+            {
+                memcpy(mappedMemory, pixels, width * 4);
+                pixels += width * 4;
+                mappedMemory += rowPitch;
+            }
+        }
+
+        uploadBuffer->unmap();
+
+        ExecuteCopyCommandList([&]
+            {
+                g_copyCommandList->barriers(RenderBarrierStage::COPY, RenderTextureBarrier(g_imFontTexture->texture, RenderTextureLayout::COPY_DEST));
+
+                g_copyCommandList->copyTextureRegion(
+                    RenderTextureCopyLocation::Subresource(g_imFontTexture->texture, 0),
+                    RenderTextureCopyLocation::PlacedFootprint(uploadBuffer.get(), RenderFormat::R8G8B8A8_UNORM, width, height, 1, rowPitch / 4, 0));
+            });
+
+        g_imFontTexture->layout = RenderTextureLayout::COPY_DEST;
+
+        RenderTextureViewDesc textureViewDesc;
+        textureViewDesc.format = textureDesc.format;
+        textureViewDesc.dimension = RenderTextureViewDimension::TEXTURE_2D;
+        textureViewDesc.mipLevels = 1;
+        g_imFontTexture->textureView = g_imFontTexture->texture->createTextureView(textureViewDesc);
+        if (!g_imFontTexture->textureView || !g_imFontTexture->textureView->isValid())
+        {
+            LOGF_ERROR("{}", "VkInit: ImGui font texture view creation failed");
+            return false;
+        }
+
+        g_imFontTexture->descriptorIndex = g_textureDescriptorAllocator.allocate();
+        g_textureDescriptorSet->setTexture(g_imFontTexture->descriptorIndex, g_imFontTexture->texture, RenderTextureLayout::SHADER_READ, g_imFontTexture->textureView.get());
+        LOGF_WARNING("{}", "VkInit: ImGui font atlas runtime upload done");
+    }
 #else
     io.Fonts->FontBuilderIO = &g_fontBuilderIO;
     io.Fonts->Build();
@@ -1615,16 +1802,36 @@ static void CreateImGuiBackend()
     textureDesc.format = RenderFormat::R8G8B8A8_UNORM;
 
     g_imFontTexture->textureHolder = g_device->createTexture(textureDesc);
+    if (!g_imFontTexture->textureHolder)
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font texture allocation returned null");
+        return false;
+    }
     g_imFontTexture->texture = g_imFontTexture->textureHolder.get();
+    if (!g_imFontTexture->texture->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font texture allocation failed");
+        return false;
+    }
 
     uint32_t rowPitch = (width * 4 + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
     uint32_t slicePitch = (rowPitch * height + PLACEMENT_ALIGNMENT - 1) & ~(PLACEMENT_ALIGNMENT - 1);
     auto uploadBuffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(slicePitch));
+    if (!uploadBuffer || !uploadBuffer->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font upload buffer allocation failed");
+        return false;
+    }
     uint8_t* mappedMemory = reinterpret_cast<uint8_t*>(uploadBuffer->map());
+    if (!mappedMemory)
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font upload buffer map failed");
+        return false;
+    }
 
     if (rowPitch == (width * 4))
     {
-        memcpy(mappedMemory, pixels, slicePitch);
+        memcpy(mappedMemory, pixels, static_cast<size_t>(width) * height * 4);
     }
     else
     {
@@ -1654,12 +1861,18 @@ static void CreateImGuiBackend()
     textureViewDesc.dimension = RenderTextureViewDimension::TEXTURE_2D;
     textureViewDesc.mipLevels = 1;
     g_imFontTexture->textureView = g_imFontTexture->texture->createTextureView(textureViewDesc);
+    if (!g_imFontTexture->textureView || !g_imFontTexture->textureView->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui font texture view creation failed");
+        return false;
+    }
 
     g_imFontTexture->descriptorIndex = g_textureDescriptorAllocator.allocate();
     g_textureDescriptorSet->setTexture(g_imFontTexture->descriptorIndex, g_imFontTexture->texture, RenderTextureLayout::SHADER_READ, g_imFontTexture->textureView.get());
 #endif
 
     io.Fonts->SetTexID(g_imFontTexture.get());
+    LOGF_WARNING("{}", "VkInit: ImGui font atlas ready");
 
     RenderPipelineLayoutBuilder pipelineLayoutBuilder;
     pipelineLayoutBuilder.begin(false, true);
@@ -1679,9 +1892,21 @@ static void CreateImGuiBackend()
 
     pipelineLayoutBuilder.end();
     g_imPipelineLayout = pipelineLayoutBuilder.create(g_device.get());
+    if (!g_imPipelineLayout || !g_imPipelineLayout->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui pipeline layout creation failed");
+        return false;
+    }
+    LOGF_WARNING("{}", "VkInit: ImGui pipeline layout done");
 
     auto vertexShader = CREATE_SHADER(imgui_vs);
     auto pixelShader = CREATE_SHADER(imgui_ps);
+    if (!vertexShader || !vertexShader->isValid() || !pixelShader || !pixelShader->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui shader creation failed");
+        return false;
+    }
+    LOGF_WARNING("{}", "VkInit: ImGui shaders done");
 
     RenderInputElement inputElements[3];
     inputElements[0] = RenderInputElement("POSITION", 0, 0, RenderFormat::R32G32_FLOAT, 0, offsetof(ImDrawVert, pos));
@@ -1702,9 +1927,20 @@ static void CreateImGuiBackend()
     pipelineDesc.inputSlots = &inputSlot;
     pipelineDesc.inputSlotsCount = 1;
     g_imPipeline = g_device->createGraphicsPipeline(pipelineDesc);
+    if (!g_imPipeline || !g_imPipeline->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui alpha pipeline creation failed");
+        return false;
+    }
 
     pipelineDesc.renderTargetBlend[0].dstBlend = RenderBlend::ONE;
     g_imAdditivePipeline = g_device->createGraphicsPipeline(pipelineDesc);
+    if (!g_imAdditivePipeline || !g_imAdditivePipeline->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: ImGui additive pipeline creation failed");
+        return false;
+    }
+    LOGF_WARNING("{}", "VkInit: ImGui pipelines done");
 
 #ifndef ENABLE_IM_FONT_ATLAS_SNAPSHOT
     ImFontAtlasSnapshot snapshot;
@@ -1731,6 +1967,42 @@ static void CreateImGuiBackend()
         fclose(file);
     }
 #endif
+    return true;
+}
+
+#ifdef __ANDROID__
+// Remove the GPU crash sentinel once the first frame has been successfully
+// presented. The sentinel is written at startup so that if the driver kills
+// the process the launcher can warn the user. An idempotent removal here is
+// safe even if main() already removed it on a clean exit path.
+static void AndroidMarkVulkanStartupSuccessful()
+{
+    static bool s_done = false;
+    if (s_done)
+        return;
+
+    std::error_code ec;
+    std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", ec);
+    s_done = true;
+}
+#endif
+
+// Rebuilds g_gammaCorrectionPipeline using the specified render target format.
+// Called once at startup (format = BACKBUFFER_FORMAT) and again if the swapchain
+// surface format turns out to differ (e.g. R8G8B8A8 instead of B8G8R8A8 on Mali).
+static void RebuildGammaCorrectionPipeline(RenderFormat format)
+{
+    auto gammaCorrectionShader = CREATE_SHADER(gamma_correction_ps);
+    RenderGraphicsPipelineDesc desc;
+    desc.pipelineLayout = g_pipelineLayout.get();
+    desc.vertexShader = g_copyShader.get();
+    desc.pixelShader = gammaCorrectionShader.get();
+    desc.renderTargetFormat[0] = format;
+    desc.renderTargetBlend[0] = RenderBlendDesc::Copy();
+    desc.renderTargetCount = 1;
+    g_gammaCorrectionPipeline = g_device->createGraphicsPipeline(desc);
+    g_swapChainFormat = format;
+    LOGF_WARNING("RebuildGammaCorrectionPipeline: format={}", (int)format);
 }
 
 static void CheckSwapChain()
@@ -1738,16 +2010,89 @@ static void CheckSwapChain()
     g_swapChain->setVsyncEnabled(Config::VSync);
     g_swapChainValid &= !g_swapChain->needsResize();
 
+#ifdef __ANDROID__
+    // Android replaces the ANativeWindow across background/foreground. The old
+    // VkSurfaceKHR then references a dead window: swapchain recreation and
+    // presents "succeed" but nothing reaches the screen (black screen while
+    // audio keeps running). Compare every frame so the change is caught even
+    // if lifecycle events were missed.
+    plume::RenderWindow currentNativeWindow = GameWindow::GetAndroidNativeWindow();
+    if (currentNativeWindow != g_swapChain->getWindow())
+        g_swapChainValid = false;
+#endif
+
     if (!g_swapChainValid)
     {
+#ifdef __ANDROID__
+        const uint64_t nowMs = SDL_GetTicks64();
+        if (nowMs < g_androidSwapchainRetryAfterMs)
+            goto skipResizeAttempt;
+
+        // Backgrounded: no window to present into yet. Keep rendering offscreen and retry.
+        if (currentNativeWindow == nullptr)
+        {
+            g_androidSwapchainRetryAfterMs = nowMs + 100;
+            goto skipResizeAttempt;
+        }
+
+        if (currentNativeWindow != g_swapChain->getWindow())
+        {
+            Video::WaitForGPU();
+            os::logger::Log("native window changed; recreating Vulkan surface", os::logger::ELogType::Utility, "android");
+            GameWindow::s_renderWindow = currentNativeWindow;
+
+            if (!g_swapChain->recreateSurface(currentNativeWindow))
+            {
+                g_androidSwapchainRetryAfterMs = nowMs + 500;
+                os::logger::Log("surface recreate failed; delaying retry", os::logger::ELogType::Warning, "android");
+                goto skipResizeAttempt;
+            }
+        }
+#endif
         Video::WaitForGPU();
         g_backBuffer->framebuffers.clear();
         g_swapChainValid = g_swapChain->resize();
         g_needsResize = g_swapChainValid;
+
+#ifdef __ANDROID__
+        if (!g_swapChainValid)
+        {
+            g_androidSwapchainRetryAfterMs = nowMs + 500;
+            os::logger::Log("swapchain resize failed; delaying retry", os::logger::ELogType::Warning, "android");
+        }
+        else
+        {
+            os::logger::Log("swapchain (re)created successfully", os::logger::ELogType::Utility, "android");
+            AndroidMarkVulkanStartupSuccessful();
+        }
+#endif
     }
 
+#ifdef __ANDROID__
+skipResizeAttempt:
+#endif
     if (g_swapChainValid)
     {
+#ifdef __ANDROID__
+        AndroidMarkVulkanStartupSuccessful();
+
+        // Adapt the gamma correction pipeline to the actual swapchain surface format.
+        // On Mali, vkCreateSwapchainKHR may pick R8G8B8A8_UNORM instead of the default
+        // B8G8R8A8_UNORM (BACKBUFFER_FORMAT). The gamma correction pipeline's render pass
+        // must match the swapchain image format exactly, or vkCmdBeginRenderPass uses an
+        // incompatible render pass → GPU driver fault → vkWaitForFences hangs forever.
+        {
+            RenderFormat actualFmt = g_swapChain->getFormat();
+            if (actualFmt != RenderFormat::UNKNOWN && actualFmt != g_swapChainFormat)
+            {
+                LOGF_WARNING("CheckSwapChain: swapchain format changed ({} → {}); rebuilding gamma correction pipeline",
+                    (int)g_swapChainFormat, (int)actualFmt);
+                Video::WaitForGPU();
+                g_backBuffer->framebuffers.clear(); // framebuffers encode the old render pass format
+                RebuildGammaCorrectionPipeline(actualFmt);
+            }
+        }
+#endif
         g_swapChainAcquireProfiler.Begin();
         g_swapChainValid = g_swapChain->acquireTexture(g_acquireSemaphores[g_frame].get(), &g_backBufferIndex);
         g_swapChainAcquireProfiler.End();
@@ -1774,24 +2119,42 @@ static void BeginCommandList()
         uint32_t width = Video::s_viewportWidth;
         uint32_t height = Video::s_viewportHeight;
 
-        if (g_intermediaryBackBufferTextureWidth != width ||
-            g_intermediaryBackBufferTextureHeight != height)
+        // Use an intermediary texture when the viewport is a different size from
+        // the swapchain (letterboxing/pillarboxing) or when brightness adjustment
+        // is active. Otherwise render directly into the swapchain image to avoid
+        // an extra blit/render-pass, which also helps on Mali where minimising
+        // render-pass count reduces driver pressure.
+        const bool usingIntermediaryTexture =
+            (width != g_swapChain->getWidth()) || (height != g_swapChain->getHeight()) ||
+            (std::abs(Config::Brightness - 0.5f) > 0.001f);
+
+        if (usingIntermediaryTexture)
         {
-            if (g_intermediaryBackBufferTextureDescriptorIndex == NULL)
-                g_intermediaryBackBufferTextureDescriptorIndex = g_textureDescriptorAllocator.allocate();
+            if (g_intermediaryBackBufferTextureWidth != width ||
+                g_intermediaryBackBufferTextureHeight != height)
+            {
+                if (g_intermediaryBackBufferTextureDescriptorIndex == NULL)
+                    g_intermediaryBackBufferTextureDescriptorIndex = g_textureDescriptorAllocator.allocate();
 
-            Video::WaitForGPU(); // Fine to wait for GPU, this'll only happen during resize.
+                Video::WaitForGPU(); // Fine to wait for GPU, this'll only happen during resize.
 
-            g_intermediaryBackBufferTexture = g_device->createTexture(RenderTextureDesc::Texture2D(width, height, 1, BACKBUFFER_FORMAT, RenderTextureFlag::RENDER_TARGET));
-            g_textureDescriptorSet->setTexture(g_intermediaryBackBufferTextureDescriptorIndex, g_intermediaryBackBufferTexture.get(), RenderTextureLayout::SHADER_READ);
+                g_intermediaryBackBufferTexture = g_device->createTexture(RenderTextureDesc::Texture2D(width, height, 1, BACKBUFFER_FORMAT, RenderTextureFlag::RENDER_TARGET));
+                if (g_intermediaryBackBufferTexture && g_intermediaryBackBufferTexture->isValid())
+                    g_textureDescriptorSet->setTexture(g_intermediaryBackBufferTextureDescriptorIndex, g_intermediaryBackBufferTexture.get(), RenderTextureLayout::SHADER_READ);
 
-            g_intermediaryBackBufferTextureWidth = width;
-            g_intermediaryBackBufferTextureHeight = height;
+                g_intermediaryBackBufferTextureWidth = width;
+                g_intermediaryBackBufferTextureHeight = height;
 
-            g_backBuffer->framebuffers.clear();
+                g_backBuffer->framebuffers.clear();
+            }
+
+            g_backBuffer->texture = g_intermediaryBackBufferTexture.get();
         }
-
-        g_backBuffer->texture = g_intermediaryBackBufferTexture.get();
+        else
+        {
+            // Render directly to the swapchain image.
+            g_backBuffer->texture = g_swapChain->getTexture(g_backBufferIndex);
+        }
     }
     else
     {
@@ -1812,14 +2175,18 @@ static void BeginCommandList()
     auto& commandList = g_commandLists[g_frame];
 
     commandList->begin();
-    commandList->resetQueryPool(g_queryPools[g_frame].get(), 0, NUM_QUERIES);
-    commandList->writeTimestamp(g_queryPools[g_frame].get(), 0);
+    if (g_capabilities.queryPools)
+    {
+        commandList->resetQueryPool(g_queryPools[g_frame].get(), 0, NUM_QUERIES);
+        commandList->writeTimestamp(g_queryPools[g_frame].get(), 0);
+    }
     commandList->setGraphicsPipelineLayout(g_pipelineLayout.get());
     commandList->setGraphicsDescriptorSet(g_textureDescriptorSet.get(), 0);
     commandList->setGraphicsDescriptorSet(g_textureDescriptorSet.get(), 1);
     commandList->setGraphicsDescriptorSet(g_textureDescriptorSet.get(), 2);
     commandList->setGraphicsDescriptorSet(g_samplerDescriptorSet.get(), 3);
-    commandList->setGraphicsDescriptorSet(g_conditionalSurveyDescriptorSet.get(), 4);
+    if (g_conditionalSurveyEnabled)
+        commandList->setGraphicsDescriptorSet(g_conditionalSurveyDescriptorSet.get(), 4);
 
     g_readyForCommands = true;
     g_readyForCommands.notify_one();
@@ -1952,6 +2319,24 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
                 // restart indices cause triangles to be culled incorrectly. Converting them to degenerate triangles fixes it.
                 g_triangleStripWorkaround = (deviceDescription.vendor == RenderDeviceVendor::AMD);
 
+                // Log device info (always — critical for crash diagnosis).
+                LOGF_WARNING("GPU: {} (vendor=0x{:04X} type={}) vram={} MiB",
+                             deviceDescription.name,
+                             uint32_t(deviceDescription.vendor),
+                             int(deviceDescription.type),
+                             deviceDescription.dedicatedVideoMemory / (1024 * 1024));
+
+                // Log Mali GPU detection.  Driver-level workarounds are applied
+                // automatically in plume_vulkan (presentWait, queryPools,
+                // triangleFan, loadStoreOpNone, MSAA, shadowRes, displayTiming,
+                // descriptorIndexing, nullDescriptor, scalarBlockLayout).
+                if (deviceDescription.vendor == RenderDeviceVendor::ARM)
+                {
+                    LOGF_WARNING("ARM Mali GPU detected ({}). All Mali compatibility "
+                                 "workarounds applied — see plume log for details.",
+                                 deviceDescription.name);
+                }
+
                 break;
             }
         }
@@ -2014,21 +2399,66 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     if ((commonSampleCount & RenderSampleCount::COUNT_8) == 0)
         Config::AntiAliasing.InaccessibleValues.emplace(EAntiAliasing::MSAA8x);
 
+    // ARM Mali GPUs (Valhall and earlier) crash in the MSAA render-target and
+    // resolve code paths due to driver bugs.  Block every MSAA level at the
+    // capability layer so the engine always runs in non-MSAA mode regardless
+    // of what config.toml contains.
+    //
+    // Also cap shadow resolution at 1024 for Mali: allocating a 4096×4096
+    // depth render target (D32_FLOAT_S8_UINT) as a shadow map triggers a hard
+    // GPU driver crash on Mali-G57 (MediaTek Helio G99, e.g. Galaxy Tab A9
+    // SM-X110) and likely other Valhall/pre-Valhall Mali parts.  1024 is the
+    // highest shadow resolution confirmed stable on tested Mali devices.
+    if (g_device->getDescription().vendor == RenderDeviceVendor::ARM)
+    {
+        Config::AntiAliasing.InaccessibleValues.emplace(EAntiAliasing::MSAA2x);
+        Config::AntiAliasing.InaccessibleValues.emplace(EAntiAliasing::MSAA4x);
+        Config::AntiAliasing.InaccessibleValues.emplace(EAntiAliasing::MSAA8x);
+        Config::TransparencyAntiAliasing = false;
+        LOGF_WARNING("{}", "ARM Mali GPU: all MSAA modes disabled for driver compatibility.");
+
+        Config::ShadowResolution.InaccessibleValues.emplace(EShadowResolution::x2048);
+        Config::ShadowResolution.InaccessibleValues.emplace(EShadowResolution::x4096);
+        Config::ShadowResolution.InaccessibleValues.emplace(EShadowResolution::x8192);
+        LOGF_WARNING("{}", "ARM Mali GPU: shadow resolution capped at 1024 for driver compatibility.");
+    }
+
     // Set Anti-Aliasing to nearest supported level.
     Config::AntiAliasing.SnapToNearestAccessibleValue(false);
 
+    // Set Shadow Resolution to nearest supported level (clamps Mali down from
+    // any high value set in config.toml to the 1024 cap applied above).
+    Config::ShadowResolution.SnapToNearestAccessibleValue(false);
+
+    LOGF_WARNING("{}", "VkInit: creating DIRECT command queue");
     g_queue = g_device->createCommandQueue(RenderCommandListType::DIRECT);
 
+    LOGF_WARNING("{}", "VkInit: creating command lists");
     for (auto& commandList : g_commandLists)
         commandList = g_queue->createCommandList();
 
+    LOGF_WARNING("{}", "VkInit: creating command fences");
     for (auto& commandFence : g_commandFences)
         commandFence = g_device->createCommandFence();
 
-    for (auto& queryPool : g_queryPools)
-        queryPool = g_device->createQueryPool(NUM_QUERIES);
+    if (g_capabilities.queryPools)
+    {
+        LOGF_WARNING("{}", "VkInit: creating query pools");
+        for (auto& queryPool : g_queryPools)
+            queryPool = g_device->createQueryPool(NUM_QUERIES);
+    }
 
+    LOGF_WARNING("{}", "VkInit: creating texture upload queue");
+#ifdef __ANDROID__
+    // Android Mali devices may expose a transfer-only queue family. The
+    // renderer's barriers intentionally use VK_QUEUE_FAMILY_IGNORED, so
+    // uploading on that family leaves ownership undefined when the texture
+    // is first consumed by the graphics queue. Keep startup uploads on the
+    // graphics family until explicit ownership transfers exist.
+    g_copyQueue = g_device->createCommandQueue(RenderCommandListType::DIRECT);
+#else
     g_copyQueue = g_device->createCommandQueue(RenderCommandListType::COPY);
+#endif
     g_copyCommandList = g_copyQueue->createCommandList();
     g_copyCommandFence = g_device->createCommandFence();
 
@@ -2073,16 +2503,28 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     swapChainDesc.maxFrameLatency = Config::MaxFrameLatency;
     swapChainDesc.enablePresentWait = g_capabilities.presentWait;
 
+    LOGF_WARNING("VkInit: creating swap chain (bufferCount={} window={})", bufferCount, (void*)GameWindow::s_renderWindow);
     g_swapChain = g_queue->createSwapChain(swapChainDesc);
+    LOGF_WARNING("{}", "VkInit: swap chain ctor done");
     g_swapChain->setVsyncEnabled(Config::VSync);
     g_swapChainValid = !g_swapChain->needsResize();
 
+#ifdef __ANDROID__
+    // Mark Vulkan as successfully initialised so the crash-sentinel
+    // (written at process start) is removed promptly rather than waiting
+    // for a clean exit.  Idempotent; safe to call multiple times.
+    if (g_swapChainValid)
+        AndroidMarkVulkanStartupSuccessful();
+#endif
+
+    LOGF_WARNING("{}", "VkInit: creating semaphores");
     for (auto& acquireSemaphore : g_acquireSemaphores)
         acquireSemaphore = g_device->createCommandSemaphore();
     
     for (auto& renderSemaphore : g_renderSemaphores)
         renderSemaphore = g_device->createCommandSemaphore();
 
+    LOGF_WARNING("{}", "VkInit: creating texture descriptor set");
     RenderPipelineLayoutBuilder pipelineLayoutBuilder;
     pipelineLayoutBuilder.begin(false, true);
     
@@ -2092,6 +2534,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     descriptorSetBuilder.end(true, TEXTURE_DESCRIPTOR_SIZE);
     
     g_textureDescriptorSet = descriptorSetBuilder.create(g_device.get());
+    LOGF_WARNING("{}", "VkInit: texture descriptor set created");
     
     for (size_t i = 0; i < TEXTURE_DESCRIPTOR_NULL_COUNT; i++)
     {
@@ -2141,16 +2584,19 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
         g_textureDescriptorSet->setTexture(i, texture.get(), RenderTextureLayout::SHADER_READ, textureView.get());
     }
+    LOGF_WARNING("{}", "VkInit: blank textures set");
 
     pipelineLayoutBuilder.addDescriptorSet(descriptorSetBuilder);
     pipelineLayoutBuilder.addDescriptorSet(descriptorSetBuilder);
     pipelineLayoutBuilder.addDescriptorSet(descriptorSetBuilder);
     
+    LOGF_WARNING("{}", "VkInit: creating sampler descriptor set");
     descriptorSetBuilder.begin();
     descriptorSetBuilder.addSampler(0, SAMPLER_DESCRIPTOR_SIZE);
     descriptorSetBuilder.end(true, SAMPLER_DESCRIPTOR_SIZE);
     
     g_samplerDescriptorSet = descriptorSetBuilder.create(g_device.get());
+    LOGF_WARNING("{}", "VkInit: sampler descriptor set created");
     auto& [descriptorIndex, sampler] = g_samplerStates[XXH3_64bits(&g_samplerDescs[0], sizeof(RenderSamplerDesc))];
     descriptorIndex = 1;
     sampler = g_device->createSampler(g_samplerDescs[0]);
@@ -2158,6 +2604,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
     pipelineLayoutBuilder.addDescriptorSet(descriptorSetBuilder);
 
+    LOGF_WARNING("{}", "VkInit: creating conditional survey buffer");
     RenderBufferDesc conditionalSurveyBufferDesc;
     conditionalSurveyBufferDesc.size = CONDITIONAL_SURVEY_MAX * sizeof(uint32_t);
     conditionalSurveyBufferDesc.heapType = RenderHeapType::DEFAULT;
@@ -2169,11 +2616,25 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     conditionalSurveyDescriptorSetBuilder.addReadWriteStructuredBuffer(0);
     conditionalSurveyDescriptorSetBuilder.end();
     g_conditionalSurveyDescriptorSet = conditionalSurveyDescriptorSetBuilder.create(g_device.get());
+    LOGF_WARNING("{}", "VkInit: conditional survey descriptor set created");
 
     RenderBufferStructuredView conditionalSurveyStructuredView(sizeof(uint32_t));
     g_conditionalSurveyDescriptorSet->setBuffer(0, g_conditionalSurveyBuffer.get(), 0, &conditionalSurveyStructuredView);
 
-    pipelineLayoutBuilder.addDescriptorSet(conditionalSurveyDescriptorSetBuilder);
+    // The conditional survey feature needs a 5th descriptor set (set index 4).
+    // Many mobile Vulkan implementations (e.g. Mali-G57 on Galaxy Tab A9) only
+    // support 4 bound descriptor sets.  Passing 5 set layouts to
+    // vkCreatePipelineLayout causes a hard GPU driver kill on those devices.
+    // Detect the limit at runtime and disable the feature gracefully instead.
+    g_conditionalSurveyEnabled = (g_capabilities.maxBoundDescriptorSets >= 5);
+    if (g_conditionalSurveyEnabled)
+    {
+        pipelineLayoutBuilder.addDescriptorSet(conditionalSurveyDescriptorSetBuilder);
+    }
+    else
+    {
+        LOGF_WARNING("{}", "VkInit: maxBoundDescriptorSets < 5 — conditional survey disabled for this device");
+    }
 
     if (g_backend != Backend::D3D12)
     {
@@ -2188,8 +2649,22 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     }
     pipelineLayoutBuilder.end();
     
+    LOGF_WARNING("{}", "VkInit: creating pipeline layout");
     g_pipelineLayout = pipelineLayoutBuilder.create(g_device.get());
+    LOGF_WARNING("{}", "VkInit: pipeline layout created");
 
+    // Sanity-check: if the layout failed internally (e.g. maxBoundDescriptorSets
+    // guard fired or a descriptor set layout had a null handle) the Vulkan object
+    // inside will be VK_NULL_HANDLE.  Passing a null layout to any subsequent
+    // vkCreateGraphicsPipelines call is UB and causes a hard crash on Mali.
+    // Surface the failure here with a clear error so the log is actionable.
+    if (!g_pipelineLayout || !g_pipelineLayout->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: pipeline layout creation failed — cannot continue");
+        return false;
+    }
+
+    LOGF_WARNING("{}", "VkInit: creating copy shaders and pipelines");
     g_copyShader = CREATE_SHADER(copy_vs);
     g_copyColorShader = CREATE_SHADER(copy_color_ps);
     auto copyDepthShader = CREATE_SHADER(copy_depth_ps);
@@ -2203,6 +2678,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     desc.depthWriteEnabled = true;
     desc.depthTargetFormat = RenderFormat::D32_FLOAT_S8_UINT;
     g_copyDepthPipeline = g_device->createGraphicsPipeline(desc);
+    LOGF_WARNING("{}", "VkInit: copy depth pipeline done");
 
     g_resolveMsaaColorShaders[0] = CREATE_SHADER(resolve_msaa_color_2x);
     g_resolveMsaaColorShaders[1] = CREATE_SHADER(resolve_msaa_color_4x);
@@ -2234,6 +2710,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
         desc.depthTargetFormat = RenderFormat::D32_FLOAT_S8_UINT;
         g_resolveMsaaDepthPipelines[i] = g_device->createGraphicsPipeline(desc);
     }
+    LOGF_WARNING("{}", "VkInit: MSAA resolve pipelines done");
 
     for (auto& shader : g_gaussianBlurShaders)
         shader = std::make_unique<GuestShader>(ResourceType::PixelShader);
@@ -2242,6 +2719,7 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     g_gaussianBlurShaders[GAUSSIAN_BLUR_5X5]->shader = CREATE_SHADER(gaussian_blur_5x5);
     g_gaussianBlurShaders[GAUSSIAN_BLUR_7X7]->shader = CREATE_SHADER(gaussian_blur_7x7);
     g_gaussianBlurShaders[GAUSSIAN_BLUR_9X9]->shader = CREATE_SHADER(gaussian_blur_9x9);
+    LOGF_WARNING("{}", "VkInit: gaussian blur shaders done");
 
     g_csdFilterShader = std::make_unique<GuestShader>(ResourceType::PixelShader);
     g_csdFilterShader->shader = CREATE_SHADER(csd_filter_ps);
@@ -2254,19 +2732,19 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
 
     g_conditionalSurveyPSShader = std::make_unique<GuestShader>(ResourceType::PixelShader);
     g_conditionalSurveyPSShader->shader = CREATE_SHADER(conditional_survey_ps);
+    LOGF_WARNING("{}", "VkInit: misc shaders done");
 
-    CreateImGuiBackend();
+    LOGF_WARNING("{}", "VkInit: creating ImGui backend");
+    if (!CreateImGuiBackend())
+        return false;
+    LOGF_WARNING("{}", "VkInit: ImGui backend done");
 
-    auto gammaCorrectionShader = CREATE_SHADER(gamma_correction_ps);
-
-    desc = {};
-    desc.pipelineLayout = g_pipelineLayout.get();
-    desc.vertexShader = g_copyShader.get();
-    desc.pixelShader = gammaCorrectionShader.get();
-    desc.renderTargetFormat[0] = BACKBUFFER_FORMAT;
-    desc.renderTargetBlend[0] = RenderBlendDesc::Copy();
-    desc.renderTargetCount = 1;
-    g_gammaCorrectionPipeline = g_device->createGraphicsPipeline(desc);
+    // Build the initial gamma correction pipeline with BACKBUFFER_FORMAT.
+    // On Mali the swapchain may pick R8G8B8A8 instead of B8G8R8A8; CheckSwapChain()
+    // will detect the mismatch and call RebuildGammaCorrectionPipeline() with the
+    // actual swapchain format on the first successful present.
+    RebuildGammaCorrectionPipeline(BACKBUFFER_FORMAT);
+    LOGF_WARNING("{}", "VkInit: gamma correction pipeline done");
 
     // NOTE: We initially allocate this on host memory to make the installer work, even if the 4 GB memory allocation fails.
     g_backBufferHolder = std::make_unique<GuestSurface>(ResourceType::RenderTarget);
@@ -2277,9 +2755,12 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     g_backBuffer->format = BACKBUFFER_FORMAT;
     g_backBuffer->textureHolder = g_device->createTexture(RenderTextureDesc::Texture2D(1, 1, 1, BACKBUFFER_FORMAT, RenderTextureFlag::RENDER_TARGET));
 
+    LOGF_WARNING("{}", "VkInit: calling CheckSwapChain");
     Video::ComputeViewportDimensions();
     CheckSwapChain();
+    LOGF_WARNING("{}", "VkInit: CheckSwapChain done, calling BeginCommandList");
     BeginCommandList();
+    LOGF_WARNING("{}", "VkInit: BeginCommandList done");
 
     RenderTextureBarrier blankTextureBarriers[TEXTURE_DESCRIPTOR_NULL_COUNT];
     for (size_t i = 0; i < TEXTURE_DESCRIPTOR_NULL_COUNT; i++)
@@ -2413,7 +2894,16 @@ static void LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lo
     uint32_t slicePitch = pitch * texture->height;
 
     if (texture->mappedMemory == nullptr)
+    {
         texture->mappedMemory = g_userHeap.AllocPhysical(slicePitch, 0x10);
+        if (texture->mappedMemory == nullptr)
+        {
+            LOGF_ERROR("LockTextureRect: AllocPhysical OOM (slicePitch={})", slicePitch);
+            lockedRect->pitch = 0;
+            lockedRect->bits  = 0;
+            return;
+        }
+    }
 
     lockedRect->pitch = pitch;
     lockedRect->bits = g_memory.MapVirtual(texture->mappedMemory);
@@ -2421,8 +2911,12 @@ static void LockTextureRect(GuestTexture* texture, uint32_t, GuestLockedRect* lo
 
 static void UnlockTextureRect(GuestTexture* texture) 
 {
-    assert(std::this_thread::get_id() == g_presentThreadId);
-
+    // NOTE: g_renderQueue is a thread-safe concurrent queue; this is safe to
+    // call from any thread (guest thread, main thread, etc.).  The old assert
+    // compared against g_presentThreadId which was only set at static-init time
+    // (main/SDL thread) and never updated to the guest thread, so it always
+    // fired the first time a dynamic texture was written after archive loading —
+    // silently killing the process on Android debug builds.
     RenderCommand cmd;
     cmd.type = RenderCommandType::UnlockTextureRect;
     cmd.unlockTextureRect.texture = texture;
@@ -2438,6 +2932,37 @@ static void ProcUnlockTextureRect(const RenderCommand& cmd)
 
     uint32_t pitch = ComputeTexturePitch(args.texture);
     uint32_t slicePitch = pitch * args.texture->height;
+
+    // ARM Mali workaround: large textures (slicePitch > 16 MB pool-buffer limit)
+    // trigger assert(size <= UploadBuffer::SIZE) on the render thread — a silent
+    // abort() on Android.  Use a dedicated device upload buffer for oversized
+    // slices so the pool is never asked to hold more than its capacity.
+    if (slicePitch > UploadBuffer::SIZE)
+    {
+        auto overBuf = g_device->createBuffer(RenderBufferDesc::UploadBuffer(slicePitch));
+        if (!overBuf || !overBuf->isValid())
+        {
+            LOGF_ERROR("ProcUnlockTextureRect: oversized upload buffer alloc failed ({} bytes)", slicePitch);
+            return;
+        }
+        uint8_t* mapped = reinterpret_cast<uint8_t*>(overBuf->map());
+        if (!mapped)
+        {
+            LOGF_ERROR("{}", "ProcUnlockTextureRect: oversized upload buffer map failed");
+            return;
+        }
+        memcpy(mapped, args.texture->mappedMemory, slicePitch);
+        overBuf->unmap();
+
+        g_commandLists[g_frame]->copyTextureRegion(
+            RenderTextureCopyLocation::Subresource(args.texture->texture, 0),
+            RenderTextureCopyLocation::PlacedFootprint(overBuf.get(), args.texture->format, args.texture->width, args.texture->height, 1, pitch / RenderFormatSize(args.texture->format), 0));
+
+        // Transfer ownership to temp-buffer list so the buffer outlives this
+        // frame's command list submission and is released after GPU execution.
+        g_tempBuffers[g_frame].push_back(std::move(overBuf));
+        return;
+    }
 
     auto allocation = g_uploadAllocators[g_frame].allocate(slicePitch, PLACEMENT_ALIGNMENT);
     memcpy(allocation.memory, args.texture->mappedMemory, slicePitch);
@@ -2926,6 +3451,7 @@ static void DrawImGui()
 #endif
 
     UpdateImGuiUtils();
+    hid::DrawVirtualTouchOverlay();
     AchievementMenu::Draw();
     OptionsMenu::Draw();
     InstallerWizard::Draw();
@@ -3172,9 +3698,12 @@ void Video::Present()
         g_commandListStates[g_frame] = false;
 
         // Update the GPU profiler with the results from the timestamps of the frame.
-        g_queryPools[g_frame]->queryResults();
-        const uint64_t *frameTimestamps = g_queryPools[g_frame]->getResults();
-        g_gpuFrameProfiler.Set(double(frameTimestamps[1] - frameTimestamps[0]) / 1000000.0);
+        if (g_capabilities.queryPools)
+        {
+            g_queryPools[g_frame]->queryResults();
+            const uint64_t *frameTimestamps = g_queryPools[g_frame]->getResults();
+            g_gpuFrameProfiler.Set(double(frameTimestamps[1] - frameTimestamps[0]) / 1000000.0);
+        }
     }
 
     g_dirtyStates = DirtyStates(true);
@@ -3294,7 +3823,8 @@ static void ProcExecuteCommandList(const RenderCommand& cmd)
     }
 
     auto &commandList = g_commandLists[g_frame];
-    commandList->writeTimestamp(g_queryPools[g_frame].get(), 1);
+    if (g_capabilities.queryPools)
+        commandList->writeTimestamp(g_queryPools[g_frame].get(), 1);
     commandList->end();
 
     if (g_swapChainValid)
@@ -3342,6 +3872,39 @@ void Video::ComputeViewportDimensions()
 {
     uint32_t width = g_swapChain->getWidth();
     uint32_t height = g_swapChain->getHeight();
+
+#ifdef __ANDROID__
+    // Keep the swapchain at the full physical display size, but render the
+    // guest scene into a smaller intermediary target. Present() then scales
+    // that target back up through the existing gamma-correction pass.
+    switch (Config::InternalResolution)
+    {
+        case EInternalResolution::x960x540:
+            width = 960;
+            height = 540;
+            break;
+        case EInternalResolution::x1280x720:
+            width = 1280;
+            height = 720;
+            break;
+        case EInternalResolution::Native:
+            // On Android the swapchain may not be sized yet on the first call:
+            // the initial CheckSwapChain() resize fails (window not ready) and
+            // retries 500 ms later.  g_swapChain->getWidth()/getHeight() both
+            // return 0 until the retry succeeds.  The guest thread starts before
+            // that retry fires and reads s_viewportWidth/Height directly; if they
+            // are 0 the game engine creates 0×0 Vulkan images which crash the
+            // Mali driver immediately.  Fall back to 960×540 so downstream code
+            // always receives valid non-zero dimensions.
+            if (width == 0 || height == 0)
+            {
+                width  = 960;
+                height = 540;
+            }
+            break;
+    }
+#endif
+
     float aspectRatio = float(width) / float(height);
 
     switch (Config::AspectRatio)
@@ -3367,6 +3930,14 @@ void Video::ComputeViewportDimensions()
             s_viewportHeight = height;
             break;
     }
+
+    // Safety floor: s_viewportWidth/Height must never be 0.  A zero dimension
+    // causes vkCreateImage to receive a 0×0 extent which crashes the Mali
+    // driver (and is invalid per the Vulkan spec on all platforms).  This can
+    // happen on Android when Config::AspectRatio == Original and width or
+    // height is still 0 after the switch above (e.g., 0*9/16 == 0).
+    if (s_viewportWidth  == 0) s_viewportWidth  = 960;
+    if (s_viewportHeight == 0) s_viewportHeight = 540;
 
     AspectRatioPatches::ComputeOffsets();
 }
@@ -3478,6 +4049,19 @@ static GuestTexture* CreateTexture(uint32_t width, uint32_t height, uint32_t dep
     texture->textureHolder = g_device->createTexture(desc);
     texture->texture = texture->textureHolder.get();
 
+    texture->width = width;
+    texture->height = height;
+    texture->depth = depth;
+    texture->format = desc.format;
+    texture->mipLevels = levels;
+
+    if (!texture->textureHolder || !texture->texture->isValid())
+    {
+        LOGF_ERROR("CreateTexture: vkCreateImage failed ({}x{}x{} fmt={} mips={}) — stub texture returned",
+            width, height, depth, (uint32_t)desc.format, levels);
+        return texture; // texture->texture is null; descriptor slot stays at blank fallback
+    }
+
     RenderTextureViewDesc viewDesc;
     viewDesc.format = desc.format;
     viewDesc.dimension = texture->type == ResourceType::VolumeTexture ? RenderTextureViewDimension::TEXTURE_3D : RenderTextureViewDimension::TEXTURE_2D;
@@ -3498,12 +4082,6 @@ static GuestTexture* CreateTexture(uint32_t width, uint32_t height, uint32_t dep
     }
 
     texture->textureView = texture->texture->createTextureView(viewDesc);
-
-    texture->width = width;
-    texture->height = height;
-    texture->depth = depth;
-    texture->format = desc.format;
-    texture->mipLevels = viewDesc.mipLevels;
     texture->viewDimension = viewDesc.dimension;
     texture->descriptorIndex = g_textureDescriptorAllocator.allocate();
 
@@ -3603,20 +4181,29 @@ static GuestSurface* CreateSurface(uint32_t width, uint32_t height, uint32_t for
         surface->guestFormat = format;
         surface->sampleCount = desc.multisampling.sampleCount;
 
-        RenderTextureViewDesc viewDesc;
-        viewDesc.dimension = RenderTextureViewDimension::TEXTURE_2D;
-        viewDesc.format = desc.format;
-        viewDesc.mipLevels = 1;
-        surface->textureView = surface->textureHolder->createTextureView(viewDesc);
-        surface->descriptorIndex = g_textureDescriptorAllocator.allocate();
-        g_textureDescriptorSet->setTexture(surface->descriptorIndex, surface->textureHolder.get(), RenderTextureLayout::SHADER_READ, surface->textureView.get());
+        if (!surface->textureHolder || !surface->texture->isValid())
+        {
+            LOGF_ERROR("CreateSurface: vkCreateImage failed ({}x{} fmt={} ms={}) — stub surface returned",
+                width, height, (uint32_t)desc.format, (uint32_t)desc.multisampling.sampleCount);
+            // surface->texture stays null; don't create a view or write to the descriptor set
+        }
+        else
+        {
+            RenderTextureViewDesc viewDesc;
+            viewDesc.dimension = RenderTextureViewDimension::TEXTURE_2D;
+            viewDesc.format = desc.format;
+            viewDesc.mipLevels = 1;
+            surface->textureView = surface->textureHolder->createTextureView(viewDesc);
+            surface->descriptorIndex = g_textureDescriptorAllocator.allocate();
+            g_textureDescriptorSet->setTexture(surface->descriptorIndex, surface->textureHolder.get(), RenderTextureLayout::SHADER_READ, surface->textureView.get());
 
-    #ifdef _DEBUG 
-        surface->texture->setName(fmt::format("{} {:X}", desc.flags & RenderTextureFlag::RENDER_TARGET ? "Render Target" : "Depth Stencil", g_memory.MapVirtual(surface)));
+    #ifdef _DEBUG
+            surface->texture->setName(fmt::format("{} {:X}", desc.flags & RenderTextureFlag::RENDER_TARGET ? "Render Target" : "Depth Stencil", g_memory.MapVirtual(surface)));
     #endif
 
-        DiscardTexture(surface, desc.flags == RenderTextureFlag::RENDER_TARGET ?
-            RenderTextureLayout::COLOR_WRITE : RenderTextureLayout::DEPTH_WRITE);
+            DiscardTexture(surface, desc.flags == RenderTextureFlag::RENDER_TARGET ?
+                RenderTextureLayout::COLOR_WRITE : RenderTextureLayout::DEPTH_WRITE);
+        }
 
         if (params) {
             surface->wasCached = true;
@@ -5752,7 +6339,11 @@ static void ProcSetConditionalSurvey(const RenderCommand& cmd)
         g_tempBuffers[g_frame].emplace_back(std::move(uploadBuffer));
     }
 
-    SetDirtyValue(g_dirtyStates.pipelineState, g_pipelineState.enableConditionalSurvey, cmd.setConditionalSurvey.enabled);
+    // Conditional survey requires set 4 in the pipeline layout.  On devices
+    // with maxBoundDescriptorSets < 5 (e.g. Mali-G57) the set was not added, so
+    // the feature must stay permanently disabled to avoid an invalid draw state.
+    SetDirtyValue(g_dirtyStates.pipelineState, g_pipelineState.enableConditionalSurvey,
+                  g_conditionalSurveyEnabled && cmd.setConditionalSurvey.enabled);
     SetDirtyValue(g_dirtyStates.sharedConstants, g_sharedConstants.conditionalSurveyIndex, cmd.setConditionalSurvey.index);
 }
 
@@ -6101,9 +6692,194 @@ static RenderFormat ConvertDXGIFormat(ddspp::DXGIFormat format)
 
 static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataSize, RenderComponentMapping componentMapping)
 {
+    if (!data || dataSize == 0 || !g_device || !g_textureDescriptorSet ||
+        !g_copyQueue || !g_copyCommandList || !g_copyCommandFence)
+        return false;
+
     ddspp::Descriptor ddsDesc;
     if (ddspp::decode_header((unsigned char *)(data), ddsDesc) != ddspp::Error)
     {
+        if (ddsDesc.headerSize > dataSize)
+            return false;
+
+        // ── SOFTWARE BC DECODE PATH ──────────────────────────────────────────
+        // When the device reports textureCompressionBC=false (e.g. ARM Mali-G57
+        // on Android), BC-format textures cannot be uploaded in their native
+        // compressed form.  Decode to RGBA8 in software and upload that instead.
+        //
+        // ARM Mali workaround: even when textureCompressionBC is reported as
+        // true, some Mali-G57 driver builds (Galaxy Tab A9, MediaTek Helio G99)
+        // produce a null or invalid VkImageView for BC-format uploads, causing a
+        // silent LoadTexture failure.  Force the software decode path for ALL ARM
+        // Mali vendors; R8G8B8A8_UNORM output is unconditionally supported and
+        // produces identical visual results.
+        const bool forceArmSoftwareBc =
+            (g_device->getDescription().vendor == RenderDeviceVendor::ARM);
+        if ((!g_capabilities.textureCompressionBC || forceArmSoftwareBc) &&
+            BcIsBcDdsppFormat((int)ddsDesc.format))
+        {
+            // ARM Mali workaround: the Mali-G57 Vulkan driver (Galaxy Tab A9 and
+            // similar) crashes inside vkCreateImage when creating a non-power-of-2
+            // texture with a full mip chain (e.g. 5243×450 with 13 mips).
+            // Power-of-2 textures (1024×1024, etc.) are unaffected.
+            // Fix: clamp the mip count to 8 for any NPOT texture on ARM Mali so the
+            // driver never sees mip levels where sub-4×4 dimensions are involved on
+            // an NPOT surface.
+            auto isPot = [](uint32_t n) { return n > 0 && (n & (n - 1)) == 0; };
+            uint32_t safeMipCount = ddsDesc.numMips;
+            if (forceArmSoftwareBc)
+            {
+                const bool isNPOT = !isPot(ddsDesc.width) || !isPot(ddsDesc.height);
+                if (isNPOT && safeMipCount > 8u)
+                {
+                    safeMipCount = 8u;
+                    LOGF_WARNING("LoadTexture: ARM Mali NPOT mip clamp — {}×{} mips {} → {} "
+                                 "(avoids Mali vkCreateImage driver crash)",
+                                 ddsDesc.width, ddsDesc.height, ddsDesc.numMips, safeMipCount);
+                }
+            }
+
+            LOGF_WARNING("LoadTexture: device lacks textureCompressionBC — "
+                         "software-decoding DXGI fmt {} ({}×{} mips={}) to RGBA8",
+                         (int)ddsDesc.format, ddsDesc.width, ddsDesc.height, safeMipCount);
+
+            BcDecodeResult bcResult;
+            if (!BcSoftwareDecode(
+                    data + ddsDesc.headerSize,
+                    ddsDesc.width, ddsDesc.height, ddsDesc.depth,
+                    safeMipCount,
+                    (int)ddsDesc.format,
+                    ddsDesc.blockWidth, ddsDesc.blockHeight,
+                    ddsDesc.bitsPerPixelOrBlock,
+                    bcResult))
+            {
+                LOGF_ERROR("LoadTexture: BC software decode failed (DXGI fmt {})", (int)ddsDesc.format);
+                return false;
+            }
+
+            // Build an RGBA8 texture with the same geometry as the BC original.
+            RenderTextureDesc desc;
+            desc.dimension  = ConvertTextureDimension(ddsDesc.type);
+            desc.width      = ddsDesc.width;
+            desc.height     = ddsDesc.height;
+            desc.depth      = ddsDesc.depth;
+            desc.mipLevels  = safeMipCount;
+            desc.arraySize  = (ddsDesc.type == ddspp::TextureType::Cubemap) ? ddsDesc.arraySize * 6 : ddsDesc.arraySize;
+            desc.format     = RenderFormat::R8G8B8A8_UNORM;
+            desc.flags      = (ddsDesc.type == ddspp::TextureType::Cubemap) ? RenderTextureFlag::CUBE : RenderTextureFlag::NONE;
+
+            texture.textureHolder = g_device->createTexture(desc);
+            if (!texture.textureHolder || !texture.textureHolder->isValid())
+            {
+                LOGF_ERROR("LoadTexture: BC→RGBA8 createTexture failed ({}×{} fmt {})",
+                           desc.width, desc.height, (int)ddsDesc.format);
+                return false;
+            }
+            texture.texture       = texture.textureHolder.get();
+            texture.layout        = RenderTextureLayout::COPY_DEST;
+            texture.width         = ddsDesc.width;
+            texture.height        = ddsDesc.height;
+            texture.mipLevels     = safeMipCount;
+            texture.viewDimension = ConvertTextureViewDimension(ddsDesc.type);
+
+            RenderTextureViewDesc viewDesc;
+            viewDesc.format           = RenderFormat::R8G8B8A8_UNORM;
+            viewDesc.dimension        = ConvertTextureViewDimension(ddsDesc.type);
+            viewDesc.mipLevels        = safeMipCount;
+            viewDesc.componentMapping = componentMapping;
+            texture.textureView = texture.texture->createTextureView(viewDesc);
+            if (!texture.textureView || !texture.textureView->isValid())
+            {
+                LOGF_ERROR("{}", "LoadTexture: BC->RGBA8 createTextureView failed");
+                return false;
+            }
+            texture.descriptorIndex = g_textureDescriptorAllocator.allocate();
+            g_textureDescriptorSet->setTexture(texture.descriptorIndex, texture.texture,
+                                               RenderTextureLayout::SHADER_READ, texture.textureView.get());
+
+            // Build per-mip upload slices from the decoded RGBA8 data.
+            struct BcSlice {
+                uint32_t width, height, depth;
+                uint32_t srcOffset, dstOffset;
+                uint32_t srcRowPitch, dstRowPitch;
+                uint32_t rowCount;
+            };
+            std::vector<BcSlice> bcSlices;
+            uint32_t curBcDstOffset = 0;
+            for (uint32_t mip = 0; mip < safeMipCount; mip++)
+            {
+                auto& s       = bcSlices.emplace_back();
+                s.width       = std::max(1u, ddsDesc.width  >> mip);
+                s.height      = std::max(1u, ddsDesc.height >> mip);
+                s.depth       = std::max(1u, ddsDesc.depth  >> mip);
+                s.srcRowPitch = bcResult.rowPitches[mip];   // RGBA8: width×4 bytes
+                s.dstRowPitch = (s.srcRowPitch + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
+                s.srcOffset   = bcResult.offsets[mip];
+                s.dstOffset   = curBcDstOffset;
+                s.rowCount    = s.height;
+                curBcDstOffset += (s.dstRowPitch * s.rowCount * s.depth + PLACEMENT_ALIGNMENT - 1) & ~(PLACEMENT_ALIGNMENT - 1);
+            }
+
+            auto bcUploadBuf = g_device->createBuffer(RenderBufferDesc::UploadBuffer(curBcDstOffset));
+            if (!bcUploadBuf || !bcUploadBuf->isValid())
+            {
+                LOGF_ERROR("LoadTexture: BC→RGBA8 upload buffer alloc failed ({} bytes)", curBcDstOffset);
+                return false;
+            }
+            uint8_t* bcMapped = reinterpret_cast<uint8_t*>(bcUploadBuf->map());
+            if (!bcMapped)
+            {
+                LOGF_ERROR("{}", "LoadTexture: BC->RGBA8 upload buffer map failed");
+                return false;
+            }
+
+            for (auto& s : bcSlices)
+            {
+                const uint8_t* src = bcResult.data.data() + s.srcOffset;
+                uint8_t*       dst = bcMapped + s.dstOffset;
+                if (s.srcRowPitch == s.dstRowPitch)
+                {
+                    memcpy(dst, src, s.srcRowPitch * s.rowCount * s.depth);
+                }
+                else
+                {
+                    for (uint32_t row = 0; row < s.rowCount * s.depth; row++)
+                    {
+                        memcpy(dst, src, s.srcRowPitch);
+                        src += s.srcRowPitch;
+                        dst += s.dstRowPitch;
+                    }
+                }
+            }
+            bcUploadBuf->unmap();
+
+            ExecuteCopyCommandList([&]
+            {
+                g_copyCommandList->barriers(RenderBarrierStage::COPY,
+                    RenderTextureBarrier(texture.texture, RenderTextureLayout::COPY_DEST));
+                for (size_t i = 0; i < bcSlices.size(); i++)
+                {
+                    auto& s = bcSlices[i];
+                    g_copyCommandList->copyTextureRegion(
+                        RenderTextureCopyLocation::Subresource(
+                            texture.texture,
+                            (uint32_t)i % ddsDesc.numMips,
+                            (uint32_t)i / ddsDesc.numMips),
+                        RenderTextureCopyLocation::PlacedFootprint(
+                            bcUploadBuf.get(),
+                            RenderFormat::R8G8B8A8_UNORM,
+                            s.width, s.height, s.depth,
+                            s.dstRowPitch / 4,   // row pitch in pixels (RGBA8 = 4 bytes)
+                            s.dstOffset));
+                }
+            });
+
+            LOGF_WARNING("LoadTexture: BC software decode complete ({}×{} DXGI fmt {}→RGBA8)",
+                         ddsDesc.width, ddsDesc.height, (int)ddsDesc.format);
+            return true;
+        }
+        // ── END SOFTWARE BC DECODE PATH ───────────────────────────────────────
+
         RenderTextureDesc desc;
         desc.dimension = ConvertTextureDimension(ddsDesc.type);
         desc.width = ddsDesc.width;
@@ -6115,6 +6891,12 @@ static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataS
         desc.flags = ddsDesc.type == ddspp::TextureType::Cubemap ? RenderTextureFlag::CUBE : RenderTextureFlag::NONE;
 
         texture.textureHolder = g_device->createTexture(desc);
+        if (!texture.textureHolder || !texture.textureHolder->isValid())
+        {
+            LOGF_ERROR("LoadTexture: createTexture failed (DXGI fmt={} {}×{} mips={})",
+                       (int)ddsDesc.format, desc.width, desc.height, ddsDesc.numMips);
+            return false;
+        }
         texture.texture = texture.textureHolder.get();
         texture.layout = RenderTextureLayout::COPY_DEST;
 
@@ -6131,6 +6913,12 @@ static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataS
 
         viewDesc.componentMapping = componentMapping;
         texture.textureView = texture.texture->createTextureView(viewDesc);
+        if (!texture.textureView || !texture.textureView->isValid())
+        {
+            LOGF_ERROR("LoadTexture: createTextureView failed (DXGI fmt={} {}×{} mips={})",
+                       (int)ddsDesc.format, desc.width, desc.height, ddsDesc.numMips);
+            return false;
+        }
         texture.descriptorIndex = g_textureDescriptorAllocator.allocate();
         g_textureDescriptorSet->setTexture(texture.descriptorIndex, texture.texture, RenderTextureLayout::SHADER_READ, texture.textureView.get());
 
@@ -6177,10 +6965,31 @@ static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataS
         }
 
         auto uploadBuffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(curDstOffset));
+        if (!uploadBuffer || !uploadBuffer->isValid())
+        {
+            LOGF_ERROR("LoadTexture: upload buffer alloc failed ({} bytes, DXGI fmt={} {}×{})",
+                       curDstOffset, (int)ddsDesc.format, desc.width, desc.height);
+            return false;
+        }
         uint8_t* mappedMemory = reinterpret_cast<uint8_t*>(uploadBuffer->map());
+        if (!mappedMemory)
+        {
+            LOGF_ERROR("LoadTexture: upload buffer map failed ({} bytes, DXGI fmt={} {}×{})",
+                       curDstOffset, (int)ddsDesc.format, desc.width, desc.height);
+            return false;
+        }
 
         for (auto& slice : slices)
         {
+            const size_t srcEnd = static_cast<size_t>(ddsDesc.headerSize) + slice.srcOffset +
+                static_cast<size_t>(slice.srcRowPitch) * slice.rowCount * slice.depth;
+            if (srcEnd > dataSize)
+            {
+                LOGF_ERROR("LoadTexture: slice data out-of-bounds (srcEnd={} dataSize={} DXGI fmt={} {}×{})",
+                           srcEnd, dataSize, (int)ddsDesc.format, desc.width, desc.height);
+                return false;
+            }
+
             const uint8_t* srcData = data + ddsDesc.headerSize + slice.srcOffset;
             uint8_t* dstData = mappedMemory + slice.dstOffset;
 
@@ -6225,6 +7034,8 @@ static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataS
         if (stbImage != nullptr)
         {
             texture.textureHolder = g_device->createTexture(RenderTextureDesc::Texture2D(width, height, 1, RenderFormat::R8G8B8A8_UNORM));
+            if (!texture.textureHolder || !texture.textureHolder->isValid())
+                return false;
             texture.texture = texture.textureHolder.get();
             texture.viewDimension = RenderTextureViewDimension::TEXTURE_2D;
             texture.layout = RenderTextureLayout::COPY_DEST;
@@ -6232,11 +7043,18 @@ static bool LoadTexture(GuestTexture& texture, const uint8_t* data, size_t dataS
             texture.descriptorIndex = g_textureDescriptorAllocator.allocate();
             g_textureDescriptorSet->setTexture(texture.descriptorIndex, texture.texture, RenderTextureLayout::SHADER_READ);
 
-            uint32_t rowPitch = (width * 4 + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
-            uint32_t slicePitch = rowPitch * height;
+            if (width <= 0 || height <= 0)
+                return false;
+
+            uint32_t rowPitch = (static_cast<uint32_t>(width) * 4 + PITCH_ALIGNMENT - 1) & ~(PITCH_ALIGNMENT - 1);
+            uint32_t slicePitch = rowPitch * static_cast<uint32_t>(height);
 
             auto uploadBuffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(slicePitch));
+            if (!uploadBuffer || !uploadBuffer->isValid())
+                return false;
             uint8_t* mappedMemory = reinterpret_cast<uint8_t*>(uploadBuffer->map());
+            if (!mappedMemory)
+                return false;
 
             if (rowPitch == (width * 4))
             {
@@ -6353,8 +7171,16 @@ static void SetResolution(be<uint32_t>* device)
 {
     Video::ComputeViewportDimensions();
 
+    // Keep the guest-side render target valid while Android is still
+    // negotiating the native window.  This is also a final defence for
+    // configs with a zero/invalid resolution scale.
     uint32_t width = uint32_t(round(Video::s_viewportWidth * Config::ResolutionScale));
     uint32_t height = uint32_t(round(Video::s_viewportHeight * Config::ResolutionScale));
+    if (width == 0 || height == 0)
+    {
+        width = 960;
+        height = 540;
+    }
     device[46] = width == 0 ? 880 : width;
     device[47] = height == 0 ? 720 : height;
 }
@@ -7778,6 +8604,7 @@ void VideoConfigValueChangedCallback(IConfigDef* config)
     // Config options that require internal resolution resize
     g_needsResize |=
         config == &Config::AspectRatio ||
+        config == &Config::InternalResolution ||
         config == &Config::ResolutionScale ||
         config == &Config::AntiAliasing ||
         config == &Config::ShadowResolution;

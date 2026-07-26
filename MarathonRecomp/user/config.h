@@ -87,6 +87,12 @@ enum class EGraphicsAPI : uint32_t
     Vulkan
 };
 
+enum class ESDLVideoDriver : uint32_t
+{
+    Auto,   // nullptr — let SDL pick the system default
+    System, // "android" on Android, system driver on other platforms
+};
+
 enum class EWindowState : uint32_t
 {
     Normal,
@@ -97,6 +103,13 @@ enum class EAspectRatio : uint32_t
 {
     Auto,
     Original
+};
+
+enum class EInternalResolution : uint32_t
+{
+    Native,
+    x960x540,
+    x1280x720
 };
 
 enum class ETripleBuffering : uint32_t

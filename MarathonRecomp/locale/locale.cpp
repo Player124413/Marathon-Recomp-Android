@@ -738,12 +738,23 @@ std::unordered_map<std::string_view, std::unordered_map<ELanguage, std::string>>
     {
         "Video_BackendError",
         {
+#ifdef __ANDROID__
+            // Android: no D3D12; Vulkan 1.1 is required. Keep the message concise
+            // for small phone/tablet screens and avoid mentioning Windows APIs.
+            { ELanguage::English,  "Unable to create a Vulkan backend.\n\nPlease make sure that:\n\n- Your device supports Vulkan 1.1.\n- Your GPU drivers are up to date.\n- You have granted storage permissions.\n- Your Android OS is up to date." },
+            { ELanguage::Japanese, "Vulkanバックエンドを作成できません\n\n次の点を確認してください：\n\n※デバイスがVulkan 1.1に対応している\n※GPUドライバーが最新である\n※ストレージ権限が許可されている\n※AndroidのOSが最新バージョンである" },
+            { ELanguage::German,   "Es ist nicht möglich, ein Vulkan-Backend zu erstellen.\n\nBitte stelle sicher, dass:\n\n- Dein Gerät Vulkan 1.1 unterstützt.\n- Deine GPU-Treiber auf dem neuesten Stand sind.\n- Speicherzugriffsberechtigungen erteilt wurden.\n- Dein Android-OS auf dem neuesten Stand ist." },
+            { ELanguage::French,   "Impossible de créer un backend Vulkan.\n\nVeuillez vous assurer que :\n\n- Votre appareil supporte Vulkan 1.1.\n- Les pilotes GPU sont à jour.\n- Les permissions de stockage sont accordées.\n- Votre Android OS est à jour." },
+            { ELanguage::Spanish,  "No se puede crear un entorno de Vulkan.\n\nPor favor, asegúrate de que:\n\n- Tu dispositivo admite Vulkan 1.1.\n- Los drivers de GPU están actualizados.\n- Se han concedido los permisos de almacenamiento.\n- Tu Android OS está actualizado." },
+            { ELanguage::Italian,  "Impossibile creare un backend Vulkan.\n\nAssicurati che:\n\n- Il tuo dispositivo supporti Vulkan 1.1.\n- I driver GPU siano aggiornati.\n- I permessi di archiviazione siano stati concessi.\n- Il tuo Android OS sia aggiornato." }
+#else
             { ELanguage::English,  "Unable to create a D3D12 (Windows) or Vulkan backend.\n\nPlease make sure that:\n\n- Your system meets the minimum requirements.\n- Your GPU drivers are up to date.\n- Your operating system is on the latest version available." },
             { ELanguage::Japanese, "D3D12 (Windows)または\nVulkanバックエンドを作成できません\n\n次の点を確認してください：\n\n※システムが最小要件を満たしている\n※GPUドライバーが最新である\n※オペレーティングシステムが最新バージョンである" },
             { ELanguage::German,   "Es ist nicht möglich, ein D3D12 (Windows) oder Vulkan-Backend zu erstellen.\n\nBitte stelle sicher, dass:\n\n- Dein System die Mindestanforderungen erfüllt.\n- Deine GPU-Treiber auf dem neuesten Stand sind.\n- Dein Betriebssystem auf der neuesten verfügbaren Version ist." },
             { ELanguage::French,   "Impossible de créer un backend D3D12 (Windows) ou Vulkan.\n\nVeuillez vous assurer que :\n\n- Votre système répond aux critères minimums requis.\n- Les pilotes de votre processeur graphique sont à jour.\n- Votre système d'exploitation est à jour." },
             { ELanguage::Spanish,  "No se puede crear un entorno de D3D12 (Windows) o de Vulkan.\n\nPor favor, asegúrate de que:\n\n- Tu equipo cumple con los requisitos mínimos.\n- Los drivers de tu tarjeta gráfica están actualizados.\n- Tu sistema operativo está actualizado a la última versión.\n" },
             { ELanguage::Italian,  "Impossibile creare un backend D3D12 (Windows) o Vulkan.\n\nAssicurati che:\n\n- Il tuo sistema soddisfi i requisiti minimi.\n- I driver della scheda grafica siano aggiornati.\n- Il tuo sistema operativo sia aggiornato." }
+#endif
         }
     },
     {

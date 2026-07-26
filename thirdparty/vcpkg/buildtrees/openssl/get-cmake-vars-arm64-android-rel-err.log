@@ -1,0 +1,154 @@
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeDetermineSystem.cmake:146 (include)
+  CMakeLists.txt:18 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android-legacy.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:55 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeDetermineSystem.cmake:146 (include)
+  CMakeLists.txt:18 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
+  CMakeLists.txt:18 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/flags.cmake:18 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang.cmake:23 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang-C.cmake:1 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCInformation.cmake:48 (include)
+  CMakeLists.txt:18 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-HPbPd1/CMakeLists.txt:4 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android-legacy.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:55 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-HPbPd1/CMakeLists.txt:4 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/flags.cmake:18 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang.cmake:23 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang-C.cmake:1 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCInformation.cmake:48 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-HPbPd1/CMakeLists.txt:4 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-IrlYas/CMakeLists.txt:4 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android-legacy.toolchain.cmake:35 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:55 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
+  /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-IrlYas/CMakeLists.txt:4 (project)
+
+
+CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/flags.cmake:18 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang.cmake:23 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang-CXX.cmake:1 (include)
+  /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXInformation.cmake:48 (include)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-IrlYas/CMakeLists.txt:4 (project)
+
+
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    BUILD_SHARED_LIBS
+    CMAKE_INSTALL_BINDIR
+    CMAKE_INSTALL_LIBDIR
+    VCPKG_PLATFORM_TOOLSET
+    VCPKG_SET_CHARSET_FLAG
+    _VCPKG_ROOT_DIR
+
+

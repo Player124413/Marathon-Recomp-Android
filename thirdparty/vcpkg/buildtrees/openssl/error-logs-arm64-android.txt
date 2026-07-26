@@ -1,0 +1,2 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/build-arm64-android-dbg-out.log
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/build-arm64-android-dbg-err.log

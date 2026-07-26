@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <user/config.h>
 #include <hid/hid.h>
+#include <hid/virtual_touch.h>
 #include <os/logger.h>
 #include <ui/game_window.h>
 #include <kernel/xdm.h>
@@ -382,10 +383,12 @@ uint32_t hid::GetState(uint32_t dwUserIndex, XAMINPUT_STATE* pState)
 
     pState->dwPacketNumber = packet++;
 
-    if (!g_activeController)
-        return ERROR_DEVICE_NOT_CONNECTED;
+    if (g_activeController)
+        pState->Gamepad = g_activeController->state;
 
-    pState->Gamepad = g_activeController->state;
+    const bool virtualTouchActive = hid::ApplyVirtualTouchState(pState->Gamepad);
+    if (!g_activeController && !virtualTouchActive)
+        return ERROR_DEVICE_NOT_CONNECTED;
 
     return ERROR_SUCCESS;
 }

@@ -2,6 +2,10 @@
 
 #define NOMINMAX
 
+// Polyfill for std::atomic_ref — not available in NDK r27c's libc++.
+// Must come before any header that uses std::atomic_ref.
+#include <android_atomic_ref_polyfill.h>
+
 #if defined(_WIN32)
 #include <windows.h>
 #include <ShlObj_core.h>

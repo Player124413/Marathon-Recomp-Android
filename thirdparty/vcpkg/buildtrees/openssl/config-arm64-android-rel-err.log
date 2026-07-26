@@ -1,0 +1,1 @@
++ /usr/bin/perl /home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/src/nssl-3.4.0-821e8e5bdc.clean/Configure android-arm64 enable-static-engine enable-capieng no-tests no-docs no-shared no-module no-apps --openssldir=/etc/ssl --libdir=lib --prefix=/home/runner/workspace/out/build/android-debug/vcpkg_installed/arm64-android

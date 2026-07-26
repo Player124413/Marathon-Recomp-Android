@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/runner/workspace/thirdparty/vcpkg/buildtrees/curl/arm64-android-dbg/cmake_install.cmake",
+		"/home/runner/workspace/thirdparty/vcpkg/buildtrees/curl/arm64-android-dbg/lib/cmake_install.cmake",
+		"/home/runner/workspace/thirdparty/vcpkg/buildtrees/curl/arm64-android-dbg/docs/examples/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,200 @@
+=== Marathon Recompiled — session 2026-07-24 17:32:27 ===
+[I][*] === Marathon Recompiled starting ===
+[I][*] Android native build fingerprint: v1.0.0.4fc20d6b-main (Debug)
+[I][*] Config path: /storage/emulated/0/Android/data/com.sega.sonic2006/files/MarathonRecomp/config.toml
+[I][*] SDL video driver config: Auto
+[I][*] Graphics API config: Auto
+[I][*] Saving configuration...
+[W][*] Host Startup
+[E][updateCheckerThread] Error while performing request: Could not resolve hostname
+[I][*] SDL video driver: "Android"
+[W][CreateHostDevice] GPU: Mali-G57 MC2 (vendor=0x13B5 type=1) vram=3740 MiB
+[W][CreateHostDevice] ARM Mali GPU detected (Mali-G57 MC2). All Mali compatibility workarounds applied — see plume log for details.
+[I][*] Saving configuration...
+[W][CreateHostDevice] ARM Mali GPU: all MSAA modes disabled for driver compatibility.
+[W][CreateHostDevice] ARM Mali GPU: shadow resolution capped at 1024 for driver compatibility.
+[W][CreateHostDevice] VkInit: creating DIRECT command queue
+[W][CreateHostDevice] VkInit: creating command lists
+[W][CreateHostDevice] VkInit: creating command fences
+[W][CreateHostDevice] VkInit: creating texture upload queue
+[W][CreateHostDevice] VkInit: creating swap chain (bufferCount=2 window=0xb400006eac1c0810)
+[W][CreateHostDevice] VkInit: swap chain ctor done
+[W][CreateHostDevice] VkInit: creating semaphores
+[W][CreateHostDevice] VkInit: creating texture descriptor set
+[W][CreateHostDevice] VkInit: texture descriptor set created
+[W][CreateHostDevice] VkInit: blank textures set
+[W][CreateHostDevice] VkInit: creating sampler descriptor set
+[W][CreateHostDevice] VkInit: sampler descriptor set created
+[W][CreateHostDevice] VkInit: creating conditional survey buffer
+[W][CreateHostDevice] VkInit: conditional survey descriptor set created
+[W][CreateHostDevice] VkInit: maxBoundDescriptorSets < 5 — conditional survey disabled for this device
+[W][CreateHostDevice] VkInit: creating pipeline layout
+[W][CreateHostDevice] VkInit: pipeline layout created
+[W][CreateHostDevice] VkInit: creating copy shaders and pipelines
+[W][CreateHostDevice] VkInit: copy depth pipeline done
+[W][CreateHostDevice] VkInit: MSAA resolve pipelines done
+[W][CreateHostDevice] VkInit: gaussian blur shaders done
+[W][CreateHostDevice] VkInit: misc shaders done
+[W][CreateHostDevice] VkInit: creating ImGui backend
+[W][CreateImGuiBackend] VkInit: entering ImGui backend
+[W][CreateImGuiBackend] VkInit: loading ImGui font snapshot
+[W][CreateImGuiBackend] VkInit: ImGui font snapshot version mismatch — falling back to runtime build
+[W][CreateImGuiBackend] VkInit: ImGui font setup complete
+[W][CreateImGuiBackend] VkInit: initializing ImGui utility textures
+[W][operator()] Loading ImGui utility texture: button_window
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (64×64 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (64×64 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: controller
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (256×128 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (256×128 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: kbm
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][operator()] Loading ImGui utility texture: window
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (128×128 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (128×128 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: select_arrow
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (50×50 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (50×50 DXGI fmt 98→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu1
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu7
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: main_menu8
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (256×256 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (256×256 DXGI fmt 77→RGBA8)
+[W][operator()] Loading ImGui utility texture: arrow
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (512×512 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (512×512 DXGI fmt 77→RGBA8)
+[W][CreateImGuiBackend] VkInit: ImGui utility textures initialized
+[W][CreateImGuiBackend] VkInit: initializing options menu
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 77 (1024×1024 mips=1) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 77→RGBA8)
+[W][CreateImGuiBackend] VkInit: options menu initialized
+[W][CreateImGuiBackend] VkInit: initializing installer wizard
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (1024×1024 mips=11) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (1024×1024 DXGI fmt 98→RGBA8)
+[W][LoadTexture] LoadTexture: ARM Mali NPOT mip clamp — 5243×450 mips 13 → 8 (avoids Mali vkCreateImage driver crash)
+[W][LoadTexture] LoadTexture: device lacks textureCompressionBC — software-decoding DXGI fmt 98 (5243×450 mips=8) to RGBA8
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][LoadTexture] LoadTexture: BC software decode complete (5243×450 DXGI fmt 98→RGBA8)
+[W][CreateImGuiBackend] VkInit: installer wizard initialized
+[W][CreateImGuiBackend] VkInit: ImGui SDL backend done
+[W][CreateImGuiBackend] VkInit: building ImGui font atlas at runtime (snapshot fallback)
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][CreateImGuiBackend] VkInit: ImGui font atlas runtime upload done
+[W][CreateImGuiBackend] VkInit: ImGui font atlas ready
+[W][CreateImGuiBackend] VkInit: ImGui pipeline layout done
+[W][CreateImGuiBackend] VkInit: ImGui shaders done
+[W][CreateImGuiBackend] VkInit: ImGui pipelines done
+[W][CreateHostDevice] VkInit: ImGui backend done
+[W][RebuildGammaCorrectionPipeline] RebuildGammaCorrectionPipeline: format=24
+[W][CreateHostDevice] VkInit: gamma correction pipeline done
+[W][CreateHostDevice] VkInit: calling CheckSwapChain
+[W][android] swapchain resize failed; delaying retry
+[W][CreateHostDevice] VkInit: CheckSwapChain done, calling BeginCommandList
+[W][CreateHostDevice] VkInit: BeginCommandList done
+[W][*] Start Guest Thread
+[W][*] /storage/emulated/0/Android/data/com.sega.sonic2006/files/MarathonRecomp/game/default.xex
+[I][*] Changed resolution: 0x0
+[I][NetDll_WSAStartup] !!! STUB !!!
+[W][CreateDevice] 0x0 0x1 0x0 0x1 0xa0a60 0x1000a0a5c
+
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete
+[W][ExecuteCopyCommandList] VkInit: submitting synchronous texture upload
+[W][ExecuteCopyCommandList] VkInit: synchronous texture upload complete

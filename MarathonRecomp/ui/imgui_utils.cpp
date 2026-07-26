@@ -32,20 +32,65 @@ std::unique_ptr<GuestTexture> g_upTexMainMenu7;
 std::unique_ptr<GuestTexture> g_upTexMainMenu8;
 std::unique_ptr<GuestTexture> g_upTexArrow;
 
-void InitImGuiUtils()
+bool InitImGuiUtils()
 {
+    if (ImGui::GetCurrentContext() == nullptr)
+    {
+        LOGF_ERROR("{}", "ImGui utility initialization requested without an ImGui context");
+        return false;
+    }
+
     g_pFntRodin = ImFontAtlasSnapshot::GetFont("FOT-RodinPro-DB.otf");
     g_pFntNewRodin = ImFontAtlasSnapshot::GetFont("FOT-NewRodinPro-UB.otf");
 
-    g_upTexButtonWindow = LOAD_ZSTD_TEXTURE(g_button_window);
-    g_upTexController = LOAD_ZSTD_TEXTURE(g_controller);
-    g_upTexKbm = LOAD_ZSTD_TEXTURE(g_kbm);
-    g_upTexWindow = LOAD_ZSTD_TEXTURE(g_window);
-    g_upTexSelectArrow = LOAD_ZSTD_TEXTURE(g_select_arrow);
-    g_upTexMainMenu1 = LOAD_ZSTD_TEXTURE(g_main_menu1);
-    g_upTexMainMenu7 = LOAD_ZSTD_TEXTURE(g_main_menu7);
-    g_upTexMainMenu8 = LOAD_ZSTD_TEXTURE(g_main_menu8);
-    g_upTexArrow = LOAD_ZSTD_TEXTURE(g_arrow);
+    auto loadTexture = [](const char* name, std::unique_ptr<uint8_t[]> decompressed, size_t uncompressedSize)
+    {
+        LOGF_WARNING("Loading ImGui utility texture: {}", name);
+        if (!decompressed)
+        {
+            LOGF_ERROR("Failed to decompress ImGui utility texture: {}", name);
+            return std::unique_ptr<GuestTexture>{};
+        }
+
+        auto texture = LoadTexture(decompressed.get(), uncompressedSize);
+        if (!texture || !texture->texture || !texture->texture->isValid() ||
+            !texture->textureView || !texture->textureView->isValid())
+        {
+            LOGF_ERROR("Failed to create ImGui utility texture: {}", name);
+            return std::unique_ptr<GuestTexture>{};
+        }
+        return texture;
+    };
+
+    g_upTexButtonWindow = loadTexture("button_window",
+        decompressZstd(g_button_window, g_button_window_uncompressed_size), g_button_window_uncompressed_size);
+    if (!g_upTexButtonWindow) return false;
+    g_upTexController = loadTexture("controller",
+        decompressZstd(g_controller, g_controller_uncompressed_size), g_controller_uncompressed_size);
+    if (!g_upTexController) return false;
+    g_upTexKbm = loadTexture("kbm",
+        decompressZstd(g_kbm, g_kbm_uncompressed_size), g_kbm_uncompressed_size);
+    if (!g_upTexKbm) return false;
+    g_upTexWindow = loadTexture("window",
+        decompressZstd(g_window, g_window_uncompressed_size), g_window_uncompressed_size);
+    if (!g_upTexWindow) return false;
+    g_upTexSelectArrow = loadTexture("select_arrow",
+        decompressZstd(g_select_arrow, g_select_arrow_uncompressed_size), g_select_arrow_uncompressed_size);
+    if (!g_upTexSelectArrow) return false;
+    g_upTexMainMenu1 = loadTexture("main_menu1",
+        decompressZstd(g_main_menu1, g_main_menu1_uncompressed_size), g_main_menu1_uncompressed_size);
+    if (!g_upTexMainMenu1) return false;
+    g_upTexMainMenu7 = loadTexture("main_menu7",
+        decompressZstd(g_main_menu7, g_main_menu7_uncompressed_size), g_main_menu7_uncompressed_size);
+    if (!g_upTexMainMenu7) return false;
+    g_upTexMainMenu8 = loadTexture("main_menu8",
+        decompressZstd(g_main_menu8, g_main_menu8_uncompressed_size), g_main_menu8_uncompressed_size);
+    if (!g_upTexMainMenu8) return false;
+    g_upTexArrow = loadTexture("arrow",
+        decompressZstd(g_arrow, g_arrow_uncompressed_size), g_arrow_uncompressed_size);
+    if (!g_upTexArrow) return false;
+
+    return true;
 }
 
 void UpdateImGuiUtils()
@@ -410,14 +455,14 @@ void DrawContainerBox(ImVec2 min, ImVec2 max, float alpha)
     drawList->AddImage(g_upTexMainMenu1.get(), { min.x + commonWidth, max.y - commonHeight }, { max.x, max.y + bottomHeight }, GET_UV_COORDS(bc), colour);
 }
 
-void DrawTextBasic(const ImFont* font, float fontSize, const ImVec2& pos, ImU32 colour, const char* text)
+void DrawTextBasic(ImFont* font, float fontSize, const ImVec2& pos, ImU32 colour, const char* text)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
 
     drawList->AddText(font, fontSize, pos, colour, text, nullptr);
 }
 
-void DrawTextWithMarquee(const ImFont* font, float fontSize, const ImVec2& position, const ImVec2& min, const ImVec2& max, ImU32 color, const char* text, double time, double delay, double speed)
+void DrawTextWithMarquee(ImFont* font, float fontSize, const ImVec2& position, const ImVec2& min, const ImVec2& max, ImU32 color, const char* text, double time, double delay, double speed)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
     auto rectWidth = max.x - min.x;
@@ -435,7 +480,7 @@ void DrawTextWithMarquee(const ImFont* font, float fontSize, const ImVec2& posit
     drawList->PopClipRect();
 }
 
-void DrawTextWithMarqueeShadow(const ImFont* font, float fontSize, const ImVec2& pos, const ImVec2& min, const ImVec2& max, ImU32 colour, const char* text, double time, double delay, double speed, float offset, float radius, ImU32 shadowColour)
+void DrawTextWithMarqueeShadow(ImFont* font, float fontSize, const ImVec2& pos, const ImVec2& min, const ImVec2& max, ImU32 colour, const char* text, double time, double delay, double speed, float offset, float radius, ImU32 shadowColour)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
     auto rectWidth = max.x - min.x;
@@ -453,7 +498,7 @@ void DrawTextWithMarqueeShadow(const ImFont* font, float fontSize, const ImVec2&
     drawList->PopClipRect();
 }
 
-void DrawTextWithOutline(const ImFont* font, float fontSize, const ImVec2& pos, ImU32 color, const char* text, float outlineSize, ImU32 outlineColor, uint32_t shaderModifier)
+void DrawTextWithOutline(ImFont* font, float fontSize, const ImVec2& pos, ImU32 color, const char* text, float outlineSize, ImU32 outlineColor, uint32_t shaderModifier)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
 
@@ -470,7 +515,7 @@ void DrawTextWithOutline(const ImFont* font, float fontSize, const ImVec2& pos, 
         SetShaderModifier(IMGUI_SHADER_MODIFIER_NONE);
 }
 
-void DrawTextWithShadow(const ImFont* font, float fontSize, const ImVec2& pos, ImU32 colour, const char* text, float offset, float radius, ImU32 shadowColour)
+void DrawTextWithShadow(ImFont* font, float fontSize, const ImVec2& pos, ImU32 colour, const char* text, float offset, float radius, ImU32 shadowColour)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
 
@@ -483,7 +528,7 @@ void DrawTextWithShadow(const ImFont* font, float fontSize, const ImVec2& pos, I
     drawList->AddText(font, fontSize, pos, colour, text, nullptr);
 }
 
-void DrawTextParagraph(const ImFont* font, float fontSize, float maxWidth, const ImVec2& pos, float lineMargin, const char* text, std::function<void(const char*, ImVec2)> drawMethod, bool isCentred)
+void DrawTextParagraph(ImFont* font, float fontSize, float maxWidth, const ImVec2& pos, float lineMargin, const char* text, std::function<void(const char*, ImVec2)> drawMethod, bool isCentred)
 {
     auto lines = Split(text, font, fontSize, maxWidth);
     auto paragraphSize = MeasureCentredParagraph(font, fontSize, lineMargin, lines);
@@ -511,7 +556,7 @@ void DrawTextParagraph(const ImFont* font, float fontSize, float maxWidth, const
     }
 }
 
-float CalcWidestTextSize(const ImFont* font, float fontSize, std::span<std::string> strs)
+float CalcWidestTextSize(ImFont* font, float fontSize, std::span<std::string> strs)
 {
     auto result = 0.0f;
 
@@ -547,7 +592,7 @@ std::string Truncate(const std::string& input, size_t maxLength, bool useEllipsi
     return input;
 }
 
-std::vector<std::string> Split(const char* strStart, const ImFont* font, float fontSize, float maxWidth)
+std::vector<std::string> Split(const char* strStart, ImFont* font, float fontSize, float maxWidth)
 {
     if (!strStart)
         return {};
@@ -661,7 +706,7 @@ std::vector<std::string> Split(const char* strStart, const ImFont* font, float f
     return result;
 }
 
-ImVec2 MeasureCentredParagraph(const ImFont* font, float fontSize, float lineMargin, const std::vector<std::string>& lines)
+ImVec2 MeasureCentredParagraph(ImFont* font, float fontSize, float lineMargin, const std::vector<std::string>& lines)
 {
     auto x = 0.0f;
     auto y = 0.0f;
@@ -677,7 +722,7 @@ ImVec2 MeasureCentredParagraph(const ImFont* font, float fontSize, float lineMar
     return { x, y };
 }
 
-ImVec2 MeasureCentredParagraph(const ImFont* font, float fontSize, float maxWidth, float lineMargin, const char* text)
+ImVec2 MeasureCentredParagraph(ImFont* font, float fontSize, float maxWidth, float lineMargin, const char* text)
 {
     return MeasureCentredParagraph(font, fontSize, lineMargin, Split(text, font, fontSize, maxWidth));
 }
@@ -907,7 +952,7 @@ void DrawScrollArrows(ImVec2 min, ImVec2 max, float scale, double& time, bool to
 // Simple word-wrapping for English, not full-featured. Please submit failing cases!
 // This will return the next location to wrap from. If no wrapping if necessary, this will fast-forward to e.g. text_end.
 // FIXME: Much possible improvements (don't cut things like "word !", "word!!!" but cut within "word,,,,", more sensible support for punctuations, support for Unicode punctuations, etc.)
-const char* CalcWordWrapPositionA(const ImFont* font, float scale, const char* text, const char* text_end, float wrap_width)
+const char* CalcWordWrapPositionA(ImFont* font, float scale, const char* text, const char* text_end, float wrap_width)
 {
     // For references, possible wrap point marked with ^
     //  "aaa bbb, ccc,ddd. eee   fff. ggg!"
@@ -1073,7 +1118,7 @@ static bool IsInterpolatedString(std::string_view str)
     return str.length() >= 3 && str[0] == '$' && str[1] == '{' && str.back() == '}';
 }
 
-ImVec2 MeasureInterpolatedText(const ImFont* pFont, float fontSize, const char* pText, ImGuiTextInterpData* pInterpData)
+ImVec2 MeasureInterpolatedText(ImFont* pFont, float fontSize, const char* pText, ImGuiTextInterpData* pInterpData)
 {
     ImVec2 result{};
 
@@ -1146,7 +1191,7 @@ ImVec2 MeasureInterpolatedText(const ImFont* pFont, float fontSize, const char* 
     return result;
 }
 
-void DrawInterpolatedText(const ImFont* pFont, float fontSize, const ImVec2& pos, ImU32 colour, const char* pText, ImGuiTextInterpData* pInterpData)
+void DrawInterpolatedText(ImFont* pFont, float fontSize, const ImVec2& pos, ImU32 colour, const char* pText, ImGuiTextInterpData* pInterpData)
 {
     auto drawList = ImGui::GetBackgroundDrawList();
     auto parsed = ParseInterpolatedString(pText);

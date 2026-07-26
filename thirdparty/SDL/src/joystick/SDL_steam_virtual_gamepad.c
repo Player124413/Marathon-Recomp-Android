@@ -18,33 +18,37 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../SDL_internal.h"
 
+#include "SDL_hints.h"
+#include "SDL_timer.h"
 #include "SDL_joystick_c.h"
 #include "SDL_steam_virtual_gamepad.h"
 
-#ifdef SDL_PLATFORM_LINUX
-#include "../core/unix/SDL_appid.h"
-#endif
-#ifdef SDL_PLATFORM_WIN32
+#ifdef __WIN32__
 #include "../core/windows/SDL_windows.h"
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
 #endif
+#ifdef __LINUX__
+#include <unistd.h>
+#endif
 
-static char *SDL_steam_virtual_gamepad_info_file SDL_GUARDED_BY(SDL_event_lock) = NULL;
-static Uint64 SDL_steam_virtual_gamepad_info_file_mtime SDL_GUARDED_BY(SDL_event_lock) = 0;
-static Uint64 SDL_steam_virtual_gamepad_info_check_time SDL_GUARDED_BY(SDL_event_lock) = 0;
-static SDL_SteamVirtualGamepadInfo **SDL_steam_virtual_gamepad_info SDL_GUARDED_BY(SDL_event_lock) = NULL;
-static int SDL_steam_virtual_gamepad_info_count SDL_GUARDED_BY(SDL_event_lock) = 0;
+#define SDL_HINT_STEAM_VIRTUAL_GAMEPAD_INFO_FILE    "SteamVirtualGamepadInfo"
+
+static char *SDL_steam_virtual_gamepad_info_file SDL_GUARDED_BY(SDL_joystick_lock) = NULL;
+static Uint64 SDL_steam_virtual_gamepad_info_file_mtime SDL_GUARDED_BY(SDL_joystick_lock) = 0;
+static Uint32 SDL_steam_virtual_gamepad_info_check_time SDL_GUARDED_BY(SDL_joystick_lock) = 0;
+static SDL_SteamVirtualGamepadInfo **SDL_steam_virtual_gamepad_info SDL_GUARDED_BY(SDL_joystick_lock) = NULL;
+static int SDL_steam_virtual_gamepad_info_count SDL_GUARDED_BY(SDL_joystick_lock) = 0;
 
 
 static Uint64 GetFileModificationTime(const char *file)
 {
     Uint64 modification_time = 0;
 
-#ifdef SDL_PLATFORM_WIN32
+#ifdef __WIN32__
     WCHAR *wFile = WIN_UTF8ToStringW(file);
     if (wFile) {
         HANDLE hFile = CreateFileW(wFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -109,7 +113,7 @@ static void AddVirtualGamepadInfo(int slot, SDL_SteamVirtualGamepadInfo *info)
     }
 
     if (SDL_steam_virtual_gamepad_info[slot]) {
-        // We already have this slot info
+        /* We already have this slot info */
         return;
     }
 
@@ -122,25 +126,43 @@ static void AddVirtualGamepadInfo(int slot, SDL_SteamVirtualGamepadInfo *info)
     SDL_zerop(info);
 }
 
+#ifdef __LINUX__
+static const char *SDL_GetExeName(void)
+{
+    const char *proc_name = NULL;
+    static char linkfile[1024];
+    int linksize;
+    const char *proc_path = "/proc/self/exe";
+
+    linksize = readlink(proc_path, linkfile, sizeof(linkfile) - 1);
+    if (linksize > 0) {
+        linkfile[linksize] = '\0';
+        proc_name = SDL_strrchr(linkfile, '/');
+        if (proc_name) {
+            ++proc_name;
+        } else {
+            proc_name = linkfile;
+        }
+    }
+    return proc_name;
+}
+#endif /* __LINUX__ */
+
 void SDL_InitSteamVirtualGamepadInfo(void)
 {
     const char *file;
 
     SDL_AssertJoysticksLocked();
 
-    // The file isn't available inside the macOS sandbox
-    if (SDL_GetSandbox() == SDL_SANDBOX_MACOS) {
-        return;
-    }
-
-    file = SDL_getenv_unsafe("SteamVirtualGamepadInfo");
+    file = SDL_GetHint(SDL_HINT_STEAM_VIRTUAL_GAMEPAD_INFO_FILE);
     if (file && *file) {
-#ifdef SDL_PLATFORM_LINUX
-        // Older versions of Wine will blacklist the Steam Virtual Gamepad if
-        // it appears to have the real controller's VID/PID, so ignore this.
+#ifdef __LINUX__
+        /* Older versions of Wine will blacklist the Steam Virtual Gamepad if
+         * it appears to have the real controller's VID/PID, so ignore this.
+         */
         const char *exe = SDL_GetExeName();
         if (exe && SDL_strcmp(exe, "wine64-preloader") == 0) {
-            SDL_LogDebug(SDL_LOG_CATEGORY_INPUT, "Wine launched by Steam, ignoring SteamVirtualGamepadInfo");
+            SDL_LogDebug(SDL_LOG_CATEGORY_INPUT, "Wine launched by Steam, ignoring %s", SDL_HINT_STEAM_VIRTUAL_GAMEPAD_INFO_FILE);
             return;
         }
 #endif
@@ -149,17 +171,17 @@ void SDL_InitSteamVirtualGamepadInfo(void)
     SDL_UpdateSteamVirtualGamepadInfo();
 }
 
-bool SDL_SteamVirtualGamepadEnabled(void)
+SDL_bool SDL_SteamVirtualGamepadEnabled(void)
 {
     SDL_AssertJoysticksLocked();
 
     return (SDL_steam_virtual_gamepad_info != NULL);
 }
 
-bool SDL_UpdateSteamVirtualGamepadInfo(void)
+SDL_bool SDL_UpdateSteamVirtualGamepadInfo(void)
 {
     const int UPDATE_CHECK_INTERVAL_MS = 3000;
-    Uint64 now;
+    Uint32 now;
     Uint64 mtime;
     char *data, *end, *next, *line, *value;
     size_t size;
@@ -169,24 +191,24 @@ bool SDL_UpdateSteamVirtualGamepadInfo(void)
     SDL_AssertJoysticksLocked();
 
     if (!SDL_steam_virtual_gamepad_info_file) {
-        return false;
+        return SDL_FALSE;
     }
 
     now = SDL_GetTicks();
     if (SDL_steam_virtual_gamepad_info_check_time &&
-        now < (SDL_steam_virtual_gamepad_info_check_time + UPDATE_CHECK_INTERVAL_MS)) {
-        return false;
+        !SDL_TICKS_PASSED(now, (SDL_steam_virtual_gamepad_info_check_time + UPDATE_CHECK_INTERVAL_MS))) {
+        return SDL_FALSE;
     }
     SDL_steam_virtual_gamepad_info_check_time = now;
 
     mtime = GetFileModificationTime(SDL_steam_virtual_gamepad_info_file);
     if (mtime == 0 || mtime == SDL_steam_virtual_gamepad_info_file_mtime) {
-        return false;
+        return SDL_FALSE;
     }
 
     data = (char *)SDL_LoadFile(SDL_steam_virtual_gamepad_info_file, &size);
     if (!data) {
-        return false;
+        return SDL_FALSE;
     }
 
     SDL_FreeSteamVirtualGamepadInfo();
@@ -224,9 +246,9 @@ bool SDL_UpdateSteamVirtualGamepadInfo(void)
                 } else if (SDL_strcmp(line, "PID") == 0) {
                     info.product_id = (Uint16)SDL_strtoul(value, NULL, 0);
                 } else if (SDL_strcmp(line, "type") == 0) {
-                    info.type = SDL_GetGamepadTypeFromString(value);
+                    info.type = SDL_GetGameControllerTypeFromString(value);
                 } else if (SDL_strcmp(line, "handle") == 0) {
-                    info.handle = (Uint64)SDL_strtoull(value, NULL, 0);
+                    info.handle = SDL_strtoull(value, NULL, 0);
                 }
             }
         }
@@ -239,7 +261,7 @@ bool SDL_UpdateSteamVirtualGamepadInfo(void)
 
     SDL_steam_virtual_gamepad_info_file_mtime = mtime;
 
-    return true;
+    return SDL_TRUE;
 }
 
 const SDL_SteamVirtualGamepadInfo *SDL_GetSteamVirtualGamepadInfo(int slot)

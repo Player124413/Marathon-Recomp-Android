@@ -1,5 +1,9 @@
 #pragma once
 
+// XMA decoder requires libavcodec (ffmpeg) which has no prebuilt Android binaries.
+// On Android, XMA audio is non-functional; XMACreateContext in imports.cpp is a stub.
+#ifndef __ANDROID__
+
 #include <utils/bit_stream.h>
 #include <utils/ring_buffer.h>
 #include <kernel/function.h>
@@ -157,3 +161,5 @@ struct XmaPlayback {
         }
     }
 };
+
+#endif // !__ANDROID__

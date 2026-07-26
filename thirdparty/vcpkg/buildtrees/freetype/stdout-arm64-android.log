@@ -1,0 +1,15 @@
+Downloading https://gitlab.freedesktop.org//freetype/freetype/-/archive/VER-2-13-3/freetype-VER-2-13-3.tar.gz -> freetype-freetype-VER-2-13-3.tar.gz
+Successfully downloaded freetype-freetype-VER-2-13-3.tar.gz
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/freetype-freetype-VER-2-13-3.tar.gz
+-- Applying patch 0003-Fix-UWP.patch
+-- Applying patch brotli-static.patch
+-- Applying patch bzip2.patch
+-- Applying patch fix-exports.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/src/VER-2-13-3-8b423a038b.clean
+-- Configuring arm64-android
+-- Building arm64-android-dbg
+-- Building arm64-android-rel
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/freetype_arm64-android/lib/pkgconfig/freetype2.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/freetype_arm64-android/debug/lib/pkgconfig/freetype2.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/freetype_arm64-android/share/freetype/usage
+-- Performing post-build validation

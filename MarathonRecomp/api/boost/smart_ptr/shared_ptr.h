@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <utility>
 #include <Marathon.inl>
+#include <android_atomic_ref_polyfill.h>
 
 namespace boost
 {

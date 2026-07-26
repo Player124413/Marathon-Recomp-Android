@@ -1,0 +1,3 @@
+/home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/lib/libz.a
+/home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/include/zconf.h
+/home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/include/zlib.h

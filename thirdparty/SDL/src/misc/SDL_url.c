@@ -18,14 +18,15 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
 
 #include "SDL_sysurl.h"
 
-bool SDL_OpenURL(const char *url)
+int SDL_OpenURL(const char *url)
 {
-    CHECK_PARAM(!url) {
+    if (!url) {
         return SDL_InvalidParamError("url");
     }
     return SDL_SYS_OpenURL(url);
 }
+
+/* vi: set ts=4 sw=4 expandtab: */

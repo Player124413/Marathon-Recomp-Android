@@ -1,0 +1,7 @@
+Package: openssl
+Version: 3.4.0
+Depends: vcpkg-cmake:x64-linux, vcpkg-cmake-config:x64-linux, vcpkg-cmake-get-vars:x64-linux
+Architecture: arm64-android
+Multi-Arch: same
+Abi: 312ba3ec4e1da2ea885c538355e619a1082aebe65d945013a3a036539c6ce7ac
+Description: OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.

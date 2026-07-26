@@ -18,15 +18,17 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_THREAD_PSP
 
-// PSP thread management routines for SDL
+/* PSP thread management routines for SDL */
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "SDL_error.h"
+#include "SDL_thread.h"
 #include "../SDL_systhread.h"
 #include "../SDL_thread_c.h"
 #include <pspkerneltypes.h>
@@ -40,15 +42,13 @@ static int ThreadEntry(SceSize args, void *argp)
     return 0;
 }
 
-bool SDL_SYS_CreateThread(SDL_Thread *thread,
-                          SDL_FunctionPointer pfnBeginThread,
-                          SDL_FunctionPointer pfnEndThread)
+int SDL_SYS_CreateThread(SDL_Thread *thread)
 {
     SceKernelThreadInfo status;
     int priority = 32;
     char thread_name[PSP_THREAD_NAME_MAX];
 
-    // Set priority of new thread to the same as the current thread
+    /* Set priority of new thread to the same as the current thread */
     status.size = sizeof(SceKernelThreadInfo);
     if (sceKernelReferThreadStatus(sceKernelGetThreadId(), &status) == 0) {
         priority = status.currentPriority;
@@ -66,20 +66,18 @@ bool SDL_SYS_CreateThread(SDL_Thread *thread,
         return SDL_SetError("sceKernelCreateThread() failed");
     }
 
-    thread->threadid = (SDL_ThreadID) thread->handle;
-
     sceKernelStartThread(thread->handle, 4, &thread);
-    return true;
+    return 0;
 }
 
 void SDL_SYS_SetupThread(const char *name)
 {
-    // Do nothing.
+    /* Do nothing. */
 }
 
-SDL_ThreadID SDL_GetCurrentThreadID(void)
+SDL_threadID SDL_ThreadID(void)
 {
-    return (SDL_ThreadID)sceKernelGetThreadId();
+    return (SDL_threadID)sceKernelGetThreadId();
 }
 
 void SDL_SYS_WaitThread(SDL_Thread *thread)
@@ -90,7 +88,7 @@ void SDL_SYS_WaitThread(SDL_Thread *thread)
 
 void SDL_SYS_DetachThread(SDL_Thread *thread)
 {
-    // !!! FIXME: is this correct?
+    /* !!! FIXME: is this correct? */
     sceKernelDeleteThread(thread->handle);
 }
 
@@ -99,7 +97,7 @@ void SDL_SYS_KillThread(SDL_Thread *thread)
     sceKernelTerminateDeleteThread(thread->handle);
 }
 
-bool SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)
+int SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)
 {
     int value;
 
@@ -113,10 +111,10 @@ bool SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)
         value = 50;
     }
 
-    if (sceKernelChangeThreadPriority(sceKernelGetThreadId(), value) < 0) {
-        return SDL_SetError("sceKernelChangeThreadPriority() failed");
-    }
-    return true;
+    return sceKernelChangeThreadPriority(sceKernelGetThreadId(), value);
 }
 
-#endif // SDL_THREAD_PSP
+#endif /* SDL_THREAD_PSP */
+
+/* vim: ts=4 sw=4
+ */

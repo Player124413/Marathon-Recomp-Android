@@ -1,0 +1,12 @@
+prefix=/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug
+exec_prefix=/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug
+libdir=/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/lib
+includedir=/home/runner/workspace/thirdparty/vcpkg/packages/libpng_arm64-android/debug/include/libpng16
+
+Name: libpng
+Description: Loads and saves PNG files
+Version: 1.6.44
+Requires.private: zlib
+Libs: -L${libdir} -lpng16
+Libs.private: -lm
+Cflags: -I${includedir}

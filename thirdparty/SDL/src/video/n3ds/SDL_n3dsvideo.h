@@ -18,7 +18,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifndef SDL_n3dsvideo_h_
 #define SDL_n3dsvideo_h_
@@ -27,15 +27,17 @@
 
 #include "../SDL_sysvideo.h"
 
-struct SDL_VideoData
+typedef struct SDL_VideoData
 {
-    SDL_DisplayID top_display;
-    SDL_DisplayID touch_display;
-};
+    int top_display;
+    int touch_display;
+} SDL_VideoData;
 
-struct SDL_WindowData
+typedef struct SDL_WindowData
 {
-    gfxScreen_t screen; /**< Keeps track of which N3DS screen is targeted */
-};
+    gfxScreen_t screen; /**< Keeps track of which N3DS screen is targetted */
+} SDL_WindowData;
 
-#endif // SDL_n3dsvideo_h_
+#endif /* SDL_n3dsvideo_h_ */
+
+/* vi: set sts=4 ts=4 sw=4 expandtab: */

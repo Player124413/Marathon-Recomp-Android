@@ -1,0 +1,9 @@
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/tools/brotli/brotli
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/libbrotlienc.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/libbrotlidec.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/libbrotlicommon.a
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/share/unofficial-brotli/unofficial-brotli-config.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/share/unofficial-brotli/unofficial-brotli-config-debug.cmake
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlicommon.pc
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlidec.pc
+/home/runner/workspace/thirdparty/vcpkg/packages/brotli_arm64-android/debug/lib/pkgconfig/libbrotlienc.pc

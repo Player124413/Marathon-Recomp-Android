@@ -6,16 +6,14 @@ from enum import Enum
 import json
 import logging
 import os
-import pathlib
 import re
-import shlex
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 class AppleArch(Enum):
-    Aarch64 = "aarch64"
+    ARM64 = "arm64"
     X86_64 = "x86_64"
 
 
@@ -32,27 +30,20 @@ class JobOs(Enum):
     MacosLatest = "macos-latest"
     Ubuntu22_04 = "ubuntu-22.04"
     Ubuntu24_04 = "ubuntu-24.04"
-    Ubuntu24_04_arm = "ubuntu-24.04-arm"
-    Macos14 = "macos-14"  # macOS Sonoma (2023)
-    Macos15 = "macos-15"  # macOS Sequoia (2024)
-    Macos26 = "macos-26"  # macOS Tahoe (2025)
+    Macos13 = "macos-13"
 
 
 class SdlPlatform(Enum):
     Android = "android"
     Emscripten = "emscripten"
     Haiku = "haiku"
-    LoongArch64 = "loongarch64"
     Msys2 = "msys2"
-    Cygwin = "cygwin"
     Linux = "linux"
     MacOS = "macos"
     Ios = "ios"
     Tvos = "tvos"
     Msvc = "msvc"
     N3ds = "n3ds"
-    PowerPC = "powerpc"
-    PowerPC64 = "powerpc64"
     Ps2 = "ps2"
     Psp = "psp"
     Vita = "vita"
@@ -60,8 +51,7 @@ class SdlPlatform(Enum):
     FreeBSD = "freebsd"
     NetBSD = "netbsd"
     OpenBSD = "openbsd"
-    NGage = "ngage"
-    DJGPP = "djgpp"
+    Watcom = "watcom"
 
 
 class Msys2Platform(Enum):
@@ -72,7 +62,6 @@ class Msys2Platform(Enum):
 
 
 class IntelCompiler(Enum):
-    Icc = "icc"
     Icx = "icx"
 
 
@@ -80,96 +69,88 @@ class VitaGLES(Enum):
     Pib = "pib"
     Pvr = "pvr"
 
+class WatcomPlatform(Enum):
+    Windows = "windows"
+    OS2 = "OS/2"
+
 
 @dataclasses.dataclass(slots=True)
 class JobSpec:
     name: str
-    priority: bool
     os: JobOs
     platform: SdlPlatform
     artifact: Optional[str]
     container: Optional[str] = None
+    autotools: bool = False
     no_cmake: bool = False
     xcode: bool = False
     android_mk: bool = False
-    android_gradle: bool = False
     lean: bool = False
     android_arch: Optional[str] = None
     android_abi: Optional[str] = None
     android_platform: Optional[int] = None
     msys2_platform: Optional[Msys2Platform] = None
     intel: Optional[IntelCompiler] = None
-    apple_framework: Optional[bool] = None
     apple_archs: Optional[set[AppleArch]] = None
     msvc_project: Optional[str] = None
     msvc_arch: Optional[MsvcArch] = None
+    msvc_static_crt: bool = False
     clang_cl: bool = False
     gdk: bool = False
     vita_gles: Optional[VitaGLES] = None
-    more_hard_deps: bool = False
+    watcom_platform: Optional[WatcomPlatform] = None
 
 
 JOB_SPECS = {
-    "msys2-mingw32": JobSpec(name="Windows (msys2, mingw32)",               priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msys2,       artifact="SDL-mingw32",            msys2_platform=Msys2Platform.Mingw32, ),
-    "msys2-mingw64": JobSpec(name="Windows (msys2, mingw64)",               priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msys2,       artifact="SDL-mingw64",            msys2_platform=Msys2Platform.Mingw64, ),
-    "msys2-clang64": JobSpec(name="Windows (msys2, clang64)",               priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msys2,       artifact="SDL-mingw64-clang",      msys2_platform=Msys2Platform.Clang64, ),
-    "msys2-ucrt64": JobSpec(name="Windows (msys2, ucrt64)",                 priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msys2,       artifact="SDL-mingw64-ucrt",       msys2_platform=Msys2Platform.Ucrt64, ),
-    "cygwin": JobSpec(name="Cygwin",                                        priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Cygwin,      artifact="SDL-cygwin", ),
-    "msvc-x64": JobSpec(name="Windows (MSVC, x64)",                         priority=True,  os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-VC-x64",             msvc_arch=MsvcArch.X64,   msvc_project="VisualC/SDL.sln", ),
-    "msvc-x86": JobSpec(name="Windows (MSVC, x86)",                         priority=True,  os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-VC-x86",             msvc_arch=MsvcArch.X86,   msvc_project="VisualC/SDL.sln", ),
-    "msvc-clang-x64": JobSpec(name="Windows (MSVC, clang-cl x64)",          priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-clang-cl-x64",       msvc_arch=MsvcArch.X64,   clang_cl=True, ),
-    "msvc-clang-x86": JobSpec(name="Windows (MSVC, clang-cl x86)",          priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-clang-cl-x86",       msvc_arch=MsvcArch.X86,   clang_cl=True, ),
-    "msvc-arm64": JobSpec(name="Windows (MSVC, ARM64)",                     priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-VC-arm64",           msvc_arch=MsvcArch.Arm64, msvc_project="VisualC/SDL.sln", ),
-    "msvc-gdk-x64": JobSpec(name="GDK (MSVC, x64)",                         priority=False, os=JobOs.Windows2022,     platform=SdlPlatform.Msvc,          artifact="SDL-VC-GDK",             msvc_arch=MsvcArch.X64,   msvc_project="VisualC-GDK/SDL.sln", gdk=True, no_cmake=True, ),
-    "ubuntu-22.04": JobSpec(name="Ubuntu 22.04",                            priority=False, os=JobOs.Ubuntu22_04,       platform=SdlPlatform.Linux,       artifact="SDL-ubuntu22.04", ),
-    "ubuntu-latest": JobSpec(name="Ubuntu (latest)",                        priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Linux,       artifact="SDL-ubuntu-latest", ),
-    "ubuntu-24.04-arm64": JobSpec(name="Ubuntu 24.04 (ARM64)",              priority=False, os=JobOs.Ubuntu24_04_arm,   platform=SdlPlatform.Linux,       artifact="SDL-ubuntu24.04-arm64", ),
-    "steamrt3": JobSpec(name="Steam Linux Runtime 3.0 (x86_64)",            priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Linux,       artifact="SDL-steamrt3",           container="registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest" ),
-    "steamrt4": JobSpec(name="Steam Linux Runtime 4.0 (x86_64)",            priority=True,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Linux,       artifact="SDL-steamrt4",           container="registry.gitlab.steamos.cloud/steamrt/steamrt4/sdk:latest", more_hard_deps = True, ),
-    "steamrt4-arm64": JobSpec(name="Steam Linux Runtime 4.0 (arm64)",       priority=False, os=JobOs.Ubuntu24_04_arm,   platform=SdlPlatform.Linux,       artifact="SDL-steamrt4-arm64",     container="registry.gitlab.steamos.cloud/steamrt/steamrt4/sdk/arm64:latest", more_hard_deps = True, ),
-    "ubuntu-intel-icx": JobSpec(name="Ubuntu 24.04 (Intel oneAPI)",         priority=False, os=JobOs.Ubuntu24_04,       platform=SdlPlatform.Linux,       artifact="SDL-ubuntu22.04-oneapi", intel=IntelCompiler.Icx, ),
-    "ubuntu-intel-icc": JobSpec(name="Ubuntu 22.04 (Intel Compiler)",       priority=False, os=JobOs.Ubuntu22_04,       platform=SdlPlatform.Linux,       artifact="SDL-ubuntu22.04-icc",    intel=IntelCompiler.Icc, ),
-    "macos-framework-x64":  JobSpec(name="MacOS (Framework) (x64)",         priority=False, os=JobOs.Macos14,           platform=SdlPlatform.MacOS,       artifact="SDL-macos-framework",    apple_framework=True,  apple_archs={AppleArch.Aarch64, AppleArch.X86_64, }, ),
-    "macos-framework-arm64": JobSpec(name="MacOS (Framework) (arm64)",      priority=True,  os=JobOs.MacosLatest,       platform=SdlPlatform.MacOS,       artifact=None,                     apple_framework=True,  apple_archs={AppleArch.Aarch64, AppleArch.X86_64, }, xcode=True, ),
-    "macos-26-framework-arm64": JobSpec(name="MacOS 26 (Framework) (arm64)",priority=False, os=JobOs.Macos26,           platform=SdlPlatform.MacOS,       artifact=None,                     apple_framework=True,  apple_archs={AppleArch.Aarch64, AppleArch.X86_64, }, ),
-    "macos-gnu-arm64": JobSpec(name="MacOS (GNU prefix)",                   priority=False, os=JobOs.MacosLatest,       platform=SdlPlatform.MacOS,       artifact="SDL-macos-arm64-gnu",    apple_framework=False, apple_archs={AppleArch.Aarch64, },  ),
-    "ios": JobSpec(name="iOS (CMake & xcode)",                              priority=True,  os=JobOs.MacosLatest,       platform=SdlPlatform.Ios,         artifact="SDL-ios-arm64",          xcode=True, ),
-    "tvos": JobSpec(name="tvOS (CMake & xcode)",                            priority=True,  os=JobOs.MacosLatest,       platform=SdlPlatform.Tvos,        artifact="SDL-tvos-arm64",         xcode=True, ),
-    "android-cmake": JobSpec(name="Android (CMake)",                        priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Android,     artifact="SDL-android-arm64",      android_abi="arm64-v8a", android_arch="aarch64", android_platform=23, ),
-    "android-cmake-lean": JobSpec(name="Android (CMake, lean)",             priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Android,     artifact="SDL-lean-android-arm64", android_abi="arm64-v8a", android_arch="aarch64", android_platform=23, lean=True, ),
-    "android-mk": JobSpec(name="Android (Android.mk)",                      priority=True,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Android,     artifact=None,                     no_cmake=True, android_mk=True, ),
-    "android-gradle": JobSpec(name="Android (Gradle)",                      priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Android,     artifact=None,                     no_cmake=True, android_gradle=True, ),
-    "emscripten": JobSpec(name="Emscripten",                                priority=True,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Emscripten,  artifact="SDL-emscripten", ),
-    "haiku": JobSpec(name="Haiku",                                          priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Haiku,       artifact="SDL-haiku-x64",          container="ghcr.io/haiku/cross-compiler:x86_64-r1beta5", ),
-    "loongarch64": JobSpec(name="LoongArch64",                              priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.LoongArch64, artifact="SDL-loongarch64", ),
-    "n3ds": JobSpec(name="Nintendo 3DS",                                    priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.N3ds,        artifact="SDL-n3ds",               container="devkitpro/devkitarm:latest", ),
-    "ppc": JobSpec(name="PowerPC",                                          priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.PowerPC,     artifact="SDL-ppc",                container="dockcross/linux-ppc:latest", ),
-    "ppc64": JobSpec(name="PowerPC64",                                      priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.PowerPC64,   artifact="SDL-ppc64le",            container="dockcross/linux-ppc64le:latest", ),
-    "ps2": JobSpec(name="Sony PlayStation 2",                               priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Ps2,         artifact="SDL-ps2",                container="ps2dev/ps2dev:latest", ),
-    "psp": JobSpec(name="Sony PlayStation Portable",                        priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Psp,         artifact="SDL-psp",                container="pspdev/pspdev:latest", ),
-    "vita-pib": JobSpec(name="Sony PlayStation Vita (GLES w/ pib)",         priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Vita,        artifact="SDL-vita-pib",           container="vitasdk/vitasdk:latest", vita_gles=VitaGLES.Pib,  ),
-    "vita-pvr": JobSpec(name="Sony PlayStation Vita (GLES w/ PVR_PSP2)",    priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Vita,        artifact="SDL-vita-pvr",           container="vitasdk/vitasdk:latest", vita_gles=VitaGLES.Pvr, ),
-    "riscos": JobSpec(name="RISC OS",                                       priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.Riscos,      artifact="SDL-riscos",             container="riscosdotinfo/riscos-gccsdk-4.7:latest", ),
-    "netbsd": JobSpec(name="NetBSD",                                        priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.NetBSD,      artifact="SDL-netbsd-x64", ),
-    "openbsd": JobSpec(name="OpenBSD",                                      priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.OpenBSD,     artifact="SDL-openbsd-x64", ),
-    "freebsd": JobSpec(name="FreeBSD",                                      priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.FreeBSD,     artifact="SDL-freebsd-x64", ),
-    "ngage": JobSpec(name="N-Gage",                                         priority=False, os=JobOs.WindowsLatest,     platform=SdlPlatform.NGage,       artifact="SDL-ngage", ),
-    "djgpp": JobSpec(name="DOS (DJGPP)",                                    priority=False, os=JobOs.UbuntuLatest,      platform=SdlPlatform.DJGPP,       artifact="SDL-djgpp", ),
+    "msys2-mingw32": JobSpec(name="Windows (msys2, mingw32)",               os=JobOs.WindowsLatest, platform=SdlPlatform.Msys2,       artifact="SDL-mingw32",            msys2_platform=Msys2Platform.Mingw32, ),
+    "msys2-mingw64": JobSpec(name="Windows (msys2, mingw64)",               os=JobOs.WindowsLatest, platform=SdlPlatform.Msys2,       artifact="SDL-mingw64",            msys2_platform=Msys2Platform.Mingw64, ),
+    "msys2-clang64": JobSpec(name="Windows (msys2, clang64)",               os=JobOs.WindowsLatest, platform=SdlPlatform.Msys2,       artifact="SDL-mingw64-clang",      msys2_platform=Msys2Platform.Clang64, ),
+    "msys2-ucrt64": JobSpec(name="Windows (msys2, ucrt64)",                 os=JobOs.WindowsLatest, platform=SdlPlatform.Msys2,       artifact="SDL-mingw64-ucrt",       msys2_platform=Msys2Platform.Ucrt64, ),
+    "msvc-x64": JobSpec(name="Windows (MSVC, x64)",                         os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-VC-x64",             msvc_arch=MsvcArch.X64,   msvc_project="VisualC/SDL.sln", ),
+    "msvc-x86": JobSpec(name="Windows (MSVC, x86)",                         os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-VC-x86",             msvc_arch=MsvcArch.X86,   msvc_project="VisualC/SDL.sln", ),
+    "msvc-static-x86": JobSpec(name="Windows (MSVC, static VCRT, x86)",     os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-VC-x86",             msvc_arch=MsvcArch.X86,   msvc_static_crt=True, ),
+    "msvc-static-x64": JobSpec(name="Windows (MSVC, static VCRT, x64)",     os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-VC-x64",             msvc_arch=MsvcArch.X64,   msvc_static_crt=True, ),
+    "msvc-clang-x64": JobSpec(name="Windows (MSVC, clang-cl x64)",          os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-clang-cl-x64",       msvc_arch=MsvcArch.X64,   clang_cl=True, ),
+    "msvc-clang-x86": JobSpec(name="Windows (MSVC, clang-cl x86)",          os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-clang-cl-x86",       msvc_arch=MsvcArch.X86,   clang_cl=True, ),
+    "msvc-arm64": JobSpec(name="Windows (MSVC, ARM64)",                     os=JobOs.WindowsLatest, platform=SdlPlatform.Msvc,        artifact="SDL-VC-arm64",           msvc_arch=MsvcArch.Arm64, ),
+    "msvc-gdk-x64": JobSpec(name="GDK (MSVC, x64)",                         os=JobOs.Windows2022,   platform=SdlPlatform.Msvc,        artifact="SDL-VC-GDK",             msvc_arch=MsvcArch.X64,   msvc_project="VisualC-GDK/SDL.sln", gdk=True, no_cmake=True, ),
+    "ubuntu-22.04": JobSpec(name="Ubuntu 22.04",                            os=JobOs.Ubuntu22_04,   platform=SdlPlatform.Linux,       artifact="SDL-ubuntu22.04",        autotools=True),
+    "steamrt-sniper": JobSpec(name="Steam Linux Runtime (Sniper)",          os=JobOs.UbuntuLatest,  platform=SdlPlatform.Linux,       artifact="SDL-slrsniper",          container="registry.gitlab.steamos.cloud/steamrt/sniper/sdk:beta", ),
+    "ubuntu-intel-icx": JobSpec(name="Ubuntu 22.04 (Intel oneAPI)",         os=JobOs.Ubuntu22_04,   platform=SdlPlatform.Linux,       artifact="SDL-ubuntu22.04-oneapi", intel=IntelCompiler.Icx, ),
+    "macos-gnu-arm64-x64": JobSpec(name="MacOS (GNU prefix)",               os=JobOs.MacosLatest,   platform=SdlPlatform.MacOS,       artifact="SDL-macos-arm64-x64-gnu",autotools=True, apple_archs={AppleArch.X86_64, AppleArch.ARM64, },  ),
+    "ios": JobSpec(name="iOS (CMake & xcode)",                              os=JobOs.MacosLatest,   platform=SdlPlatform.Ios,         artifact="SDL-ios-arm64",          xcode=True, ),
+    "tvos": JobSpec(name="tvOS (CMake & xcode)",                            os=JobOs.MacosLatest,   platform=SdlPlatform.Tvos,        artifact="SDL-tvos-arm64",         xcode=True, ),
+    "android-cmake": JobSpec(name="Android (CMake)",                        os=JobOs.UbuntuLatest,  platform=SdlPlatform.Android,     artifact="SDL-android-arm64",      android_abi="arm64-v8a", android_arch="aarch64", android_platform=23, ),
+    "android-mk": JobSpec(name="Android (Android.mk)",                      os=JobOs.UbuntuLatest,  platform=SdlPlatform.Android,     artifact=None,                     no_cmake=True, android_mk=True, ),
+    "emscripten": JobSpec(name="Emscripten",                                os=JobOs.UbuntuLatest,  platform=SdlPlatform.Emscripten,  artifact="SDL-emscripten", ),
+    "haiku": JobSpec(name="Haiku",                                          os=JobOs.UbuntuLatest,  platform=SdlPlatform.Haiku,       artifact="SDL-haiku-x64",          container="ghcr.io/haiku/cross-compiler:x86_64-r1beta5", ),
+    "n3ds": JobSpec(name="Nintendo 3DS",                                    os=JobOs.UbuntuLatest,  platform=SdlPlatform.N3ds,        artifact="SDL-n3ds",               container="devkitpro/devkitarm:latest", ),
+    "ps2": JobSpec(name="Sony PlayStation 2",                               os=JobOs.UbuntuLatest,  platform=SdlPlatform.Ps2,         artifact="SDL-ps2",                container="ps2dev/ps2dev:latest", ),
+    "psp": JobSpec(name="Sony PlayStation Portable",                        os=JobOs.UbuntuLatest,  platform=SdlPlatform.Psp,         artifact="SDL-psp",                container="pspdev/pspdev:latest", ),
+    "vita-pib": JobSpec(name="Sony PlayStation Vita (GLES w/ pib)",         os=JobOs.UbuntuLatest,  platform=SdlPlatform.Vita,        artifact="SDL-vita-pib",           container="vitasdk/vitasdk:latest", vita_gles=VitaGLES.Pib,  ),
+    "vita-pvr": JobSpec(name="Sony PlayStation Vita (GLES w/ PVR_PSP2)",    os=JobOs.UbuntuLatest,  platform=SdlPlatform.Vita,        artifact="SDL-vita-pvr",           container="vitasdk/vitasdk:latest", vita_gles=VitaGLES.Pvr, ),
+    "riscos": JobSpec(name="RISC OS",                                       os=JobOs.UbuntuLatest,  platform=SdlPlatform.Riscos,      artifact="SDL-riscos",             container="riscosdotinfo/riscos-gccsdk-4.7:latest", ),
+    "netbsd": JobSpec(name="NetBSD",                                        os=JobOs.UbuntuLatest,  platform=SdlPlatform.NetBSD,      artifact="SDL-netbsd-x64",  autotools=True, ),
+    "openbsd": JobSpec(name="OpenBSD",                                      os=JobOs.UbuntuLatest,  platform=SdlPlatform.OpenBSD,     artifact="SDL-openbsd-x64",  autotools=True, ),
+    "freebsd": JobSpec(name="FreeBSD",                                      os=JobOs.UbuntuLatest,  platform=SdlPlatform.FreeBSD,     artifact="SDL-freebsd-x64", autotools=True, ),
+    "watcom-win32": JobSpec(name="Watcom (Windows)",                        os=JobOs.WindowsLatest, platform=SdlPlatform.Watcom,      artifact="SDL-watcom-win32",  no_cmake=True, watcom_platform=WatcomPlatform.Windows ),
+    "watcom-os2": JobSpec(name="Watcom (OS/2)",                             os=JobOs.WindowsLatest, platform=SdlPlatform.Watcom,      artifact="SDL-watcom-win32",  no_cmake=True, watcom_platform=WatcomPlatform.OS2 ),
+    # "watcom-win32"
+    # "watcom-os2"
 }
 
 
 class StaticLibType(Enum):
-    STATIC_LIB = "SDL3-static.lib"
-    A = "libSDL3.a"
+    MSVC = "SDL2-static.lib"
+    A = "libSDL2.a"
 
 
 class SharedLibType(Enum):
-    WIN32 = "SDL3.dll"
-    CYGDLL = "cygSDL3.dll"
-    SO_0 = "libSDL3.so.0"
-    SO = "libSDL3.so"
-    DYLIB = "libSDL3.0.dylib"
-    FRAMEWORK = "SDL3.framework/Versions/A/SDL3"
+    WIN32 = "SDL2.dll"
+    SO_0 = "libSDL2-2.0.so.0"
+    SO = "libSDL2.so"
+    DYLIB = "libSDL2-2.0.0.dylib"
+    FRAMEWORK = "SDL2.framework/Versions/A/SDL2"
 
 
 @dataclasses.dataclass(slots=True)
@@ -179,8 +160,9 @@ class JobDetails:
     os: str
     platform: str
     artifact: str
+    no_autotools: bool
     no_cmake: bool
-    ccache: bool = False
+    build_autotools_tests: bool = True
     build_tests: bool = True
     container: str = ""
     cmake_build_type: str = "RelWithDebInfo"
@@ -194,7 +176,6 @@ class JobDetails:
     cmake_arguments: list[str] = dataclasses.field(default_factory=list)
     cmake_generator: str = "Ninja"
     cmake_build_arguments: list[str] = dataclasses.field(default_factory=list)
-    clang_tidy: bool = True
     cppflags: list[str] = dataclasses.field(default_factory=list)
     cc: str = ""
     cxx: str = ""
@@ -212,19 +193,15 @@ class JobDetails:
     cc_from_cmake: bool = False
     source_cmd: str = ""
     pretest_cmd: str = ""
-    java: bool = False
     android_apks: list[str] = dataclasses.field(default_factory=list)
     android_ndk: bool = False
     android_mk: bool = False
-    android_gradle: bool = False
     minidump: bool = False
     intel: bool = False
     msys2_msystem: str = ""
-    msys2_packages: list[str] = dataclasses.field(default_factory=list)
-    cygwin_packages: list[str] = dataclasses.field(default_factory=list)
+    msys2_env: str = ""
+    msys2_no_perl: bool = False
     werror: bool = True
-    microsoft_gameinput: bool = False
-    microsoft_gameinput_arch: str = ""
     msvc_vcvars_arch: str = ""
     msvc_vcvars_sdk: str = ""
     msvc_project: str = ""
@@ -232,8 +209,9 @@ class JobDetails:
     setup_ninja: bool = False
     setup_libusb_arch: str = ""
     xcode_sdk: str = ""
-    cpactions: bool = False
+    xcode_target: str = ""
     setup_gdk_folder: str = ""
+    cpactions: bool = False
     cpactions_os: str = ""
     cpactions_version: str = ""
     cpactions_arch: str = ""
@@ -241,35 +219,32 @@ class JobDetails:
     cpactions_install_cmd: str = ""
     setup_vita_gles_type: str = ""
     check_sources: bool = False
-    setup_python: bool = False
-    pypi_packages: list[str] = dataclasses.field(default_factory=list)
-    setup_gage_sdk_path: str = ""
+    watcom_makefile: str = ""
     binutils_strings: str = "strings"
-    ctest_args: str = ""
 
     def to_workflow(self, enable_artifacts: bool) -> dict[str, str|bool]:
         data = {
             "name": self.name,
             "key": self.key,
             "os": self.os,
-            "ccache": self.ccache,
             "container": self.container if self.container else "",
             "platform": self.platform,
             "artifact": self.artifact,
             "enable-artifacts": enable_artifacts,
             "shell": self.shell,
             "msys2-msystem": self.msys2_msystem,
-            "msys2-packages": my_shlex_join(self.msys2_packages),
-            "cygwin-packages": my_shlex_join(self.cygwin_packages),
+            "msys2-env": self.msys2_env,
+            "msys2-no-perl": self.msys2_no_perl,
             "android-ndk": self.android_ndk,
-            "java": self.java,
             "intel": self.intel,
             "apk-packages": my_shlex_join(self.apk_packages),
             "apt-packages": my_shlex_join(self.apt_packages),
             "test-pkg-config": self.test_pkg_config,
             "brew-packages": my_shlex_join(self.brew_packages),
             "pollute-directories": my_shlex_join(self.pollute_directories),
+            "no-autotools": self.no_autotools,
             "no-cmake": self.no_cmake,
+            "build-autotools-tests": self.build_autotools_tests,
             "build-tests": self.build_tests,
             "source-cmd": self.source_cmd,
             "pretest-cmd": self.pretest_cmd,
@@ -281,7 +256,6 @@ class JobDetails:
             "ldflags": my_shlex_join(self.ldflags),
             "cmake-generator": self.cmake_generator,
             "cmake-toolchain-file": self.cmake_toolchain_file,
-            "clang-tidy": self.clang_tidy,
             "cmake-arguments": my_shlex_join(self.cmake_arguments),
             "cmake-build-arguments": my_shlex_join(self.cmake_build_arguments),
             "shared": self.shared,
@@ -291,12 +265,9 @@ class JobDetails:
             "cmake-build-type": self.cmake_build_type,
             "run-tests": self.run_tests,
             "android-apks": my_shlex_join(self.android_apks),
-            "android-gradle": self.android_gradle,
             "android-mk": self.android_mk,
             "werror": self.werror,
             "sudo": self.sudo,
-            "microsoft-gameinput": self.microsoft_gameinput,
-            "microsoft-gameinput-arch": self.microsoft_gameinput_arch,
             "msvc-vcvars-arch": self.msvc_vcvars_arch,
             "msvc-vcvars-sdk": self.msvc_vcvars_sdk,
             "msvc-project": self.msvc_project,
@@ -305,6 +276,7 @@ class JobDetails:
             "setup-libusb-arch": self.setup_libusb_arch,
             "cc-from-cmake": self.cc_from_cmake,
             "xcode-sdk": self.xcode_sdk,
+            "xcode-target": self.xcode_target,
             "cpactions": self.cpactions,
             "cpactions-os": self.cpactions_os,
             "cpactions-version": self.cpactions_version,
@@ -314,11 +286,8 @@ class JobDetails:
             "setup-vita-gles-type": self.setup_vita_gles_type,
             "setup-gdk-folder": self.setup_gdk_folder,
             "check-sources": self.check_sources,
-            "setup-python": self.setup_python,
-            "pypi-packages": my_shlex_join(self.pypi_packages),
-            "setup-ngage-sdk-path": self.setup_gage_sdk_path,
+            "watcom-makefile": self.watcom_makefile,
             "binutils-strings": self.binutils_strings,
-            "ctest-args": self.ctest_args,
         }
         return {k: v for k, v in data.items() if v != ""}
 
@@ -328,13 +297,14 @@ def my_shlex_join(s):
         if s[:1] == "'" and s[-1:] == "'":
             return s
         if set(s).intersection(set("; \t")):
+            s = s.replace("\\", "\\\\").replace("\"", "\\\"")
             return f'"{s}"'
         return s
 
-    return " ".join(escape(s))
+    return " ".join(escape(e) for e in s)
 
 
-def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args: list[str]) -> JobDetails:
+def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool) -> JobDetails:
     job = JobDetails(
         name=spec.name,
         key=key,
@@ -343,6 +313,7 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
         container=spec.container or "",
         platform=spec.platform.value,
         sudo="sudo",
+        no_autotools=not spec.autotools,
         no_cmake=spec.no_cmake,
     )
     if job.os.startswith("ubuntu"):
@@ -350,6 +321,8 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             "ninja-build",
             "pkg-config",
         ])
+    if spec.msvc_static_crt:
+        job.cmake_arguments.append("-DSDL_FORCE_STATIC_VCRT=ON")
     pretest_cmd = []
     if trackmem_symbol_names:
         pretest_cmd.append("export SDL_TRACKMEM_SYMBOL_NAMES=1")
@@ -359,7 +332,7 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
     fpic = None
     build_parallel = True
     if spec.lean:
-        job.cmake_arguments.append("-DSDL_LEAN_AND_MEAN=TRUE")
+        job.cppflags.append("-DSDL_LEAN_AND_MEAN=1")
     if win32:
         job.cmake_arguments.append("-DSDLTEST_PROCDUMP=ON")
         job.minidump = True
@@ -368,14 +341,6 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             case IntelCompiler.Icx:
                 job.cc = "icx"
                 job.cxx = "icpx"
-            case IntelCompiler.Icc:
-                job.cc = "icc"
-                job.cxx = "icpc"
-                # Disable deprecation warning
-                job.cppflags.append("-diag-disable=10441")
-                # Avoid 'Catastrophic error: cannot open precompiled header file'
-                job.cmake_arguments.append("-DCMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL=ON")
-                job.clang_tidy = False
             case _:
                 raise ValueError(f"Invalid intel={spec.intel}")
         job.source_cmd = f"source /opt/intel/oneapi/setvars.sh;"
@@ -389,18 +354,16 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
     match spec.platform:
         case SdlPlatform.Msvc:
             job.setup_ninja = not spec.gdk
-            job.clang_tidy = False  # complains about \threadsafety: "unknown command tag name [clang-diagnostic-documentation-unknown-command]"
             job.msvc_project = spec.msvc_project if spec.msvc_project else ""
             job.msvc_project_flags.append("-p:TreatWarningsAsError=true")
             job.test_pkg_config = False
             job.shared_lib = SharedLibType.WIN32
-            job.static_lib = StaticLibType.STATIC_LIB
+            job.static_lib = StaticLibType.MSVC
             job.cmake_arguments.extend((
                 "-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=ProgramDatabase",
                 "-DCMAKE_EXE_LINKER_FLAGS=-DEBUG",
                 "-DCMAKE_SHARED_LINKER_FLAGS=-DEBUG",
             ))
-
             job.cmake_arguments.append("'-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>'")
 
             if spec.clang_cl:
@@ -411,11 +374,9 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                 match spec.msvc_arch:
                     case MsvcArch.X86:
                         job.cflags.append("/clang:-m32")
-                        job.cxxflags.append("/clang:-m32")
                         job.ldflags.append("/MACHINE:X86")
                     case MsvcArch.X64:
                         job.cflags.append("/clang:-m64")
-                        job.cxxflags.append("/clang:-m64")
                         job.ldflags.append("/MACHINE:X64")
                     case _:
                         raise ValueError(f"Unsupported clang-cl architecture (arch={spec.msvc_arch})")
@@ -425,8 +386,6 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                         msvc_platform = "Win32"
                     case MsvcArch.X64:
                         msvc_platform = "x64"
-                    case MsvcArch.Arm64:
-                        msvc_platform = "ARM64"
                     case _:
                         raise ValueError(f"Unsupported vcxproj architecture (arch={spec.msvc_arch})")
                 if spec.gdk:
@@ -448,19 +407,10 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                         job.setup_libusb_arch = "x86"
                     case MsvcArch.X64:
                         job.setup_libusb_arch = "x64"
-                job.microsoft_gameinput = True
-                match spec.msvc_arch:
-                    case MsvcArch.X64:
-                        job.microsoft_gameinput_arch = "x64"
-                    case MsvcArch.Arm64:
-                        job.microsoft_gameinput_arch = "arm64"
-                job.cflags.append("-I$GAMEINPUT_INCLUDE")
-                job.cxxflags.append("-I$GAMEINPUT_INCLUDE")
         case SdlPlatform.Linux:
             if spec.name.startswith("Ubuntu"):
                 assert spec.os.value.startswith("ubuntu-")
                 job.apt_packages.extend((
-                    "ccache",
                     "gnome-desktop-testing",
                     "libasound2-dev",
                     "libpulse-dev",
@@ -475,7 +425,6 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                     "libxfixes-dev",
                     "libxi-dev",
                     "libxss-dev",
-                    "libxtst-dev",
                     "libwayland-dev",
                     "libxkbcommon-dev",
                     "libdrm-dev",
@@ -487,54 +436,23 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                     "libibus-1.0-dev",
                     "libudev-dev",
                     "fcitx-libs-dev",
-                    "libfribidi-dev",
-                    # testffmpeg
-                    "libavcodec-dev",
-                    "libavfilter-dev",
-                    "libavutil-dev",
-                    "libswresample-dev",
-                    "libswscale-dev",
                 ))
-                match = re.match(r"ubuntu-(?P<year>[0-9]+)\.(?P<month>[0-9]+|latest).*", spec.os.value)
-                ubuntu_ge_24 = True
-                if match and match["month"] != "latest":
-                    ubuntu_year, ubuntu_month = [int(match["year"]), int(match["month"])]
-                    ubuntu_ge_24 = ubuntu_year >= 24
+                ubuntu_year, ubuntu_month = [int(v) for v in spec.os.value.removeprefix("ubuntu-").split(".", 1)]
+                if ubuntu_year >= 22:
                     job.apt_packages.extend(("libpipewire-0.3-dev", "libdecor-0-dev"))
-                if not ubuntu_ge_24:
-                    job.clang_tidy = False
                 job.apt_packages.extend((
                     "libunwind-dev",  # For SDL_test memory tracking
                 ))
-            job.ccache = True
             if trackmem_symbol_names:
                 # older libunwind is slow
                 job.cmake_arguments.append("-DSDLTEST_TIMEOUT_MULTIPLIER=2")
             job.shared_lib = SharedLibType.SO_0
             job.static_lib = StaticLibType.A
             fpic = True
-            job.cmake_arguments.append("-DSDLTEST_GDB=ON")
-            job.apt_packages.append("gdb")
-            if spec.more_hard_deps:
-                # Some distros prefer to make important dependencies
-                # mandatory, so that SDL won't start up but lack expected
-                # functionality if they're missing
-                job.cmake_arguments.extend([
-                    "-DSDL_ALSA_SHARED=OFF",
-                    "-DSDL_FRIBIDI_SHARED=OFF",
-                    "-DSDL_HIDAPI_LIBUSB_SHARED=OFF",
-                    "-DSDL_PULSEAUDIO_SHARED=OFF",
-                    "-DSDL_X11_SHARED=OFF",
-                    "-DSDL_WAYLAND_LIBDECOR_SHARED=OFF",
-                    "-DSDL_WAYLAND_SHARED=OFF",
-                ])
         case SdlPlatform.Ios | SdlPlatform.Tvos:
             job.brew_packages.extend([
-                "ccache",
                 "ninja",
             ])
-            job.ccache = True
-            job.clang_tidy = False
             job.run_tests = False
             job.test_pkg_config = False
             job.shared_lib = SharedLibType.DYLIB
@@ -542,70 +460,48 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             match spec.platform:
                 case SdlPlatform.Ios:
                     if spec.xcode:
-                        job.xcode_sdk = 'iphoneos'
+                        job.xcode_sdk = "iphoneos"
+                        job.xcode_target = "Static Library-iOS"
                     job.cmake_arguments.extend([
                         "-DCMAKE_SYSTEM_NAME=iOS",
                         "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"",
-                        "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
+                        "-DCMAKE_OSX_DEPLOYMENT_TARGET=9.0",
                     ])
                 case SdlPlatform.Tvos:
                     if spec.xcode:
-                        job.xcode_sdk = 'appletvos'
+                        job.xcode_sdk = "appletvos"
+                        job.xcode_target = "Static Library-tvOS"
                     job.cmake_arguments.extend([
                         "-DCMAKE_SYSTEM_NAME=tvOS",
                         "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"",
-                        "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
+                        "-DCMAKE_OSX_DEPLOYMENT_TARGET=9.0",
                     ])
         case SdlPlatform.MacOS:
-            if spec.apple_framework:
-                job.static = False
-                job.clang_tidy = False
-                job.test_pkg_config = False
-                job.cmake_arguments.extend((
-                    "'-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64'",
-                    "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13",
-                    "-DSDL_FRAMEWORK=ON",
-                ))
-                job.shared_lib = SharedLibType.FRAMEWORK
-            else:
-                job.clang_tidy = True
-                job.cmake_arguments.extend((
-                    "-DCMAKE_OSX_ARCHITECTURES=arm64",
-                    "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13",
-                    "-DCLANG_TIDY_BINARY=$(brew --prefix llvm)/bin/clang-tidy",
-                ))
-                job.brew_packages.extend((
-                    # Brew provides a single architecture (aarch64), so it's not usable for fat libraries
-                    "ffmpeg",  # testffmpeg
-                ))
-                job.shared_lib = SharedLibType.DYLIB
-                job.static_lib = StaticLibType.A
-            job.ccache = True
+            osx_arch = ";".join(e.value for e in spec.apple_archs) if spec.apple_archs else "arm64"
+            job.cmake_arguments.extend((
+                f"'-DCMAKE_OSX_ARCHITECTURES={osx_arch}'",
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.11",
+            ))
+            job.build_autotools_tests = False
+            job.shared_lib = SharedLibType.DYLIB
+            job.static_lib = StaticLibType.A
             job.apt_packages = []
             job.brew_packages.extend((
+                "autoconf",
                 "ninja",
             ))
-            if job.ccache:
-                job.brew_packages.append("ccache")
-            if job.clang_tidy:
-                job.brew_packages.append("llvm")
             if spec.xcode:
                 job.xcode_sdk = "macosx"
         case SdlPlatform.Android:
-            job.android_gradle = spec.android_gradle
             job.android_mk = spec.android_mk
-            job.apt_packages.append("ccache")
             job.run_tests = False
             job.shared_lib = SharedLibType.SO
             job.static_lib = StaticLibType.A
             if spec.android_mk or not spec.no_cmake:
                 job.android_ndk = True
-            if spec.android_gradle or not spec.no_cmake:
-                job.java = True
-            if spec.android_mk or spec.android_gradle:
+            if spec.android_mk:
                 job.apt_packages = []
             if not spec.no_cmake:
-                job.ccache = True
                 job.cmake_arguments.extend((
                     f"-DANDROID_PLATFORM={spec.android_platform}",
                     f"-DANDROID_ABI={spec.android_abi}",
@@ -620,16 +516,9 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                     "testmultiaudio-apk",
                     "testsprite-apk",
                 ]
-
-                # -fPIC is required after updating NDK from 21 to 28
-                job.cflags.append("-fPIC")
-                job.cxxflags.append("-fPIC")
         case SdlPlatform.Emscripten:
-            emscripten_tests = not spec.priority
-            job.clang_tidy = False  # clang-tidy does not understand -gsource-map
+            job.run_tests = False
             job.shared = False
-            job.ccache = True
-            job.apt_packages.append("ccache")
             job.cmake_config_emulator = "emcmake"
             job.cmake_build_type = "Debug"
             job.test_pkg_config = False
@@ -638,50 +527,25 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                 "-DSDLTEST_TIMEOUT_MULTIPLIER=4",
                 "-DSDLTEST_CHROME_BINARY=${CHROME_BINARY}",
             ))
-            job.cflags.extend((
-                "-gsource-map",
-                "-ffile-prefix-map=${PWD}=/SDL",
-            ))
-            job.ldflags.extend((
-                "--source-map-base", "/",
-            ))
-            pretest_cmd.extend((
-                "# Start local HTTP server",
-                "cmake --build build --target serve-sdl-tests --verbose &",
-                "chrome --version",
-                "chromedriver --version",
-            ))
             job.static_lib = StaticLibType.A
-            if emscripten_tests:
-                job.setup_python = True
-                job.pypi_packages.append("selenium")
-            else:
-                job.cmake_arguments.extend((
-                    "-DSDL_TESTS=OFF",
-                ))
-                job.run_tests = False
         case SdlPlatform.Ps2:
-            job.ccache = False  #  actions/ccache does not work in psp container (incompatible tar of busybox)
             build_parallel = False
             job.shared = False
             job.sudo = ""
             job.apt_packages = []
-            job.apk_packages = ["ccache", "cmake", "gmp", "mpc1", "mpfr4", "ninja", "pkgconf", "git", ]
+            job.apk_packages = ["cmake", "gmp", "mpc1", "mpfr4", "ninja", "pkgconf", "git", ]
             job.cmake_toolchain_file = "${PS2DEV}/ps2sdk/ps2dev.cmake"
-            job.clang_tidy = False
             job.run_tests = False
             job.shared = False
             job.cc = "mips64r5900el-ps2-elf-gcc"
             job.ldflags = ["-L${PS2DEV}/ps2sdk/ee/lib", "-L${PS2DEV}/gsKit/lib", "-L${PS2DEV}/ps2sdk/ports/lib", ]
             job.static_lib = StaticLibType.A
         case SdlPlatform.Psp:
-            job.ccache = False  #  actions/ccache does not work in psp container (incompatible tar of busybox)
             build_parallel = False
             job.sudo = ""
             job.apt_packages = []
-            job.apk_packages = ["ccache", "cmake", "gmp", "mpc1", "mpfr4", "ninja", "pkgconf", ]
+            job.apk_packages = ["cmake", "gmp", "mpc1", "mpfr4", "ninja", "pkgconf", ]
             job.cmake_toolchain_file = "${PSPDEV}/psp/share/pspdev.cmake"
-            job.clang_tidy = False
             job.run_tests = False
             job.shared = False
             job.cc = "psp-gcc"
@@ -689,10 +553,9 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             job.pollute_directories = ["${PSPDEV}/include", "${PSPDEV}/psp/include", "${PSPDEV}/psp/sdk/include", ]
             job.static_lib = StaticLibType.A
         case SdlPlatform.Vita:
-            job.ccache = True
             job.sudo = ""
             job.apt_packages = []
-            job.apk_packages = ["ccache", "cmake", "ninja", "pkgconf", "bash", "tar"]
+            job.apk_packages = ["cmake", "ninja", "pkgconf", "bash", "tar"]
             job.cmake_toolchain_file = "${VITASDK}/share/vita.toolchain.cmake"
             assert spec.vita_gles is not None
             job.setup_vita_gles_type = {
@@ -707,117 +570,53 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                 ))
             # Fix vita.toolchain.cmake (https://github.com/vitasdk/vita-toolchain/pull/253)
             job.source_cmd = r"""sed -i -E "s#set\\( PKG_CONFIG_EXECUTABLE \"\\$\\{VITASDK}/bin/arm-vita-eabi-pkg-config\" \\)#set\\( PKG_CONFIG_EXECUTABLE \"${VITASDK}/bin/arm-vita-eabi-pkg-config\" CACHE PATH \"Path of pkg-config executable\" \\)#" ${VITASDK}/share/vita.toolchain.cmake"""
-            job.clang_tidy = False
             job.run_tests = False
             job.shared = False
             job.cc = "arm-vita-eabi-gcc"
             job.static_lib = StaticLibType.A
         case SdlPlatform.Haiku:
-            job.ccache = True
             fpic = False
+            job.build_autotools_tests = False
             job.run_tests = False
-            job.apt_packages.append("ccache")
             job.cc = "x86_64-unknown-haiku-gcc"
             job.cxx = "x86_64-unknown-haiku-g++"
             job.sudo = ""
             job.cmake_arguments.extend((
                 f"-DCMAKE_C_COMPILER={job.cc}",
                 f"-DCMAKE_CXX_COMPILER={job.cxx}",
-                "-DCMAKE_SYSTEM_NAME=Haiku",
-            ))
-            job.shared_lib = SharedLibType.SO_0
-            job.static_lib = StaticLibType.A
-        case SdlPlatform.PowerPC64 | SdlPlatform.PowerPC:
-            job.ccache = True
-            # FIXME: Enable SDL_WERROR
-            job.werror = False
-            job.clang_tidy = False
-            job.run_tests = False
-            job.sudo = ""
-            job.apt_packages = ["ccache"]
-            job.shared_lib = SharedLibType.SO_0
-            job.static_lib = StaticLibType.A
-            job.cmake_arguments.extend((
                 "-DSDL_UNIX_CONSOLE_BUILD=ON",
-            ))
-        case SdlPlatform.LoongArch64:
-            job.ccache = True
-            fpic = True
-            job.run_tests = False
-            job.apt_packages.append("ccache")
-            job.cc = "${LOONGARCH64_CC}"
-            job.cxx = "${LOONGARCH64_CXX}"
-            job.cmake_arguments.extend((
-                f"-DCMAKE_C_COMPILER={job.cc}",
-                f"-DCMAKE_CXX_COMPILER={job.cxx}",
-                "-DSDL_UNIX_CONSOLE_BUILD=ON",
-                "-DCMAKE_SYSTEM_NAME=Linux",
             ))
             job.shared_lib = SharedLibType.SO_0
             job.static_lib = StaticLibType.A
         case SdlPlatform.N3ds:
             job.cmake_generator = "Unix Makefiles"
             job.cmake_build_arguments.append("-j$(nproc)")
-            job.ccache = False
             job.shared = False
             job.apt_packages = []
-            job.clang_tidy = False
             job.run_tests = False
             job.cc_from_cmake = True
             job.cmake_toolchain_file = "${DEVKITPRO}/cmake/3DS.cmake"
             job.binutils_strings = "/opt/devkitpro/devkitARM/bin/arm-none-eabi-strings"
             job.static_lib = StaticLibType.A
         case SdlPlatform.Msys2:
-            job.ccache = True
             job.shell = "msys2 {0}"
             assert spec.msys2_platform
             job.msys2_msystem = spec.msys2_platform.value
-            job.shared_lib = SharedLibType.WIN32
-            job.static_lib = StaticLibType.A
-            msys2_env = {
+            job.msys2_env = {
                 "mingw32": "mingw-w64-i686",
                 "mingw64": "mingw-w64-x86_64",
+                "clang32": "mingw-w64-clang-i686",
                 "clang64": "mingw-w64-clang-x86_64",
                 "ucrt64": "mingw-w64-ucrt-x86_64",
             }[spec.msys2_platform.value]
-            job.msys2_packages.extend([
-                f"{msys2_env}-cc",
-                f"{msys2_env}-cmake",
-                f"{msys2_env}-ffmpeg",
-                f"{msys2_env}-ninja",
-                f"{msys2_env}-pkg-config",
-            ])
-            if spec.msys2_platform not in (Msys2Platform.Mingw32, ):
-                job.msys2_packages.append(f"{msys2_env}-perl")
-                job.msys2_packages.append(f"{msys2_env}-clang-tools-extra")
-            if job.ccache:
-                job.msys2_packages.append(f"{msys2_env}-ccache")
-            job.microsoft_gameinput = True
-            job.cflags.append("-I$GAMEINPUT_INCLUDE")
-            job.cxxflags.append("-I$GAMEINPUT_INCLUDE")
-        case SdlPlatform.Cygwin:
-            job.ccache = False # Missing evict-older-than option
-            job.clang_tidy = False # error finding files [clang-diagnostic-error] cause might be space in command path
-            job.test_pkg_config = False # Linefeed issue in test_pkgconfig.sh
-            job.shell = "bash --noprofile --norc -eo pipefail -o igncr {0}"
-            job.shared_lib = SharedLibType.CYGDLL
+            job.msys2_no_perl = spec.msys2_platform in (Msys2Platform.Mingw32, )
+            job.shared_lib = SharedLibType.WIN32
             job.static_lib = StaticLibType.A
-            job.cmake_arguments.append("-DSDLTEST_GDB=ON")
-            job.cygwin_packages.extend([
-                "cmake",
-                "gcc-core",
-                "gcc-g++",
-                "gdb",
-                "ninja",
-                "pkg-config",
-                "perl",
-                "python",
-            ])
         case SdlPlatform.Riscos:
-            job.ccache = False  # FIXME: enable when container gets upgrade
             # FIXME: Enable SDL_WERROR
             job.werror = False
-            job.apt_packages = ["ccache", "cmake", "ninja-build"]
+            job.build_autotools_tests = False
+            job.apt_packages = ["cmake", "ninja-build"]
             job.test_pkg_config = False
             job.shared = False
             job.run_tests = False
@@ -830,6 +629,7 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             job.cmake_toolchain_file = "/home/riscos/env/toolchain-riscos.cmake"
             job.static_lib = StaticLibType.A
         case SdlPlatform.FreeBSD | SdlPlatform.NetBSD | SdlPlatform.OpenBSD:
+            job.build_autotools_tests = False
             job.cpactions = True
             job.no_cmake = True
             job.run_tests = False
@@ -859,55 +659,31 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
                     job.cpactions_arch = "x86-64"
                     job.cpactions_setup_cmd = "sudo pkg_add -u"
                     job.cpactions_install_cmd = "sudo pkg_add cmake ninja pkgconf wayland wayland-protocols libxkbcommon libinotify pulseaudio dbus ibus"
-        case SdlPlatform.NGage:
-            build_parallel = False
-            job.cmake_build_type = "Release"
-            job.setup_ninja = True
-            job.static_lib = StaticLibType.STATIC_LIB
-            job.shared_lib = None
-            job.clang_tidy = False
-            job.werror = False  # FIXME: enable SDL_WERROR
-            job.shared = False
-            job.run_tests = False
-            job.setup_gage_sdk_path = "C:/ngagesdk"
-            job.cmake_toolchain_file = "C:/ngagesdk/cmake/ngage-toolchain.cmake"
-            job.test_pkg_config = False
-        case SdlPlatform.DJGPP:
-            build_parallel = False
-            job.ccache = True
-            job.apt_packages = ["ccache", "libfl-dev"]  # djgpp needs libfl.so.2
-            job.cmake_build_type = "Release"
-            job.setup_ninja = True
-            job.static_lib = StaticLibType.A
-            job.shared_lib = None
-            job.clang_tidy = False
-            job.werror = False  # FIXME: enable SDL_WERROR
-            job.shared = False
-            job.run_tests = False
-            job.test_pkg_config = False
-            job.cmake_toolchain_file = "$GITHUB_WORKSPACE/build-scripts/i586-pc-msdosdjgpp.cmake"
+        case SdlPlatform.Watcom:
+            match spec.watcom_platform:
+                case WatcomPlatform.OS2:
+                    job.watcom_makefile = "Makefile.os2"
+                    job.run_tests = False
+                case WatcomPlatform.Windows:
+                    job.watcom_makefile = "Makefile.w32"
+                    job.run_tests = True
+                case _:
+                    raise ValueError(f"Unsupported watcom_platform=${spec.watcom_platform}")
         case _:
             raise ValueError(f"Unsupported platform={spec.platform}")
 
     if "ubuntu" in spec.name.lower():
         job.check_sources = True
-        job.setup_python = True
 
-    if job.ccache:
-        job.cmake_arguments.extend((
-            "-DCMAKE_C_COMPILER_LAUNCHER=ccache",
-            "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
-        ))
-    job.ctest_args = shlex.join(ctest_args)
     if not build_parallel:
         job.cmake_build_arguments.append("-j1")
-    if job.cflags or job.cppflags:
-        job.cmake_arguments.append(f"-DCMAKE_C_FLAGS=\"{my_shlex_join(job.cflags + job.cppflags)}\"")
-    if job.cxxflags or job.cppflags:
-        job.cmake_arguments.append(f"-DCMAKE_CXX_FLAGS=\"{my_shlex_join(job.cxxflags + job.cppflags)}\"")
+    if job.cflags:
+        job.cmake_arguments.append(f"-DCMAKE_C_FLAGS={my_shlex_join(job.cflags)}")
+    if job.cxxflags:
+        job.cmake_arguments.append(f"-DCMAKE_CXX_FLAGS={my_shlex_join(job.cxxflags)}")
     if job.ldflags:
-        job.cmake_arguments.append(f"-DCMAKE_SHARED_LINKER_FLAGS=\"{my_shlex_join(job.ldflags)}\"")
-        job.cmake_arguments.append(f"-DCMAKE_EXE_LINKER_FLAGS=\"{my_shlex_join(job.ldflags)}\"")
+        job.cmake_arguments.append(f"-DCMAKE_SHARED_LINKER_FLAGS={my_shlex_join(job.ldflags)}")
+        job.cmake_arguments.append(f"-DCMAKE_EXE_LINKER_FLAGS={my_shlex_join(job.ldflags)}")
     job.pretest_cmd = "\n".join(pretest_cmd)
     def tf(b):
         return "ON" if b else "OFF"
@@ -921,14 +697,9 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
     return job
 
 
-def spec_to_platform(spec: JobSpec, key: str, enable_artifacts: bool, trackmem_symbol_names: bool, ctest_args:list[str]) -> dict[str, str|bool]:
+def spec_to_platform(spec: JobSpec, key: str, enable_artifacts: bool, trackmem_symbol_names: bool) -> dict[str, str|bool]:
     logger.info("spec=%r", spec)
-    job = spec_to_job(
-        spec,
-        key=key,
-        trackmem_symbol_names=trackmem_symbol_names,
-        ctest_args=ctest_args,
-    )
+    job = spec_to_job(spec, key=key, trackmem_symbol_names=trackmem_symbol_names)
     logger.info("job=%r", job)
     platform = job.to_workflow(enable_artifacts=enable_artifacts)
     logger.info("platform=%r", platform)
@@ -943,7 +714,6 @@ def main():
     parser.add_argument("--commit-message-file")
     parser.add_argument("--no-artifact", dest="enable_artifacts", action="store_false")
     parser.add_argument("--trackmem-symbol-names", dest="trackmem_symbol_names", action="store_true")
-    parser.add_argument("--priority-only", dest="priority_only", action="store_true")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
@@ -953,12 +723,11 @@ def main():
     all_level_keys = (
         # Level 1
         (
-            "android-mk",
+            "haiku",
         ),
     )
 
     filters = []
-    ctest_args = []
     if args.commit_message_file:
         with open(args.commit_message_file, "r") as f:
             commit_message = f.read()
@@ -971,20 +740,14 @@ def main():
             if re.search(r"\[sdl-ci-(full-)?trackmem(-symbol-names)?]", commit_message, flags=re.M):
                 args.trackmem_symbol_names = True
 
-            for m in re.finditer(r"\[sdl-ci-ctest-args? (.*)]", commit_message, flags=re.M):
-                ctest_args.extend(shlex.split(m.group(1)))
-
     if not filters:
-        if args.priority_only:
-            filters.extend(spec_id for spec_id, spec in JOB_SPECS.items() if spec.priority)
-        else:
-            filters.append("*")
+        filters.append("*")
 
     logger.info("filters: %r", filters)
 
     all_level_platforms = {}
 
-    all_platforms = {key: spec_to_platform(spec, key=key, enable_artifacts=args.enable_artifacts, trackmem_symbol_names=args.trackmem_symbol_names, ctest_args=ctest_args) for key, spec in JOB_SPECS.items()}
+    all_platforms = {key: spec_to_platform(spec, key=key, enable_artifacts=args.enable_artifacts, trackmem_symbol_names=args.trackmem_symbol_names) for key, spec in JOB_SPECS.items()}
 
     for level_i, level_keys in enumerate(all_level_keys, 1):
         level_key = f"level{level_i}"

@@ -1,0 +1,9 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/freetype.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/package.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/package_source.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/edit_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/rebuild_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/list_install_components.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/install.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/install/local.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/freetype/arm64-android-dbg/CMakeFiles/install/strip.dir

@@ -8,7 +8,7 @@ if (APPLE)
     option(MARATHON_RECOMP_METAL "Add Metal support for rendering" ON)
 endif()
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT ANDROID)
     option(MARATHON_RECOMP_FLATPAK "Configure the build for Flatpak compatibility." OFF)
 endif()
 
@@ -31,9 +31,17 @@ function(BIN2C)
         set(BIN2C_ARGS_COMPRESSION_TYPE "none")
     endif()
 
+    if (MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS)
+        set(FILE_TO_C_COMMAND "${MARATHON_RECOMP_HOST_FILE_TO_C}")
+        set(FILE_TO_C_TOOL_DEPENDS "${MARATHON_RECOMP_HOST_FILE_TO_C}")
+    else()
+        set(FILE_TO_C_COMMAND "$<TARGET_FILE:file_to_c>")
+        set(FILE_TO_C_TOOL_DEPENDS file_to_c)
+    endif()
+
     add_custom_command(OUTPUT "${BIN2C_ARGS_DEST_FILE}.c"
-        COMMAND $<TARGET_FILE:file_to_c> "${BIN2C_ARGS_SOURCE_FILE}" "${BIN2C_ARGS_ARRAY_NAME}" "${BIN2C_ARGS_COMPRESSION_TYPE}" "${BIN2C_ARGS_DEST_FILE}.c" "${BIN2C_ARGS_DEST_FILE}.h"
-        DEPENDS "${BIN2C_ARGS_SOURCE_FILE}"
+        COMMAND ${FILE_TO_C_COMMAND} "${BIN2C_ARGS_SOURCE_FILE}" "${BIN2C_ARGS_ARRAY_NAME}" "${BIN2C_ARGS_COMPRESSION_TYPE}" "${BIN2C_ARGS_DEST_FILE}.c" "${BIN2C_ARGS_DEST_FILE}.h"
+        DEPENDS "${BIN2C_ARGS_SOURCE_FILE}" ${FILE_TO_C_TOOL_DEPENDS}
         BYPRODUCTS "${BIN2C_ARGS_DEST_FILE}.h"
         COMMENT "Generating binary header for ${BIN2C_ARGS_SOURCE_FILE}..."
     )
@@ -94,7 +102,7 @@ if (WIN32)
         "os/win32/user_win32.cpp"
         "os/win32/version_win32.cpp"
     )
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+elseif (CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT ANDROID)
     set(MARATHON_RECOMP_OS_CXX_SOURCES
         "os/linux/logger_linux.cpp"
         "os/linux/media_linux.cpp"
@@ -109,6 +117,19 @@ elseif (APPLE)
         "os/macos/process_macos.cpp"
         "os/macos/user_macos.cpp"
         "os/macos/version_macos.cpp"
+    )
+elseif (ANDROID)
+    # Compiles, but unverified end-to-end on-device: process_android reuses
+    # fork()/exec() like the Linux build (works under the NDK, but app
+    # sandboxing may block it in practice) and user_android/media_android are
+    # inert stubs (no JNI wiring yet to query system UI theme or media state).
+    set(MARATHON_RECOMP_OS_CXX_SOURCES
+        "os/android/logger_android.cpp"
+        "os/android/media_android.cpp"
+        "os/android/process_android.cpp"
+        "os/android/storage_android.cpp"
+        "os/android/user_android.cpp"
+        "os/android/version_android.cpp"
     )
 endif()
 
@@ -133,6 +154,7 @@ set(MARATHON_RECOMP_APU_CXX_SOURCES
 set(MARATHON_RECOMP_HID_CXX_SOURCES
     "hid/hid.cpp"
     "hid/driver/sdl_hid.cpp"
+    "hid/virtual_touch.cpp"
 )
 
 set(MARATHON_RECOMP_PATCHES_CXX_SOURCES
@@ -353,6 +375,14 @@ elseif (APPLE)
     add_custom_target(CopyMoltenVK DEPENDS ${MVK_ICD_DST} ${MVK_DYLIB_DST})
     add_dependencies(CopyMoltenVK MoltenVK)
     add_dependencies(MarathonRecomp CopyMoltenVK)
+elseif (ANDROID)
+    # Android apps have no process entry point of their own; SDL's Java activity
+    # loads this as a JNI shared library (named "main" to match
+    # System.loadLibrary("main") in the android-apk SDL activity) and calls
+    # SDL_main from a native thread once the app is initialized.
+    add_library(MarathonRecomp SHARED ${MARATHON_RECOMP_CXX_SOURCES})
+    set_target_properties(MarathonRecomp PROPERTIES OUTPUT_NAME "main")
+    target_link_libraries(MarathonRecomp PRIVATE SDL2::SDL2main)
 else()
     add_executable(MarathonRecomp ${MARATHON_RECOMP_CXX_SOURCES})
 endif()
@@ -427,13 +457,18 @@ target_include_directories(MarathonRecomp PRIVATE
     ${MARATHON_RECOMP_THIRDPARTY_INCLUDES}
 )
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     find_package(X11 REQUIRED)
     pkg_search_module(GLIB REQUIRED glib-2.0)
     pkg_search_module(GIO REQUIRED gio-2.0)
     target_include_directories(MarathonRecomp PRIVATE ${X11_INCLUDE_DIR} ${GLIB_INCLUDE_DIRS} ${GIO_INCLUDE_DIRS})
     target_link_libraries(MarathonRecomp PRIVATE ${X11_LIBRARIES} ${GLIB_LIBRARIES} ${GIO_LIBRARIES})
+endif()
+
+if (ANDROID)
+    # __android_log_print (os/android/logger_android.cpp) lives in liblog.
+    target_link_libraries(MarathonRecomp PRIVATE log)
 endif()
 
 target_precompile_headers(MarathonRecomp PUBLIC ${MARATHON_RECOMP_PRECOMPILED_HEADERS})

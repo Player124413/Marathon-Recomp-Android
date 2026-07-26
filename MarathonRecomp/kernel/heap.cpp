@@ -28,6 +28,9 @@ void* Heap::AllocPhysical(size_t size, size_t alignment)
     std::lock_guard lock(physicalMutex);
 
     void* ptr = o1heapAllocate(physicalHeap, size + alignment);
+    if (ptr == nullptr)
+        return nullptr; // OOM — caller must check; dereferencing null would crash
+
     size_t aligned = ((size_t)ptr + alignment) & ~(alignment - 1);
 
     *((void**)aligned - 1) = ptr;
@@ -61,27 +64,28 @@ size_t Heap::Size(void* ptr)
 uint32_t RtlAllocateHeap(uint32_t heapHandle, uint32_t flags, uint32_t size)
 {
     void* ptr = g_userHeap.Alloc(size);
+    assert(ptr);
+    if (ptr == nullptr)
+        return 0;
     if ((flags & 0x8) != 0)
         memset(ptr, 0, size);
-
-    assert(ptr);
     return g_memory.MapVirtual(ptr);
 }
 
 uint32_t RtlReAllocateHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryPointer, uint32_t size)
 {
     void* ptr = g_userHeap.Alloc(size);
+    assert(ptr);
+    if (ptr == nullptr)
+        return 0;
     if ((flags & 0x8) != 0)
         memset(ptr, 0, size);
-
     if (memoryPointer != 0)
     {
         void* oldPtr = g_memory.Translate(memoryPointer);
         memcpy(ptr, oldPtr, std::min<size_t>(size, g_userHeap.Size(oldPtr)));
         g_userHeap.Free(oldPtr);
     }
-
-    assert(ptr);
     return g_memory.MapVirtual(ptr);
 }
 
@@ -107,10 +111,11 @@ uint32_t XAllocMem(uint32_t size, uint32_t flags)
         g_userHeap.AllocPhysical(size, (1ull << ((flags >> 24) & 0xF))) :
         g_userHeap.Alloc(size);
 
+    assert(ptr);
+    if (ptr == nullptr)
+        return 0;
     if ((flags & 0x40000000) != 0)
         memset(ptr, 0, size);
-
-    assert(ptr);
     return g_memory.MapVirtual(ptr);
 }
 

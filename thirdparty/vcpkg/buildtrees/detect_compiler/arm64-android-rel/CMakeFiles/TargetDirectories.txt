@@ -1,0 +1,2 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/edit_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/rebuild_cache.dir

@@ -24,8 +24,10 @@
 
 #ifdef SDL_VIDEO_DRIVER_WAYLAND
 
-extern bool Wayland_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonID);
+extern int Wayland_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid);
 
-#endif // SDL_VIDEO_DRIVER_WAYLAND
+#endif /* SDL_VIDEO_DRIVER_WAYLAND */
 
-#endif // SDL_waylandmessagebox_h_
+#endif /* SDL_waylandmessagebox_h_ */
+
+/* vi: set ts=4 sw=4 expandtab: */

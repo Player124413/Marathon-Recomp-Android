@@ -162,7 +162,7 @@ static bool FontBuilder_Build(ImFontAtlas* atlas)
     std::vector<std::pair<size_t, size_t>> ranges;
     std::vector<msdf_atlas::Rectangle> customRects;
 
-    for (auto& config : atlas->ConfigData)
+    for (auto& config : atlas->Sources)
     {
         msdf_atlas::Charset charset;
         const ImWchar* glyphRanges = config.GlyphRanges;
@@ -183,8 +183,8 @@ static bool FontBuilder_Build(ImFontAtlas* atlas)
 
         auto& metrics = fontGeometry.getMetrics();
         config.DstFont->FontSize = config.SizePixels;
-        config.DstFont->ConfigData = &config;
-        config.DstFont->ConfigDataCount = 1;
+        config.DstFont->Sources = &config;
+        config.DstFont->SourcesCount = 1;
         config.DstFont->ContainerAtlas = atlas;
         config.DstFont->Ascent = metrics.ascenderY;
         config.DstFont->Descent = metrics.descenderY;
@@ -218,9 +218,9 @@ static bool FontBuilder_Build(ImFontAtlas* atlas)
     msdf_atlas::ImmediateAtlasGenerator<float, 3, &msdf_atlas::msdfGenerator, msdf_atlas::BitmapAtlasStorage<uint8_t, 3>> generator(packer.width, packer.height);
     generator.generate(glyphs.data(), glyphs.size());
 
-    for (size_t i = 0; i < atlas->ConfigData.size(); i++)
+    for (size_t i = 0; i < atlas->Sources.size(); i++)
     {
-        auto& config = atlas->ConfigData[i];
+        auto& config = atlas->Sources[i];
 
         double spaceAdvance = 0.0;
         double spaceMultiplier = 1.0;

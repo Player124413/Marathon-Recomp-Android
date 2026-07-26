@@ -14,18 +14,11 @@
 #ifndef TESTUTILS_H
 #define TESTUTILS_H
 
-#include <SDL3/SDL.h>
+#include "SDL.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern SDL_Texture *LoadTexture(SDL_Renderer *renderer, const char *file, bool transparent);
-extern char *GetNearbyFilename(const char *file);
-extern char *GetResourceFilename(const char *user_specified, const char *def);
-
-#ifdef __cplusplus
-}
-#endif
+SDL_Texture *LoadTexture(SDL_Renderer *renderer, const char *file, SDL_bool transparent,
+                         int *width_out, int *height_out);
+char *GetNearbyFilename(const char *file);
+char *GetResourceFilename(const char *user_specified, const char *def);
 
 #endif

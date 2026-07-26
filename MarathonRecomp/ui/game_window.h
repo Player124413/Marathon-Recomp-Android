@@ -50,4 +50,9 @@ public:
     static bool IsPositionValid();
     static void Init(const char* sdlVideoDriver = nullptr);
     static void Update();
+
+#ifdef __ANDROID__
+    // Returns the current ANativeWindow from SDL. May change across background/foreground transitions.
+    static plume::RenderWindow GetAndroidNativeWindow();
+#endif
 };

@@ -18,23 +18,25 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_FILESYSTEM_RISCOS
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-// System dependent filesystem routines
-
-#include "../SDL_sysfilesystem.h"
+/* System dependent filesystem routines                                */
 
 #include <kernel.h>
 #include <swis.h>
 #include <unixlib/local.h>
 
-// Wrapper around __unixify_std that uses SDL's memory allocators
+#include "SDL_error.h"
+#include "SDL_stdinc.h"
+#include "SDL_filesystem.h"
+
+/* Wrapper around __unixify_std that uses SDL's memory allocators */
 static char *SDL_unixify_std(const char *ro_path, char *buffer, size_t buf_len, int filetype)
 {
-    const char *const in_buf = buffer; // = NULL if we allocate the buffer.
+    const char *const in_buf = buffer; /* = NULL if we allocate the buffer.  */
 
     if (!buffer) {
         /* This matches the logic in __unixify, with an additional byte for the
@@ -44,6 +46,7 @@ static char *SDL_unixify_std(const char *ro_path, char *buffer, size_t buf_len, 
         buffer = SDL_malloc(buf_len);
 
         if (!buffer) {
+            SDL_OutOfMemory();
             return NULL;
         }
     }
@@ -90,6 +93,7 @@ static char *canonicalisePath(const char *path, const char *pathVar)
     regs.r[5] = 1 - regs.r[5];
     buf = SDL_malloc(regs.r[5]);
     if (!buf) {
+        SDL_OutOfMemory();
         return NULL;
     }
     regs.r[2] = (int)buf;
@@ -125,34 +129,7 @@ static _kernel_oserror *createDirectoryRecursive(char *path)
     return _kernel_swi(OS_File, &regs, &regs);
 }
 
-char *SDL_SYS_GetBasePath(void)
-{
-    _kernel_swi_regs regs;
-    _kernel_oserror *error;
-    char *canon, *ptr, *result;
-
-    error = _kernel_swi(OS_GetEnv, &regs, &regs);
-    if (error) {
-        return NULL;
-    }
-
-    canon = canonicalisePath((const char *)regs.r[0], "Run$Path");
-    if (!canon) {
-        return NULL;
-    }
-
-    // chop off filename.
-    ptr = SDL_strrchr(canon, '.');
-    if (ptr) {
-        *ptr = '\0';
-    }
-
-    result = SDL_unixify_std(canon, NULL, 0, __RISCOSIFY_FILETYPE_NOTSPECIFIED);
-    SDL_free(canon);
-    return result;
-}
-
-char *SDL_SYS_GetExeName(void)
+char *SDL_GetBasePath(void)
 {
     _kernel_swi_regs regs;
     _kernel_oserror *error;
@@ -168,26 +145,40 @@ char *SDL_SYS_GetExeName(void)
         return NULL;
     }
 
-    // find filename.
+    /* chop off filename. */
     ptr = SDL_strrchr(canon, '.');
-    retval = SDL_strdup(ptr ? ptr + 1 : canon);
+    if (ptr) {
+        *ptr = '\0';
+    }
+
+    retval = SDL_unixify_std(canon, NULL, 0, __RISCOSIFY_FILETYPE_NOTSPECIFIED);
     SDL_free(canon);
     return retval;
 }
 
-char *SDL_SYS_GetPrefPath(const char *org, const char *app)
+char *SDL_GetPrefPath(const char *org, const char *app)
 {
-    char *canon, *dir, *result;
+    char *canon, *dir, *retval;
+    size_t len;
     _kernel_oserror *error;
+
+    if (!app) {
+        SDL_InvalidParamError("app");
+        return NULL;
+    }
+    if (!org) {
+        org = "";
+    }
 
     canon = canonicalisePath("<Choices$Write>", "Run$Path");
     if (!canon) {
         return NULL;
     }
 
-    const size_t len = SDL_strlen(canon) + SDL_strlen(org) + SDL_strlen(app) + 4;
+    len = SDL_strlen(canon) + SDL_strlen(org) + SDL_strlen(app) + 4;
     dir = (char *)SDL_malloc(len);
     if (!dir) {
+        SDL_OutOfMemory();
         SDL_free(canon);
         return NULL;
     }
@@ -207,16 +198,11 @@ char *SDL_SYS_GetPrefPath(const char *org, const char *app)
         return NULL;
     }
 
-    result = SDL_unixify_std(dir, NULL, 0, __RISCOSIFY_FILETYPE_NOTSPECIFIED);
+    retval = SDL_unixify_std(dir, NULL, 0, __RISCOSIFY_FILETYPE_NOTSPECIFIED);
     SDL_free(dir);
-    return result;
+    return retval;
 }
 
-// TODO
-char *SDL_SYS_GetUserFolder(SDL_Folder folder)
-{
-    SDL_Unsupported();
-    return NULL;
-}
+#endif /* SDL_FILESYSTEM_RISCOS */
 
-#endif // SDL_FILESYSTEM_RISCOS
+/* vi: set ts=4 sw=4 expandtab: */

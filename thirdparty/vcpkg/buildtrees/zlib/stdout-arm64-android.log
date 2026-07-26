@@ -1,0 +1,15 @@
+Downloading https://github.com/madler/zlib/archive/v1.3.1.tar.gz -> madler-zlib-v1.3.1.tar.gz
+Successfully downloaded madler-zlib-v1.3.1.tar.gz
+-- Extracting source /home/runner/workspace/thirdparty/vcpkg/downloads/madler-zlib-v1.3.1.tar.gz
+-- Applying patch 0001-Prevent-invalid-inclusions-when-HAVE_-is-set-to-0.patch
+-- Applying patch 0002-build-static-or-shared-not-both.patch
+-- Applying patch 0003-android-and-mingw-fixes.patch
+-- Using source at /home/runner/workspace/thirdparty/vcpkg/buildtrees/zlib/src/v1.3.1-2e5db616bf.clean
+-- Configuring arm64-android
+-- Building arm64-android-dbg
+-- Building arm64-android-rel
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/share/zlib/vcpkg-cmake-wrapper.cmake
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/lib/pkgconfig/zlib.pc
+-- Fixing pkgconfig file: /home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/debug/lib/pkgconfig/zlib.pc
+-- Installing: /home/runner/workspace/thirdparty/vcpkg/packages/zlib_arm64-android/share/zlib/copyright
+-- Performing post-build validation

@@ -1,0 +1,13 @@
+Checking patch CMake/curl-config.cmake.in...
+Checking patch CMakeLists.txt...
+Hunk #1 succeeded at 287 (offset 20 lines).
+Hunk #2 succeeded at 712 (offset 25 lines).
+Hunk #3 succeeded at 782 (offset 25 lines).
+Hunk #4 succeeded at 796 (offset 25 lines).
+Hunk #5 succeeded at 1130 (offset 26 lines).
+Hunk #6 succeeded at 1153 (offset 26 lines).
+Hunk #7 succeeded at 1180 (offset 26 lines).
+Hunk #8 succeeded at 1229 (offset 26 lines).
+Hunk #9 succeeded at 1248 (offset 26 lines).
+Applied patch CMake/curl-config.cmake.in cleanly.
+Applied patch CMakeLists.txt cleanly.

@@ -320,6 +320,12 @@ CONFIG_DEFINE_ENUM_TEMPLATE(EGraphicsAPI)
     { "Vulkan", EGraphicsAPI::Vulkan }
 };
 
+CONFIG_DEFINE_ENUM_TEMPLATE(ESDLVideoDriver)
+{
+    { "Auto",   ESDLVideoDriver::Auto },
+    { "System", ESDLVideoDriver::System },
+};
+
 CONFIG_DEFINE_ENUM_TEMPLATE(EWindowState)
 {
     { "Normal",    EWindowState::Normal },
@@ -331,6 +337,13 @@ CONFIG_DEFINE_ENUM_TEMPLATE(EAspectRatio)
 {
     { "Auto",     EAspectRatio::Auto },
     { "Original", EAspectRatio::Original }
+};
+
+CONFIG_DEFINE_ENUM_TEMPLATE(EInternalResolution)
+{
+    { "Native",  EInternalResolution::Native },
+    { "960x540", EInternalResolution::x960x540 },
+    { "720p",    EInternalResolution::x1280x720 }
 };
 
 CONFIG_DEFINE_ENUM_TEMPLATE(ETripleBuffering)
@@ -771,7 +784,15 @@ bool ConfigDef<T, isHidden>::IsValueChanged()
 
 std::filesystem::path Config::GetConfigPath()
 {
+#ifdef __ANDROID__
+    // On Android GetUserPath() is not usable (the Linux HOME/getpwuid path
+    // returns a different directory from what the launcher's Java code uses).
+    // Mirror AppStorage.dataRoot() exactly: app-specific external storage /
+    // "MarathonRecomp", the same root that os::android::GetDataRoot() returns.
+    return os::android::GetDataRoot() / "config.toml";
+#else
     return GetUserPath() / "config.toml";
+#endif
 }
 
 void Config::CreateCallbacks()
@@ -865,10 +886,13 @@ void Config::Save()
 {
     LOGN("Saving configuration...");
 
-    auto userPath = GetUserPath();
-
-    if (!std::filesystem::exists(userPath))
-        std::filesystem::create_directory(userPath);
+    // Derive the parent directory from the config path so that on Android
+    // (where GetConfigPath() returns GetDataRoot()/"config.toml") we create
+    // the correct folder instead of the wrong GetUserPath() one.
+    auto configDir = GetConfigPath().parent_path();
+    std::error_code mkdirEc;
+    if (!configDir.empty() && !std::filesystem::exists(configDir))
+        std::filesystem::create_directories(configDir, mkdirEc);
 
     std::string result;
     std::string section;

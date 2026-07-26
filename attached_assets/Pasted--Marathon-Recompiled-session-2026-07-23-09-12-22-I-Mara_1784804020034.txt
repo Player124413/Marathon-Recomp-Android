@@ -1,0 +1,37 @@
+=== Marathon Recompiled — session 2026-07-23 09:12:22 ===
+[I][*] === Marathon Recompiled starting ===
+[I][*] Config path: /storage/emulated/0/Android/data/com.sega.sonic2006/files/MarathonRecomp/config.toml
+[I][*] SDL video driver config: Auto
+[I][*] Graphics API config: Auto
+[I][*] Saving configuration...
+[W][*] Host Startup
+[E][updateCheckerThread] Error while performing request: Could not resolve hostname
+[I][*] SDL video driver: "Android"
+[W][CreateHostDevice] GPU: Mali-G57 MC2 (vendor=0x13B5 type=1) vram=3740 MiB
+[W][CreateHostDevice] ARM Mali GPU detected (Mali-G57 MC2). All Mali compatibility workarounds applied — see plume log for details.
+[I][*] Saving configuration...
+[W][CreateHostDevice] ARM Mali GPU: all MSAA modes disabled for driver compatibility.
+[W][CreateHostDevice] ARM Mali GPU: shadow resolution capped at 1024 for driver compatibility.
+[W][CreateHostDevice] VkInit: creating DIRECT command queue
+[W][CreateHostDevice] VkInit: creating command lists
+[W][CreateHostDevice] VkInit: creating command fences
+[W][CreateHostDevice] VkInit: creating COPY command queue
+[W][CreateHostDevice] VkInit: creating swap chain (bufferCount=2 window=0xb400006e9ef87810)
+[W][CreateHostDevice] VkInit: swap chain ctor done
+[W][CreateHostDevice] VkInit: creating semaphores
+[W][CreateHostDevice] VkInit: creating texture descriptor set
+[W][CreateHostDevice] VkInit: texture descriptor set created
+[W][CreateHostDevice] VkInit: blank textures set
+[W][CreateHostDevice] VkInit: creating sampler descriptor set
+[W][CreateHostDevice] VkInit: sampler descriptor set created
+[W][CreateHostDevice] VkInit: creating conditional survey buffer
+[W][CreateHostDevice] VkInit: conditional survey descriptor set created
+[W][CreateHostDevice] VkInit: maxBoundDescriptorSets < 5 — conditional survey disabled for this device
+[W][CreateHostDevice] VkInit: creating pipeline layout
+[W][CreateHostDevice] VkInit: pipeline layout created
+[W][CreateHostDevice] VkInit: creating copy shaders and pipelines
+[W][CreateHostDevice] VkInit: copy depth pipeline done
+[W][CreateHostDevice] VkInit: MSAA resolve pipelines done
+[W][CreateHostDevice] VkInit: gaussian blur shaders done
+[W][CreateHostDevice] VkInit: misc shaders done
+[W][CreateHostDevice] VkInit: creating ImGui backend

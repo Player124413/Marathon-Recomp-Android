@@ -1,0 +1,7 @@
+Package: libpng
+Version: 1.6.44
+Depends: vcpkg-cmake:x64-linux, vcpkg-cmake-config:x64-linux, vcpkg-cmake-get-vars:x64-linux, zlib
+Architecture: arm64-android
+Multi-Arch: same
+Abi: 6e19348e11eaebd5dc501fc694c4edbdc5a8a172842a691a76aad84b58354a25
+Description: libpng is a library implementing an interface for reading and writing PNG (Portable Network Graphics) format files

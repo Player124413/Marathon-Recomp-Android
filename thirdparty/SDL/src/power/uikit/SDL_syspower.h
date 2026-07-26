@@ -18,11 +18,15 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "SDL_internal.h"
+#include "../../SDL_internal.h"
 
 #ifdef SDL_POWER_UIKIT
 
-void SDL_UIKit_UpdateBatteryMonitoring(void);
-bool SDL_GetPowerInfo_UIKit(SDL_PowerState *state, int *seconds, int *percent);
+#include "SDL_power.h"
 
-#endif // SDL_POWER_UIKIT
+void SDL_UIKit_UpdateBatteryMonitoring(void);
+SDL_bool SDL_GetPowerInfo_UIKit(SDL_PowerState *state, int *seconds, int *percent);
+
+#endif /* SDL_POWER_UIKIT */
+
+/* vi: set ts=4 sw=4 expandtab: */

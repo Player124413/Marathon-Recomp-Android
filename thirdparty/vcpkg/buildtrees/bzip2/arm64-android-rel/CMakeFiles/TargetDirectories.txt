@@ -1,0 +1,9 @@
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/bz2.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/bzip2.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/bzip2recover.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/edit_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/rebuild_cache.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/list_install_components.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/install.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/install/local.dir
+/home/runner/workspace/thirdparty/vcpkg/buildtrees/bzip2/arm64-android-rel/CMakeFiles/install/strip.dir

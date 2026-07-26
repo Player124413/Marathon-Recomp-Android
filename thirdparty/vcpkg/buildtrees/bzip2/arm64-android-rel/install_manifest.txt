@@ -1,0 +1,4 @@
+/home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/lib/libbz2.a
+/home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/tools/bzip2/bzip2
+/home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/tools/bzip2/bzip2recover
+/home/runner/workspace/thirdparty/vcpkg/packages/bzip2_arm64-android/include/bzlib.h

@@ -1,0 +1,13 @@
+prefix=/home/runner/workspace/thirdparty/vcpkg/buildtrees/openssl/arm64-android-dbg
+exec_prefix=${prefix}
+libdir=${exec_prefix}
+includedir=${prefix}/include ${prefix}/../src/nssl-3.4.0-821e8e5bdc.clean/include 
+enginesdir=${libdir}/engines
+modulesdir=${libdir}/providers
+
+Name: OpenSSL-libcrypto
+Description: OpenSSL cryptography library
+Version: 3.4.0
+Libs: -L${libdir} -lcrypto
+Libs.private: -ldl -pthread
+Cflags: -I${prefix}/include  -I${prefix}/../src/nssl-3.4.0-821e8e5bdc.clean/include 
