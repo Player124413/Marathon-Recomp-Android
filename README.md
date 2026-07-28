@@ -9,3 +9,5 @@ logging
 
 this is completely free but in order to play you need legally acquired game files
 code helpers fixers debuggers and testers I will provide you the game files
+
+get the game files here https://vimm.net/vault/78568
