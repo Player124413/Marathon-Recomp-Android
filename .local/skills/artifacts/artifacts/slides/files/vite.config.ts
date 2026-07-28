@@ -5,6 +5,8 @@ import { defineConfig } from 'vite';
 
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
+import { sdmHmrPlugin } from './src/sdm/sdmHmrPlugin';
+
 const rawPort = process.env.PORT;
 
 if (!rawPort) {
@@ -33,6 +35,7 @@ export default defineConfig({
     react(),
     runtimeErrorOverlay(),
     tailwindcss(),
+    sdmHmrPlugin(),
     ...(process.env.NODE_ENV !== 'production' &&
     process.env.REPL_ID !== undefined
       ? [

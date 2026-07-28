@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 declare global {
   interface Window {
     __replitVideoPlayerMounted?: boolean;
+    __replitVideoTotalDurationMs?: number;
     startRecording?: () => Promise<void>;
     stopRecording?: () => void;
   }
@@ -43,6 +44,12 @@ export function useVideoPlayer(
   // Start recording on mount
   useEffect(() => {
     window.__replitVideoPlayerMounted = true;
+    // Declares the intended video length to the export renderer so a broken
+    // stop path cannot record past the end of the last scene.
+    window.__replitVideoTotalDurationMs = durationsArray.reduce(
+      (total, duration) => total + duration,
+      0,
+    );
     window.startRecording?.();
 
     return () => {

@@ -1,0 +1,14 @@
+*.aar filter=lfs diff=lfs merge=lfs -text
+*.dll filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
+*.gz filter=lfs diff=lfs merge=lfs -text
+*.jar filter=lfs diff=lfs merge=lfs -text
+*.dylib filter=lfs diff=lfs merge=lfs -text
+*.lib filter=lfs diff=lfs merge=lfs -text
+*.a filter=lfs diff=lfs merge=lfs -text
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.tar filter=lfs diff=lfs merge=lfs -text
+.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/* filter=lfs diff=lfs merge=lfs -text
+.ndk-tools/android-sdk/** filter=lfs diff=lfs merge=lfs -text
+.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/** filter=lfs diff=lfs merge=lfs -text

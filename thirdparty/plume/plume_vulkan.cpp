@@ -2470,7 +2470,13 @@ namespace plume {
     }
 
     void VulkanSwapChain::wait() {
-        assert(desc.enablePresentWait && "Present wait should've been explicitly enabled during swap chain creation before using the wait function.");
+        // Return silently instead of asserting when presentWait was not enabled at
+        // swap-chain creation time (e.g. ARM Mali where the capability is disabled).
+        // The call sites in video.cpp already guard with g_capabilities.presentWait,
+        // but this provides a safe fallback so that any future call path that reaches
+        // here without the guard does not abort() the process.
+        if (!desc.enablePresentWait)
+            return;
 
         if (currentPresentId >= desc.maxFrameLatency) {
             constexpr uint64_t waitTimeout = 100000000;

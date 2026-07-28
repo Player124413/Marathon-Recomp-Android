@@ -3635,7 +3635,13 @@ void Video::WaitOnSwapChain()
 {
     if (g_pendingWaitOnSwapChain)
     {
-        if (g_swapChainValid)
+        // Only call wait() when presentWait is actually supported on this device.
+        // On ARM Mali (Galaxy Tab A9), g_capabilities.presentWait = false; calling
+        // wait() when enablePresentWait=false asserts and aborts the process.
+        // This can be reached even outside the loading-thread path when the swapchain
+        // transitions from invalid→valid (after a CheckSwapChain retry) while
+        // g_pendingWaitOnSwapChain is still true from the previous frame.
+        if (g_swapChainValid && g_capabilities.presentWait)
         {
             g_presentWaitProfiler.Begin();
             g_swapChain->wait();
@@ -3674,10 +3680,12 @@ void Video::Present()
 
     if (g_swapChainValid)
     {
-        if (g_pendingWaitOnSwapChain)
+        if (g_pendingWaitOnSwapChain && g_capabilities.presentWait)
         {
+            // Guard with g_capabilities.presentWait: on Mali enablePresentWait=false,
+            // so wait() must not be called (it asserts on the capability flag).
             g_presentWaitProfiler.Begin();
-            g_swapChain->wait(); // Never gonna happen outside loading threads as explained above.
+            g_swapChain->wait();
             g_presentWaitProfiler.End();
         }
 
@@ -4333,8 +4341,11 @@ static void SetRenderTarget(GuestDevice* device, uint32_t index, GuestSurface* r
     }
     else
     {
-        // Multiple targets are not currently handled. Make sure any attempt to set them is nullptr.
-        assert(renderTarget == nullptr);
+        // Android/ARM: assert() → abort() on debug builds.  The Xbox 360 game
+        // may set MRT index ≥ 1 during gameplay scenes; log and ignore rather
+        // than killing the process.
+        if (renderTarget != nullptr)
+            LOGF_WARNING("SetRenderTarget: MRT index {} is not supported — ignored", index);
     }
 }
 
@@ -4871,7 +4882,16 @@ static RenderShader* GetOrLinkShader(GuestShader* guestShader, uint32_t specCons
 
         if (guestShader->shader == nullptr)
         {
-            assert(guestShader->shaderCacheEntry != nullptr);
+            // Android/ARM: a missing or corrupt cache entry must not abort() the
+            // render thread — that would leave g_executedCommandList unset and
+            // hang Present() forever.  Log and return null; the caller guards
+            // against null before passing the shader to Vulkan.
+            if (guestShader->shaderCacheEntry == nullptr)
+            {
+                LOGF_ERROR("GetOrLinkShader: shader {:p} has no cache entry — draw skipped",
+                           (void*)guestShader);
+                return nullptr;
+            }
 
             switch (g_backend) {
             case Backend::VULKAN:
@@ -4880,7 +4900,11 @@ static RenderShader* GetOrLinkShader(GuestShader* guestShader, uint32_t specCons
 
                 std::vector<uint8_t> decoded(smolv::GetDecodedBufferSize(compressedSpirvData, guestShader->shaderCacheEntry->spirvSize));
                 bool result = smolv::Decode(compressedSpirvData, guestShader->shaderCacheEntry->spirvSize, decoded.data(), decoded.size());
-                assert(result);
+                if (!result)
+                {
+                    LOGF_ERROR("GetOrLinkShader: SMOL-V decode failed for shader {:p}", (void*)guestShader);
+                    return nullptr;
+                }
 
                 guestShader->shader = g_device->createShader(decoded.data(), decoded.size(), "shaderMain", RenderShaderFormat::SPIRV);
                 break;
@@ -5090,14 +5114,21 @@ static void SanitizePipelineState(PipelineState& pipelineState)
         pipelineState.blendOpAlpha = RenderBlendOperation::ADD;
     }
 
-    for (size_t i = 0; i < 16; i++)
+    // Android/ARM guard: vertexDeclaration or vertexShader may be null on the
+    // first draw after a state reset; dereferencing them without a check would
+    // silently abort the render thread on debug builds and hang Present().
+    if (pipelineState.vertexDeclaration != nullptr)
     {
-        if (!pipelineState.vertexDeclaration->vertexStreams[i])
-            pipelineState.vertexStrides[i] = 0;
+        for (size_t i = 0; i < 16; i++)
+        {
+            if (!pipelineState.vertexDeclaration->vertexStreams[i])
+                pipelineState.vertexStrides[i] = 0;
+        }
     }
 
     uint32_t specConstantsMask = 0;
-    if (pipelineState.vertexShader->shaderCacheEntry != nullptr)
+    if (pipelineState.vertexShader != nullptr &&
+        pipelineState.vertexShader->shaderCacheEntry != nullptr)
         specConstantsMask |= pipelineState.vertexShader->shaderCacheEntry->specConstantsMask;
 
     if (pipelineState.pixelShader != nullptr && pipelineState.pixelShader->shaderCacheEntry != nullptr)
@@ -5114,7 +5145,23 @@ static std::unique_ptr<RenderPipeline> CreateGraphicsPipeline(const PipelineStat
 
     RenderGraphicsPipelineDesc desc;
     desc.pipelineLayout = g_pipelineLayout.get();
+
+    // Android/ARM: vertexShader must be valid before touching Vulkan; a null
+    // shader or a null return from GetOrLinkShader (missing cache entry /
+    // SMOL-V decode failure) would crash the render thread.  Return nullptr
+    // so the caller can skip the draw without hanging Present().
+    if (pipelineState.vertexShader == nullptr)
+    {
+        LOGF_ERROR("{}", "CreateGraphicsPipeline: vertexShader is null — pipeline skipped");
+        return nullptr;
+    }
     desc.vertexShader = GetOrLinkShader(pipelineState.vertexShader, pipelineState.specConstants);
+    if (desc.vertexShader == nullptr)
+    {
+        LOGF_ERROR("{}", "CreateGraphicsPipeline: vertexShader link failed — pipeline skipped");
+        return nullptr;
+    }
+
     if (pipelineState.enableConditionalSurvey)
         desc.pixelShader = GetOrLinkShader(g_conditionalSurveyPSShader.get(), pipelineState.specConstants);
     else if (pipelineState.pixelShader != nullptr)
@@ -5605,7 +5652,15 @@ static void FlushRenderStateForRenderThread()
 
     if (g_dirtyStates.pipelineState)
     {
-        commandList->setPipeline(CreateGraphicsPipelineInRenderThread(g_pipelineState));
+        // Android/ARM: CreateGraphicsPipelineInRenderThread returns nullptr when
+        // a shader cache entry is missing or the Vulkan device rejects the desc.
+        // Passing nullptr to setPipeline crashes the render thread and hangs
+        // Present(); skip the pipeline set and let the draw proceed with the
+        // previously bound pipeline (may render incorrectly but won't abort).
+        if (auto* newPipeline = CreateGraphicsPipelineInRenderThread(g_pipelineState))
+            commandList->setPipeline(newPipeline);
+        else
+            LOGF_ERROR("{}", "FlushRenderStateForRenderThread: pipeline creation failed — using previous pipeline");
 
         // D3D12 resets the depth bias values. Check if they need to be set again.
         if (g_capabilities.dynamicDepthBias && g_backend == Backend::D3D12)

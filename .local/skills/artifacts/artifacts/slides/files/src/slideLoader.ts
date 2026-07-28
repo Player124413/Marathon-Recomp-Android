@@ -1,9 +1,10 @@
-import type { ComponentType } from 'react';
+import { createElement, type ComponentType } from 'react';
 import manifestJson from '@/data/slides-manifest.json';
 import {
   parseSlidesManifest,
   type SlideEntry,
 } from '@/data/slidesManifestSchema';
+import { SdmSlide } from '@/sdm/SdmSlide';
 
 export interface LoadedSlide extends SlideEntry {
   Component: ComponentType;
@@ -11,6 +12,11 @@ export interface LoadedSlide extends SlideEntry {
 
 const slideModules: Record<string, { default: ComponentType }> =
   import.meta.glob('./pages/slides/*.tsx', { eager: true });
+
+const sdmModules: Record<string, { default: unknown }> = import.meta.glob(
+  './data/slides/*.sdm.json',
+  { eager: true },
+);
 
 function loadManifestSlides(): SlideEntry[] {
   try {
@@ -23,14 +29,71 @@ function loadManifestSlides(): SlideEntry[] {
   }
 }
 
+function errorSlide(entry: SlideEntry, message: string) {
+  return function ErrorSlide() {
+    return createElement(
+      'div',
+      {
+        style: {
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 40,
+          background: '#1a1a1a',
+          color: '#fca5a5',
+          fontFamily: 'monospace',
+          fontSize: 16,
+          textAlign: 'center',
+          border: '4px solid #fca5a5',
+          boxSizing: 'border-box',
+        },
+        'data-sdm-slide-id': entry.id,
+      },
+      message,
+    );
+  };
+}
+
 const manifestSlides = loadManifestSlides();
 
 export const slides: LoadedSlide[] = [...manifestSlides]
   .sort((a, b) => a.position - b.position)
   .map((entry) => {
+    if (entry.kind === 'sdm') {
+      const filename = `${entry.id}.sdm.json`;
+      const expectedPath = `src/data/slides/${filename}`;
+      const key = `./data/slides/${filename}`;
+      const mod = sdmModules[key];
+      if (entry.filepath !== expectedPath || !mod) {
+        return {
+          ...entry,
+          Component: errorSlide(
+            entry,
+            `Slide "${entry.id}" references a missing or inconsistent SDM document. Expected ${expectedPath}. ` +
+              'Run "pnpm run validate-slides" for details.',
+          ),
+        };
+      }
+      const Component = () =>
+        createElement(SdmSlide, {
+          slideId: entry.id,
+          initialDocument: mod.default,
+        });
+
+      return { ...entry, Component };
+    }
+
     const filename = entry.filepath.split('/').pop();
     if (!filename) {
-      throw new Error(`Slide "${entry.title}" has an invalid filepath.`);
+      return {
+        ...entry,
+        Component: errorSlide(
+          entry,
+          `Slide "${entry.title}" has an invalid filepath: "${entry.filepath}".`,
+        ),
+      };
     }
 
     const key = `./pages/slides/${filename}`;
@@ -38,10 +101,15 @@ export const slides: LoadedSlide[] = [...manifestSlides]
 
     if (!mod) {
       const available = Object.keys(slideModules).join(', ');
-      throw new Error(
-        `Slide "${entry.title}" references missing file: ${entry.filepath}. ` +
-          `Available modules: ${available}`,
-      );
+
+      return {
+        ...entry,
+        Component: errorSlide(
+          entry,
+          `Slide "${entry.title}" references missing file: ${entry.filepath}. ` +
+            `Available modules: ${available}`,
+        ),
+      };
     }
 
     return {

@@ -4,6 +4,7 @@ export const SlideEntrySchema = z
   .object({
     id: z.string().trim().min(1, 'id is required'),
     position: z.number().int().min(1, 'position must be an integer >= 1'),
+    kind: z.enum(['jsx', 'sdm']).optional(),
     filepath: z.string().trim().min(1, 'filepath is required'),
     title: z.string().trim().min(1, 'title is required'),
     description: z.string().trim().min(1, 'description is required'),

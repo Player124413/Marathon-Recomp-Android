@@ -28,6 +28,13 @@ if ! grep -Fq 'window.__replitVideoPlayerMounted = true' "$SRC_DIR/lib/video/hoo
   errors=$((errors + 1))
 fi
 
+if ! grep -Fq 'window.__replitVideoTotalDurationMs' "$SRC_DIR/lib/video/hooks.ts" 2>/dev/null; then
+  echo "ERROR: src/lib/video/hooks.ts is missing the window.__replitVideoTotalDurationMs declaration."
+  echo "  Without it the export renderer cannot bound recording at the video's intended length."
+  echo "  This file should not be modified. Restore it from the template."
+  errors=$((errors + 1))
+fi
+
 if ! grep -Fq 'window.stopRecording?.()' "$SRC_DIR/lib/video/hooks.ts" 2>/dev/null; then
   echo "ERROR: src/lib/video/hooks.ts is missing the window.stopRecording?.() call."
   echo "  This file should not be modified. Restore it from the template."

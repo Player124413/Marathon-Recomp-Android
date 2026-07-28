@@ -14,6 +14,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { slides } from '@/slideLoader';
+import type { Action } from '@/sdm/core/schema';
 import { useLocation } from 'wouter';
 
 function getSlideIndex(pathname: string): number {
@@ -315,6 +316,57 @@ export default function App() {
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, [navigate]);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== window || event.data?.type !== 'sdm:action') {
+        return;
+      }
+      const action = event.data.action as Action | undefined;
+      if (!action) {
+        return;
+      }
+      if (action.kind === 'goToSlide') {
+        const target = slides.find((slide) => slide.id === action.slideId);
+        if (target) {
+          navigate(`/slide${target.position}`);
+        }
+        return;
+      }
+      if (action.kind !== 'goToRelativeSlide') {
+        return;
+      }
+      if (
+        PARENT_OWNS_NAVIGATION &&
+        (action.target === 'next' || action.target === 'previous')
+      ) {
+        window.parent.postMessage(
+          {
+            type: action.target === 'next' ? 'advanceSlide' : 'retreatSlide',
+            source: 'keyboard',
+          },
+          '*',
+        );
+        return;
+      }
+      const current = getSlideIndex(location);
+      let targetIndex = current - 1;
+      if (action.target === 'first') {
+        targetIndex = 0;
+      } else if (action.target === 'last') {
+        targetIndex = slides.length - 1;
+      } else if (action.target === 'next') {
+        targetIndex = current + 1;
+      }
+      const target = slides[targetIndex];
+      if (target) {
+        navigate(`/slide${target.position}`);
+      }
+    };
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [location, navigate]);
 
   if (location === '/') return <SlideViewer />;
   if (location === '/allslides') return <AllSlides />;

@@ -66,7 +66,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
   /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
   /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-sUtpOL/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10/CMakeLists.txt:4 (project)
 
 
 CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android-legacy.toolchain.cmake:35 (cmake_minimum_required):
@@ -81,7 +81,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
   /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
   /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-sUtpOL/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10/CMakeLists.txt:4 (project)
 
 
 CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/flags.cmake:18 (cmake_minimum_required):
@@ -95,7 +95,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang.cmake:23 (include)
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang-C.cmake:1 (include)
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCInformation.cmake:48 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-sUtpOL/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10/CMakeLists.txt:4 (project)
 
 
 CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android.toolchain.cmake:35 (cmake_minimum_required):
@@ -109,7 +109,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
   /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
   /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CHvDix/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf/CMakeLists.txt:4 (project)
 
 
 CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/android-legacy.toolchain.cmake:35 (cmake_minimum_required):
@@ -124,7 +124,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/scripts/toolchains/android.cmake:32 (include)
   /home/runner/workspace/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake:210 (include)
   /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/4.3.3/CMakeSystem.cmake:6 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CHvDix/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf/CMakeLists.txt:4 (project)
 
 
 CMake Deprecation Warning at /home/runner/workspace/.ndk-tools/android-ndk-r27c/build/cmake/flags.cmake:18 (cmake_minimum_required):
@@ -138,7 +138,7 @@ Call Stack (most recent call first):
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang.cmake:23 (include)
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/Platform/Android-Clang-CXX.cmake:1 (include)
   /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXInformation.cmake:48 (include)
-  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CHvDix/CMakeLists.txt:4 (project)
+  /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf/CMakeLists.txt:4 (project)
 
 
 #COMPILER_HASH#6405058776ccf0683f63152fb104b8e5d7110aaf
