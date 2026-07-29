@@ -23,19 +23,6 @@ jobs:
           submodules: false
           lfs: true
 
-      # ── dxc-bin binaries (lib/x64 and bin/x64 not committed to this repo) ────
-      - name: Fetch dxc-bin binaries
-        run: |
-          git clone --depth=1 https://github.com/renderbag/dxc-bin.git /tmp/dxc-bin
-          DXC_DEST="tools/XenosRecomp/thirdparty/dxc-bin"
-          mkdir -p "$DXC_DEST/lib/x64" "$DXC_DEST/bin/x64"
-          cp /tmp/dxc-bin/lib/x64/libdxcompiler.so "$DXC_DEST/lib/x64/"
-          cp /tmp/dxc-bin/lib/x64/libdxil.so       "$DXC_DEST/lib/x64/"
-          cp /tmp/dxc-bin/bin/x64/dxc-linux        "$DXC_DEST/bin/x64/"
-          chmod +x "$DXC_DEST/bin/x64/dxc-linux"
-          echo "✔ dxc-bin binaries in place"
-          ls -lh "$DXC_DEST/lib/x64/" "$DXC_DEST/bin/x64/"
-
       # ── System dependencies ─────────────────────────────────────────────────
       - name: Install system dependencies
         run: |
@@ -48,6 +35,22 @@ jobs:
             unzip \
             curl \
             openjdk-17-jdk
+          # Confirm ninja is on PATH (cmake needs it as CMAKE_MAKE_PROGRAM)
+          echo "ninja: $(which ninja)"
+          ninja --version
+
+      # ── dxc-bin binaries (lib/x64 and bin/x64 not committed to this repo) ────
+      - name: Fetch dxc-bin binaries
+        run: |
+          git clone --depth=1 https://github.com/renderbag/dxc-bin.git /tmp/dxc-bin
+          DXC_DEST="tools/XenosRecomp/thirdparty/dxc-bin"
+          mkdir -p "$DXC_DEST/lib/x64" "$DXC_DEST/bin/x64"
+          cp /tmp/dxc-bin/lib/x64/libdxcompiler.so "$DXC_DEST/lib/x64/"
+          cp /tmp/dxc-bin/lib/x64/libdxil.so       "$DXC_DEST/lib/x64/"
+          cp /tmp/dxc-bin/bin/x64/dxc-linux        "$DXC_DEST/bin/x64/"
+          chmod +x "$DXC_DEST/bin/x64/dxc-linux"
+          echo "✔ dxc-bin binaries in place"
+          ls -lh "$DXC_DEST/lib/x64/" "$DXC_DEST/bin/x64/"
 
       # ── Android NDK ─────────────────────────────────────────────────────────
       - name: Cache Android NDK r27c

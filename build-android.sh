@@ -57,7 +57,9 @@ if $DO_CONFIGURE; then
   # this environment's linker step then fails on ("file format not
   # recognized") since it isn't invoked with -flto. Not needed for one-shot
   # code-gen tools anyway.
+  NINJA_BIN="$(which ninja 2>/dev/null || which ninja-build 2>/dev/null)"
   cmake -S "$WORKSPACE" -B "$HOST_TOOLS_DIR" -G Ninja \
+    -DCMAKE_MAKE_PROGRAM="$NINJA_BIN" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER=clang++ \
@@ -104,7 +106,9 @@ if $DO_CONFIGURE; then
   # x64 binary path explicitly.
   DXC_BIN_ROOT="$WORKSPACE/tools/XenosRecomp/thirdparty/dxc-bin"
   HOST_DXC_TOOL="LD_LIBRARY_PATH=${DXC_BIN_ROOT}/lib/x64;${DXC_BIN_ROOT}/bin/x64/dxc-linux"
+  NINJA_BIN="$(which ninja 2>/dev/null || which ninja-build 2>/dev/null)"
   cmake --preset "$PRESET" \
+    -DCMAKE_MAKE_PROGRAM="$NINJA_BIN" \
     -DMARATHON_RECOMP_HOST_XENON_RECOMP="$HOST_XENON_RECOMP" \
     -DMARATHON_RECOMP_HOST_XENOS_RECOMP="$HOST_XENOS_RECOMP" \
     -DMARATHON_RECOMP_HOST_FILE_TO_C="$HOST_FILE_TO_C" \
