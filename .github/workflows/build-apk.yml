@@ -16,6 +16,11 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-24.04
 
+    env:
+      # Force vcpkg to use system cmake/ninja instead of downloading its own
+      # binaries, which fail with "Could not find CMAKE_ROOT" on GitHub Actions.
+      VCPKG_FORCE_SYSTEM_BINARIES: 1
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
