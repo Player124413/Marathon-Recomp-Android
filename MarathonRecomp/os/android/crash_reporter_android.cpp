@@ -393,4 +393,19 @@ void os::crash_reporter::SetDataPath(const std::string& path)
     s_dataPath[n] = '\0';
 }
 
+void os::crash_reporter::InitThread()
+{
+    // 32 KiB is comfortably above SIGSTKSZ and enough for the handler's own
+    // call depth (backtrace, dladdr, snprintf, file I/O). One copy per
+    // thread that calls this - fine even with dozens of guest threads alive
+    // at once (a few hundred KiB total at worst).
+    alignas(16) thread_local uint8_t s_threadAltStack[32768];
+
+    stack_t ss{};
+    ss.ss_sp    = s_threadAltStack;
+    ss.ss_size  = sizeof(s_threadAltStack);
+    ss.ss_flags = 0;
+    sigaltstack(&ss, nullptr);
+}
+
 #endif // __ANDROID__

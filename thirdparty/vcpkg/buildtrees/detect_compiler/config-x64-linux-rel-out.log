@@ -10,6 +10,6 @@
 -- Check for working CXX compiler: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done (0.7s)
+-- Configuring done (0.9s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/x64-linux-rel

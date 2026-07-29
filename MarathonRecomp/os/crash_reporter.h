@@ -23,6 +23,16 @@ namespace os::crash_reporter
     // Call once, after Config::Load() has resolved the data directory.
     void SetDataPath(const std::string& path);
 
+    // sigaltstack() state is per-thread (unlike sigaction(), which is
+    // process-wide), so a thread that never calls this has no alternate
+    // stack. That is fine for most signals - the kernel just falls back to
+    // the thread's normal stack - but a stack-overflow SIGSEGV specifically
+    // needs the altstack, since the normal stack has no room left to run the
+    // handler; without it, the process dies via the default disposition with
+    // no crash report at all. Call once at the start of any long-lived
+    // native thread (guest CPU threads in particular).
+    void InitThread();
+
     namespace internal
     {
         // Called by logger_android.cpp for every log line so the crash reporter

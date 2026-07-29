@@ -124,6 +124,7 @@ elseif (ANDROID)
     # sandboxing may block it in practice) and user_android/media_android are
     # inert stubs (no JNI wiring yet to query system UI theme or media state).
     set(MARATHON_RECOMP_OS_CXX_SOURCES
+        "os/android/crash_reporter_android.cpp"
         "os/android/logger_android.cpp"
         "os/android/media_android.cpp"
         "os/android/process_android.cpp"

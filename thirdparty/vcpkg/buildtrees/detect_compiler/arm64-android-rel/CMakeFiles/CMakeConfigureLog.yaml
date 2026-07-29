@@ -63,8 +63,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -130,8 +130,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -233,8 +233,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -347,8 +347,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -438,8 +438,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -528,8 +528,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -619,8 +619,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -709,8 +709,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -800,8 +800,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -890,8 +890,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -981,8 +981,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -1071,8 +1071,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -1162,8 +1162,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -1252,8 +1252,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -1343,8 +1343,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -1433,8 +1433,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -1524,8 +1524,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -1613,8 +1613,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -1693,8 +1693,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/tapi"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/tapi"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/tapi"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/tapi"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/tapi"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/tapi"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/tapi"
       - "/usr/local/sbin/tapi"
       - "/usr/local/bin/tapi"
       - "/usr/sbin/tapi"
@@ -1784,8 +1784,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -1876,8 +1876,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -1956,8 +1956,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar-18.0"
       - "/usr/local/sbin/llvm-ar-18.0"
       - "/usr/local/bin/llvm-ar-18.0"
       - "/usr/sbin/llvm-ar-18.0"
@@ -2035,8 +2035,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar-18"
       - "/usr/local/sbin/llvm-ar-18"
       - "/usr/local/bin/llvm-ar-18"
       - "/usr/sbin/llvm-ar-18"
@@ -2114,8 +2114,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar18"
       - "/usr/local/sbin/llvm-ar18"
       - "/usr/local/bin/llvm-ar18"
       - "/usr/sbin/llvm-ar18"
@@ -2205,8 +2205,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -2297,8 +2297,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -2377,8 +2377,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib-18.0"
       - "/usr/local/sbin/llvm-ranlib-18.0"
       - "/usr/local/bin/llvm-ranlib-18.0"
       - "/usr/sbin/llvm-ranlib-18.0"
@@ -2456,8 +2456,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib-18"
       - "/usr/local/sbin/llvm-ranlib-18"
       - "/usr/local/bin/llvm-ranlib-18"
       - "/usr/sbin/llvm-ranlib-18"
@@ -2535,8 +2535,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib18"
       - "/usr/local/sbin/llvm-ranlib18"
       - "/usr/local/bin/llvm-ranlib18"
       - "/usr/sbin/llvm-ranlib18"
@@ -2626,8 +2626,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -2718,8 +2718,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -2798,8 +2798,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps-18.0"
       - "/usr/local/sbin/clang-scan-deps-18.0"
       - "/usr/local/bin/clang-scan-deps-18.0"
       - "/usr/sbin/clang-scan-deps-18.0"
@@ -2877,8 +2877,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps-18"
       - "/usr/local/sbin/clang-scan-deps-18"
       - "/usr/local/bin/clang-scan-deps-18"
       - "/usr/sbin/clang-scan-deps-18"
@@ -2956,8 +2956,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps18"
       - "/usr/local/sbin/clang-scan-deps18"
       - "/usr/local/bin/clang-scan-deps18"
       - "/usr/sbin/clang-scan-deps18"
@@ -3047,8 +3047,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -3081,8 +3081,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10"
-      binary: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10"
+      source: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W"
+      binary: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W"
     cmakeVariables:
       ANDROID_ABI: "arm64-v8a"
       ANDROID_ARM_MODE: "thumb"
@@ -3118,16 +3118,16 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10'
+        Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W'
         
-        Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_111ef
-        [1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_4c657
+        [1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c
         Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)
         Target: aarch64-none-linux-android28
         Thread model: posix
         InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin
          (in-process)
-         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10 -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10 -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -x c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c
+         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -x c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c
         clang -cc1 version 18.0.3 based upon LLVM 18.0.3 default target x86_64-unknown-linux-gnu
         ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include"
         ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include"
@@ -3137,12 +3137,12 @@ events:
          /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android
          /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include
         End of search list.
-        [2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments -v CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -o cmTC_111ef   && :
+        [2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments -v CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -o cmTC_4c657   && :
         Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)
         Target: aarch64-none-linux-android28
         Thread model: posix
         InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin
-         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_111ef /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o
+         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_4c657 /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o
         
       exitCode: 0
   -
@@ -3175,16 +3175,16 @@ events:
       Parsed C implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10']
+        ignore line: [Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W']
         ignore line: []
-        ignore line: [Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_111ef]
-        ignore line: [[1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
+        ignore line: [Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_4c657]
+        ignore line: [[1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
         ignore line: [Android (12470979  +pgo  +bolt  +lto  +mlgo  based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)]
         ignore line: [Target: aarch64-none-linux-android28]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin]
         ignore line: [ (in-process)]
-        ignore line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10 -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-vypr10 -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -x c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
+        ignore line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CjfS2W -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -x c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
         ignore line: [clang -cc1 version 18.0.3 based upon LLVM 18.0.3 default target x86_64-unknown-linux-gnu]
         ignore line: [ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include"]
@@ -3194,12 +3194,12 @@ events:
         ignore line: [ /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android]
         ignore line: [ /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include]
         ignore line: [End of search list.]
-        ignore line: [[2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC -Wl --build-id=sha1 -Wl --no-rosegment -Wl --no-undefined-version -Wl --fatal-warnings -Wl --no-undefined -Qunused-arguments -v CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o -o cmTC_111ef   && :]
+        ignore line: [[2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat  -fPIC -Wl --build-id=sha1 -Wl --no-rosegment -Wl --no-undefined-version -Wl --fatal-warnings -Wl --no-undefined -Qunused-arguments -v CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o -o cmTC_4c657   && :]
         ignore line: [Android (12470979  +pgo  +bolt  +lto  +mlgo  based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)]
         ignore line: [Target: aarch64-none-linux-android28]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin]
-        link line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_111ef /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o]
+        link line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_4c657 /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o]
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld] ==> ignore
           arg [--sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot] ==> ignore
           arg [-EL] ==> ignore
@@ -3215,7 +3215,7 @@ events:
           arg [-dynamic-linker] ==> ignore
           arg [/system/bin/linker64] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_111ef] ==> ignore
+          arg [cmTC_4c657] ==> ignore
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o] ==> obj [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o]
           arg [-L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64] ==> dir [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64]
           arg [-L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28] ==> dir [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28]
@@ -3226,7 +3226,7 @@ events:
           arg [--no-undefined-version] ==> ignore
           arg [--fatal-warnings] ==> ignore
           arg [--no-undefined] ==> ignore
-          arg [CMakeFiles/cmTC_111ef.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [CMakeFiles/cmTC_4c657.dir/CMakeCCompilerABI.c.o] ==> ignore
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a] ==> lib [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a]
           arg [-l:libunwind.a] ==> lib [-l:libunwind.a]
           arg [-ldl] ==> lib [dl]
@@ -3343,8 +3343,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -3459,8 +3459,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -3539,8 +3539,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar-18.0"
       - "/usr/local/sbin/llvm-ar-18.0"
       - "/usr/local/bin/llvm-ar-18.0"
       - "/usr/sbin/llvm-ar-18.0"
@@ -3618,8 +3618,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar-18"
       - "/usr/local/sbin/llvm-ar-18"
       - "/usr/local/bin/llvm-ar-18"
       - "/usr/sbin/llvm-ar-18"
@@ -3697,8 +3697,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ar18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ar18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ar18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ar18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ar18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ar18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ar18"
       - "/usr/local/sbin/llvm-ar18"
       - "/usr/local/bin/llvm-ar18"
       - "/usr/sbin/llvm-ar18"
@@ -3788,8 +3788,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -3880,8 +3880,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -3960,8 +3960,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib-18.0"
       - "/usr/local/sbin/llvm-ranlib-18.0"
       - "/usr/local/bin/llvm-ranlib-18.0"
       - "/usr/sbin/llvm-ranlib-18.0"
@@ -4039,8 +4039,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib-18"
       - "/usr/local/sbin/llvm-ranlib-18"
       - "/usr/local/bin/llvm-ranlib-18"
       - "/usr/sbin/llvm-ranlib-18"
@@ -4118,8 +4118,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/llvm-ranlib18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/llvm-ranlib18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/llvm-ranlib18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/llvm-ranlib18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/llvm-ranlib18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/llvm-ranlib18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/llvm-ranlib18"
       - "/usr/local/sbin/llvm-ranlib18"
       - "/usr/local/bin/llvm-ranlib18"
       - "/usr/sbin/llvm-ranlib18"
@@ -4209,8 +4209,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -4301,8 +4301,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/"
       - "/usr/local/sbin/"
       - "/usr/local/bin/"
       - "/usr/sbin/"
@@ -4381,8 +4381,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps-18.0"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps-18.0"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps-18.0"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps-18.0"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps-18.0"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps-18.0"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps-18.0"
       - "/usr/local/sbin/clang-scan-deps-18.0"
       - "/usr/local/bin/clang-scan-deps-18.0"
       - "/usr/sbin/clang-scan-deps-18.0"
@@ -4460,8 +4460,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps-18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps-18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps-18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps-18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps-18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps-18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps-18"
       - "/usr/local/sbin/clang-scan-deps-18"
       - "/usr/local/bin/clang-scan-deps-18"
       - "/usr/sbin/clang-scan-deps-18"
@@ -4539,8 +4539,8 @@ events:
       - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin/clang-scan-deps18"
       - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin/clang-scan-deps18"
       - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin/clang-scan-deps18"
-      - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin/clang-scan-deps18"
-      - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin/clang-scan-deps18"
+      - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin/clang-scan-deps18"
+      - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin/clang-scan-deps18"
       - "/usr/local/sbin/clang-scan-deps18"
       - "/usr/local/bin/clang-scan-deps18"
       - "/usr/sbin/clang-scan-deps18"
@@ -4630,8 +4630,8 @@ events:
         - "/nix/store/kc8h52p4dfgajrg3qlgx246hl0znr213-patch-2.7.6/bin"
         - "/nix/store/cmv326slnswzsjm2sqgbz16hzzqvkfjy-xz-5.8.1-bin/bin"
         - "/nix/store/v5skl3bspzhm2y13vcxcrw8w29g6phi0-file-5.45/bin"
-        - "/nix/store/zblkls3lr4py1aaw7sx24a4ivyxc80dw-pid1/bin"
-        - "/nix/store/dd8m6qdyws9v1wc6slh12dyjhi843h83-replit-runtime-path/bin"
+        - "/nix/store/qh9c93267z4jhr5hwvq03d6srn5pvcnx-pid1/bin"
+        - "/nix/store/98zh3h319c2917cdcsy193cqh0da30y1-replit-runtime-path/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -4664,8 +4664,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf"
-      binary: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf"
+      source: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6"
+      binary: "/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6"
     cmakeVariables:
       ANDROID_ABI: "arm64-v8a"
       ANDROID_ARM_MODE: "thumb"
@@ -4704,16 +4704,16 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf'
+        Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6'
         
-        Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_fe2c0
-        [1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_8e76c
+        [1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp
         Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)
         Target: aarch64-none-linux-android28
         Thread model: posix
         InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin
          (in-process)
-         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1 -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -fdeprecated-macro -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp
+         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6 -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6 -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1 -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -fdeprecated-macro -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp
         clang -cc1 version 18.0.3 based upon LLVM 18.0.3 default target x86_64-unknown-linux-gnu
         ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include"
         ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include"
@@ -4724,12 +4724,12 @@ events:
          /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android
          /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include
         End of search list.
-        [2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments -v CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_fe2c0   && :
+        [2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments -v CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_8e76c   && :
         Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)
         Target: aarch64-none-linux-android28
         Thread model: posix
         InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin
-         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_fe2c0 /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lm /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o
+         "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_8e76c /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lm /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o
         
       exitCode: 0
   -
@@ -4764,16 +4764,16 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf']
+        ignore line: [Change Dir: '/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6']
         ignore line: []
-        ignore line: [Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_fe2c0]
-        ignore line: [[1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Run Build Command(s): /home/runner/workspace/thirdparty/vcpkg/downloads/tools/ninja-1.13.2-linux/ninja -v cmTC_8e76c]
+        ignore line: [[1/2] /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC    -fPIE   -v -MD -MT CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -c /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [Android (12470979  +pgo  +bolt  +lto  +mlgo  based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)]
         ignore line: [Target: aarch64-none-linux-android28]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin]
         ignore line: [ (in-process)]
-        ignore line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-CX0NOf -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1 -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -fdeprecated-macro -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" -cc1 -triple aarch64-none-linux-android28 -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=non-leaf -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu generic -target-feature +neon -target-feature +v8a -target-feature +fix-cortex-a53-835769 -target-abi aapcs -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fdebug-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6 -v -ffunction-sections -fdata-sections -fcoverage-compilation-dir=/home/runner/workspace/thirdparty/vcpkg/buildtrees/detect_compiler/arm64-android-rel/CMakeFiles/CMakeScratch/TryCompile-v6FJZ6 -resource-dir /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18 -dependency-file CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -D ANDROID -D _FORTIFY_SOURCE=2 -isysroot /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1 -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/include -internal-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include -internal-externc-isystem /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include -source-date-epoch 315532800 -Wformat -fdeprecated-macro -ferror-limit 19 -femulated-tls -stack-protector 2 -fno-signed-char -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -target-feature +outline-atomics -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/runner/workspace/thirdparty/vcpkg/downloads/tools/cmake-4.3.3-linux/cmake-4.3.3-linux-x86_64/share/cmake-4.3/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [clang -cc1 version 18.0.3 based upon LLVM 18.0.3 default target x86_64-unknown-linux-gnu]
         ignore line: [ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/include"]
@@ -4784,12 +4784,12 @@ events:
         ignore line: [ /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android]
         ignore line: [ /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include]
         ignore line: [End of search list.]
-        ignore line: [[2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC -Wl --build-id=sha1 -Wl --no-rosegment -Wl --no-undefined-version -Wl --fatal-warnings -Wl --no-undefined -Qunused-arguments -v CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_fe2c0   && :]
+        ignore line: [[2/2] : && /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -frtti -fexceptions  -fPIC -Wl --build-id=sha1 -Wl --no-rosegment -Wl --no-undefined-version -Wl --fatal-warnings -Wl --no-undefined -Qunused-arguments -v CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_8e76c   && :]
         ignore line: [Android (12470979  +pgo  +bolt  +lto  +mlgo  based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)]
         ignore line: [Target: aarch64-none-linux-android28]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin]
-        link line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_fe2c0 /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lm /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o]
+        link line: [ "/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld" --sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=4096 --hash-style=gnu --eh-frame-hdr -m aarch64linux -pie -dynamic-linker /system/bin/linker64 -o cmTC_8e76c /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28 -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android -L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib --build-id=sha1 --no-rosegment --no-undefined-version --fatal-warnings --no-undefined CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lm /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl -lc /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a -l:libunwind.a -ldl /home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtend_android.o]
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld] ==> ignore
           arg [--sysroot=/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot] ==> ignore
           arg [-EL] ==> ignore
@@ -4805,7 +4805,7 @@ events:
           arg [-dynamic-linker] ==> ignore
           arg [/system/bin/linker64] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_fe2c0] ==> ignore
+          arg [cmTC_8e76c] ==> ignore
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o] ==> obj [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28/crtbegin_dynamic.o]
           arg [-L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64] ==> dir [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/aarch64]
           arg [-L/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28] ==> dir [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/28]
@@ -4816,7 +4816,7 @@ events:
           arg [--no-undefined-version] ==> ignore
           arg [--fatal-warnings] ==> ignore
           arg [--no-undefined] ==> ignore
-          arg [CMakeFiles/cmTC_fe2c0.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_8e76c.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lm] ==> lib [m]
           arg [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a] ==> lib [/home/runner/workspace/.ndk-tools/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/libclang_rt.builtins-aarch64-android.a]

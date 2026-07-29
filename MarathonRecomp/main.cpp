@@ -21,6 +21,7 @@
 #include <kernel/xdbf.h>
 #include <install/installer.h>
 #include <install/update_checker.h>
+#include <os/crash_reporter.h>
 #include <os/logger.h>
 #include <os/process.h>
 #include <os/registry.h>
@@ -186,6 +187,14 @@ void init()
 
 int main(int argc, char *argv[])
 {
+#ifdef __ANDROID__
+    // As early as possible, before any other subsystem: installs the signal
+    // handlers that write a crash report (signal, stack trace, recent log
+    // lines) into _game_log.txt. Without this, a catchable crash (SIGSEGV,
+    // an assert's SIGABRT, etc.) leaves no trace at all - the log simply
+    // stops, indistinguishable from an uncatchable OOM kill.
+    os::crash_reporter::Init();
+#endif
 #ifdef _WIN32
     timeBeginPeriod(1);
 #endif
