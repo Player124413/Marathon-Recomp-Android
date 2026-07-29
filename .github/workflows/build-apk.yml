@@ -1,0 +1,129 @@
+name: build-android-apk
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ── Optional: private game assets ──────────────────────────────────────
+      # Set ASSET_REPO / ASSET_REPO_TOKEN repository secrets to enable a full
+      # build that includes libmain.so.  Without them the APK still builds but
+      # contains only the launcher and settings UI (no game engine library).
+      - name: Checkout private game assets
+        if: ${{ secrets.ASSET_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.ASSET_REPO }}
+          token: ${{ secrets.ASSET_REPO_TOKEN }}
+          path: ./private
+
+      - name: Copy private game assets
+        if: ${{ secrets.ASSET_REPO != '' }}
+        run: cp ./private/* ./MarathonRecompLib/private
+
+      # ── System dependencies ─────────────────────────────────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            ninja-build \
+            cmake \
+            clang \
+            patchelf \
+            unzip \
+            curl \
+            openjdk-17-jdk
+
+      # ── Android NDK ─────────────────────────────────────────────────────────
+      - name: Cache Android NDK r27c
+        id: cache-ndk
+        uses: actions/cache@v4
+        with:
+          path: .ndk-tools/android-ndk-r27c
+          key: android-ndk-r27c
+
+      - name: Download Android NDK r27c
+        if: steps.cache-ndk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .ndk-tools
+          curl -sL -o /tmp/ndk.zip \
+            https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
+          unzip -q /tmp/ndk.zip -d .ndk-tools
+          rm /tmp/ndk.zip
+          echo "NDK extracted to .ndk-tools/android-ndk-r27c"
+
+      # ── Android SDK cmdline-tools ────────────────────────────────────────────
+      - name: Cache Android SDK
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: |
+            .ndk-tools/android-sdk/cmdline-tools
+            .ndk-tools/android-sdk/platforms
+            .ndk-tools/android-sdk/build-tools
+          key: android-sdk-platform34-buildtools34
+
+      # ── vcpkg packages ───────────────────────────────────────────────────────
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./thirdparty/vcpkg/downloads
+            ./thirdparty/vcpkg/packages
+            ./out/build/android-debug/vcpkg_installed
+          key: vcpkg-android-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-android-
+
+      # ── Gradle cache ─────────────────────────────────────────────────────────
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android-apk/**/*.gradle*', 'android-apk/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-
+
+      # ── Build .so files ──────────────────────────────────────────────────────
+      - name: Build native library (.so files)
+        if: ${{ secrets.ASSET_REPO != '' }}
+        run: bash build-android.sh
+
+      # ── Build APK ────────────────────────────────────────────────────────────
+      - name: Build APK
+        run: bash build-apk.sh
+
+      # ── Upload artifacts ─────────────────────────────────────────────────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarathonRecomp-Android-debug
+          path: android-apk/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Upload libmain.so
+        if: ${{ secrets.ASSET_REPO != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarathonRecomp-Android-libmain
+          path: android-apk/app/jniLibs/arm64-v8a/libmain.so
+          if-no-files-found: warn
