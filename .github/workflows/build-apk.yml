@@ -21,50 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: false
-
-      # ── Submodules (manual — skips private/unreachable ones) ─────────────────
-      # MarathonRecompResources is private and not needed for Android builds.
-      # MoltenVK is macOS-only. We init everything else, then recurse into the
-      # recomp tool submodules which each have their own nested dependencies.
-      - name: Initialize top-level submodules
-        run: |
-          git submodule update --init --depth 1 \
-            tools/XenonRecomp \
-            tools/XenosRecomp \
-            thirdparty/vcpkg \
-            thirdparty/SDL \
-            thirdparty/SDL_mixer \
-            thirdparty/imgui \
-            thirdparty/implot \
-            thirdparty/ddspp \
-            thirdparty/msdf-atlas-gen \
-            thirdparty/stb \
-            thirdparty/concurrentqueue \
-            thirdparty/magic_enum \
-            thirdparty/nativefiledialog-extended \
-            thirdparty/unordered_dense \
-            thirdparty/json \
-            thirdparty/plume \
-            thirdparty/ffmpeg-core
-
-      - name: Initialize XenosRecomp nested submodules
-        run: |
-          git -C tools/XenosRecomp submodule update --init --depth 1 \
-            thirdparty/dxc-bin \
-            thirdparty/smol-v \
-            thirdparty/zstd \
-            thirdparty/xxHash \
-            thirdparty/fmt
-
-      - name: Initialize XenonRecomp nested submodules
-        run: |
-          git -C tools/XenonRecomp submodule update --init --depth 1 \
-            thirdparty/xxHash \
-            thirdparty/fmt \
-            thirdparty/tomlplusplus \
-            thirdparty/libmspack \
-            thirdparty/tiny-AES-c \
-            thirdparty/simde
+          lfs: true
 
       # ── System dependencies ─────────────────────────────────────────────────
       - name: Install system dependencies
