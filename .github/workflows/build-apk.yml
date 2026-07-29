@@ -135,9 +135,37 @@ jobs:
       - name: Build native library (.so files)
         run: bash build-android.sh
 
+      # ── Copy .so files into jniLibs for Gradle packaging ─────────────────────
+      - name: Package .so files into APK staging directory
+        run: |
+          JNI_DIR="android-apk/app/jniLibs/arm64-v8a"
+          mkdir -p "$JNI_DIR"
+          # build-android.sh already copies libmain.so here; verify and report
+          if [[ -f "$JNI_DIR/libmain.so" ]]; then
+            BYTES="$(stat -c '%s' "$JNI_DIR/libmain.so")"
+            SHA="$(sha256sum "$JNI_DIR/libmain.so" | awk '{print $1}')"
+            echo "✔ libmain.so ready for packaging: ${BYTES} bytes"
+            echo "  SHA-256: $SHA"
+          else
+            echo "✘ libmain.so not found in $JNI_DIR — build-android.sh may have failed"
+            exit 1
+          fi
+          # Copy any additional .so files produced alongside libmain.so
+          BUILT_DIR="$(find out/build/android-debug -name 'libmain.so' -printf '%h\n' 2>/dev/null | head -1)"
+          if [[ -n "$BUILT_DIR" ]]; then
+            for so in "$BUILT_DIR"/*.so; do
+              [[ -f "$so" ]] || continue
+              NAME="$(basename "$so")"
+              if [[ "$NAME" != "libmain.so" ]]; then
+                cp "$so" "$JNI_DIR/$NAME"
+                echo "  + $NAME"
+              fi
+            done
+          fi
+
       # ── Build APK ────────────────────────────────────────────────────────────
       - name: Build APK
-        run: bash build-apk.sh
+        run: bash build-apk.sh --skip-native
 
       # ── Upload artifacts ─────────────────────────────────────────────────────
       - name: Upload APK

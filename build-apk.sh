@@ -6,12 +6,21 @@
 #   2. Attempt native library build via build-android.sh (needs NDK + game files)
 #      → skipped gracefully if game files are absent (the APK still builds,
 #        just without the game engine library)
+#      → skipped entirely when --skip-native is passed (use this in CI after
+#        build-android.sh has already run as a separate step)
 #   3. Run Gradle assembleDebug to produce the APK
 #
 # The output APK lands at:
 #   android-apk/app/build/outputs/apk/debug/app-debug.apk
 #
 set -euo pipefail
+
+SKIP_NATIVE=false
+for arg in "$@"; do
+  case "$arg" in
+    --skip-native) SKIP_NATIVE=true ;;
+  esac
+done
 
 WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
 NDK="$WORKSPACE/.ndk-tools/android-ndk-r27c"
@@ -72,7 +81,6 @@ echo ""
 # ── Stage 2: Native library (optional — needs game files) ─────────────────────
 echo "▶ Stage 2: Native library (libmain.so)"
 
-GAME_XEX="$SDK/../../../android-apk/app/src/main/assets/game/default.xex"
 # Real game files live in AppStorage (runtime), not in the APK assets.
 # For the build we check if the private game data path exists.
 PRIVATE_XEX="$WORKSPACE/MarathonRecompLib/private/default.xex"
@@ -82,7 +90,13 @@ if [[ -f "$JNI_LIB" ]]; then
   OLD_JNI_SHA="$(sha256sum "$JNI_LIB" | awk '{print $1}')"
 fi
 
-if [[ -f "$PRIVATE_XEX" ]] && [[ -d "$NDK" ]]; then
+if $SKIP_NATIVE; then
+  echo "  --skip-native passed: native build already done; using existing libmain.so."
+  if [[ ! -f "$JNI_LIB" ]]; then
+    echo "  ✘ --skip-native set but $JNI_LIB is missing — did build-android.sh run?"
+    exit 1
+  fi
+elif [[ -f "$PRIVATE_XEX" ]] && [[ -d "$NDK" ]]; then
   echo "  Game files found — running native build..."
   if ! bash "$WORKSPACE/build-android.sh"; then
     echo "  ✘ Native build failed; refusing to package a stale libmain.so."
