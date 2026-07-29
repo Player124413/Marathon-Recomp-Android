@@ -16,6 +16,10 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-24.04
 
+    env:
+      ASSET_REPO: ${{ secrets.ASSET_REPO }}
+      ASSET_REPO_TOKEN: ${{ secrets.ASSET_REPO_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +31,7 @@ jobs:
       # build that includes libmain.so.  Without them the APK still builds but
       # contains only the launcher and settings UI (no game engine library).
       - name: Checkout private game assets
-        if: ${{ secrets.ASSET_REPO != '' }}
+        if: env.ASSET_REPO != ''
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -35,7 +39,7 @@ jobs:
           path: ./private
 
       - name: Copy private game assets
-        if: ${{ secrets.ASSET_REPO != '' }}
+        if: env.ASSET_REPO != ''
         run: cp ./private/* ./MarathonRecompLib/private
 
       # ── System dependencies ─────────────────────────────────────────────────
@@ -105,7 +109,7 @@ jobs:
 
       # ── Build .so files ──────────────────────────────────────────────────────
       - name: Build native library (.so files)
-        if: ${{ secrets.ASSET_REPO != '' }}
+        if: env.ASSET_REPO != ''
         run: bash build-android.sh
 
       # ── Build APK ────────────────────────────────────────────────────────────
@@ -121,7 +125,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload libmain.so
-        if: ${{ secrets.ASSET_REPO != '' }}
+        if: env.ASSET_REPO != ''
         uses: actions/upload-artifact@v4
         with:
           name: MarathonRecomp-Android-libmain
