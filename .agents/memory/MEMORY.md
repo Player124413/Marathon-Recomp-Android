@@ -13,3 +13,4 @@
 - [Android file path cache](android-file-path-cache.md) — if Android opens a case-corrected cached path, retain that resolved path for later file-size queries.
 - [ImGui snapshot version-mismatch fallback](imgui-snapshot-version-fallback.md) — assert on IMGUI_VERSION_NUM mismatch causes abort() on Android Debug; replace with nullptr return + runtime fallback in video.cpp + GetFont() graceful degradation.
 - [presentWait assert crash on swapchain retry](present-wait-assert-crash.md) — wait() assert fires on Mali when swapchain retries from invalid→valid while g_pendingWaitOnSwapChain=true; guard call sites + harden wait().
+- [NtSetEvent does not wake KeWaitForMultipleObjects](nt-set-event-generation-wake.md) — second half of the post-archive deadlock; NtSetEvent now bumps g_keSetEventGeneration; crash_reporter SetDataPath/InitThread are now actually wired (were never called).

@@ -1442,6 +1442,15 @@ uint32_t NtResumeThread(GuestThreadHandle* hThread, uint32_t* suspendCount)
 uint32_t NtSetEvent(Event* handle, uint32_t* previousState)
 {
     handle->Set();
+    // Wake any KeWaitForMultipleObjects "wait any" loops sleeping on
+    // g_keSetEventGeneration — it was previously only incremented by
+    // KeSetEvent (and later by the semaphore release paths), so an event
+    // signalled through the NT path never woke those loops. Same deadlock
+    // class as the KeReleaseSemaphore hang documented after archive loading:
+    // the guest synchronizes its worker threads with events/semaphores and
+    // the process freezes right at the end of archive preloading.
+    ++g_keSetEventGeneration;
+    g_keSetEventGeneration.notify_all();
     return 0;
 }
 
