@@ -111,8 +111,25 @@
 
 #define PPC_LOOKUP_FUNC(x, y) *(PPCFunc**)(x + PPC_IMAGE_BASE + PPC_IMAGE_SIZE + (uint64_t(uint32_t(y) - PPC_CODE_BASE) * 2))
 
+// Reports an indirect call through a null function-table entry and does not
+// return. Implemented in MarathonRecomp (kernel/function.cpp); the weak
+// fallback in ppc_func_mapping.cpp covers the standalone test harnesses.
+extern "C" void PPCReportMissingIndirectFunction(unsigned int guestAddress);
+
 #ifndef PPC_CALL_INDIRECT_FUNC
-#define PPC_CALL_INDIRECT_FUNC(x) (PPC_LOOKUP_FUNC(base, x))(ctx, base)
+// The recompiled game reaches an indirect branch (bctrl/blr through a computed
+// address) by looking the guest address up in the function table. Entries that
+// were never recompiled - or a corrupted/garbage guest pointer - are null, and
+// calling through them jumps to address 0: the process dies with
+// "SIGSEGV, pc=0000000000000000" and an EMPTY stack trace, because there is no
+// frame at address 0 to unwind. That signature is otherwise impossible to
+// diagnose, so check the pointer and report the guest address instead.
+#define PPC_CALL_INDIRECT_FUNC(x) do { \
+        PPCFunc* _ppcTarget = PPC_LOOKUP_FUNC(base, x); \
+        if (_ppcTarget == nullptr) [[unlikely]] \
+            PPCReportMissingIndirectFunction((unsigned int)(x)); \
+        _ppcTarget(ctx, base); \
+    } while (0)
 // #define PPC_CALL_INDIRECT_FUNC(x) do { \
 //     printf("Calling PPC_CALL_INDIRECT_FUNC with x = 0x%x and res is 0x%x\n", (uint32_t)(x), base + PPC_IMAGE_BASE + PPC_IMAGE_SIZE + (uint64_t(uint32_t(x) - PPC_CODE_BASE) * 2)); \
 //     (PPC_LOOKUP_FUNC(base, x))(ctx, base); \

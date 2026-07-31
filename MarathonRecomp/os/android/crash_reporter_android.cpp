@@ -34,6 +34,11 @@
 #include <exception>
 #include <string>
 
+// Implemented in kernel/memory.cpp. Formats the emulated PowerPC state of the
+// crashing thread (link register above all) into the caller's buffer, or
+// returns 0 when the crashing thread is not a guest thread.
+extern "C" int MarathonDescribeGuestState(char* buf, size_t size);
+
 #define CRASH_TAG      "MarathonRecomp-Crash"
 #define MAX_FRAMES     48
 #define LOG_RING_SIZE  80        // keep last 80 log lines
@@ -189,10 +194,35 @@ static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
                 "FaultAt  : 0x%016" PRIxPTR, (uintptr_t)si->si_addr);
     }
 
+    // ── Guest CPU state ──
+    // The host stack trace can be empty (null function pointer => pc = 0), so
+    // capture the emulated PowerPC state too: its link register points at the
+    // call that was in progress, which survives even when host unwinding does
+    // not. Implemented in kernel/memory.cpp; returns 0 if this thread is not a
+    // guest thread.
+    char guestState[256] = {};
+    const int guestStateLen = MarathonDescribeGuestState(guestState, sizeof(guestState));
+    if (guestStateLen > 0)
+        __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG, "Guest    : %s", guestState);
+
     // ── Stack trace ──
+    // Do NOT skip frames when the unwinder is likely to produce very few of
+    // them. A jump through a null function pointer (the "pc=0" crash) leaves
+    // no valid frame at the fault site, so _Unwind_Backtrace often yields
+    // only the handler's own frames - and skipping those printed an EMPTY
+    // stack trace, which is exactly the useless report this project kept
+    // getting. Keeping everything is far better than discarding the only
+    // frames available; the handler frames are clearly named anyway.
     UnwindState uw{};
-    uw.skip = fromTerminate ? 3 : 4;
+    uw.skip = 0;
     _Unwind_Backtrace(UnwindCallback, &uw);
+
+    if (uw.count == 0)
+    {
+        __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG,
+            "Stack trace unavailable — this is typical for a jump through a null function pointer "
+            "(faulting pc = 0), where no return frame exists to unwind.");
+    }
 
     __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG,
         "Stack trace (%d frames):", uw.count);
@@ -261,7 +291,21 @@ static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
                 FdWrite(fd, "\n");
             }
 
+            if (guestStateLen > 0)
+            {
+                FdWrite(fd, "Guest    : ");
+                FdWrite(fd, guestState);
+                FdWrite(fd, "\n");
+            }
+
             FdWrite(fd, "--- Stack trace ---\n");
+            if (uw.count == 0)
+            {
+                FdWrite(fd, "  (empty — typical for a jump through a null function pointer: with pc = 0\n"
+                            "   there is no frame to unwind. Look at the log lines below instead; if an\n"
+                            "   \"Indirect call to guest address\" error precedes this report, that address\n"
+                            "   is the missing function.)\n");
+            }
             for (int i = 0; i < uw.count; i++)
             {
                 uintptr_t pc = uw.frames[i];
