@@ -4,6 +4,7 @@
 #include <kernel/memory.h>
 #include <kernel/heap.h>
 #include <kernel/function.h>
+#include <os/crash_reporter.h>
 #include "ppc_context.h"
 
 constexpr size_t PCR_SIZE = 0xAB0;
@@ -72,6 +73,12 @@ static void* GuestThreadFunc(void* arg)
 #else
 static void* GuestThreadFunc(GuestThreadHandle* hThread)
 {
+#endif
+#ifdef __ANDROID__
+    // sigaltstack() state is per-thread; give every guest thread its own
+    // alternate signal stack so stack-overflow SIGSEGVs are actually caught by
+    // the crash reporter instead of silently killing the process.
+    os::crash_reporter::InitThread();
 #endif
     hThread->suspended.wait(true);
     GuestThread::Start(hThread->params);

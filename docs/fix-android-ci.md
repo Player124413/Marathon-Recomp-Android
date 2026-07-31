@@ -1,3 +1,47 @@
+# Fixing the Android APK CI build
+
+The `build-apk.yml` workflow in this repo has never succeeded (all runs fail at
+the *Build native library (.so files)* step). The patched workflow below makes
+the build self-diagnosing and, on success, publishes the APK as a GitHub
+release so users can download it directly.
+
+## What this patched workflow changes
+
+1. **`permissions:`** — grants the workflow token rights to create releases and
+   to post failure diagnostics to a tracking issue.
+2. **Self-diagnostics** — every long build step streams into
+   `build-logs/build.log`. On failure the last ~30 KB of that log is posted to
+   an open issue titled **"CI build diagnostics"** (created automatically if it
+   doesn't exist), because Actions logs are not always reachable from outside.
+   The log is also uploaded as a workflow artifact.
+3. **ccache** for the C++ compile — the repo contains ~169 MB of generated
+   PowerPC sources; without ccache every retry costs ~20+ minutes of compile
+   time. With ccache, second and later builds reuse the compiled objects.
+4. **Extra autotools deps** (`pkg-config autoconf automake autoconf-archive
+   libtool bison flex gettext texinfo gperf`) — the vcpkg ports used for
+   `arm64-android` (`openssl`, `freetype`, `curl`) build via autotools; the
+   stock ubuntu-24.04 image does not guarantee all of these.
+5. **Release publishing** — on success the APK is attached to a new release
+   `ci-build.<run_number>` so it can be shared with testers immediately.
+6. `gh release create` gets `--target "$GITHUB_SHA"` so the tag points at the
+   commit the run actually built.
+
+## How to apply
+
+Replace the contents of `.github/workflows/build-apk.yml` with the YAML below
+and push to `main`. (A token with the `workflows` permission is required to
+push workflow files — the repository owner must do this from the GitHub web UI
+or with a full-permission key.)
+
+To run the new workflow once it is on `main`, use **Actions →
+build-android-apk → Run workflow** (or push to `main`).
+
+If the native build step fails afterwards, open the issue titled **CI build
+diagnostics** — it now contains the tail of the failing log.
+
+## The patched workflow
+
+```yaml
 name: build-android-apk
 
 on:
@@ -251,3 +295,27 @@ jobs:
             --notes-file "$RELEASE_NOTES_FILE" \
             --target "$GITHUB_SHA" \
             android-apk/app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Note on fork Actions
+
+GitHub disables Actions on newly-created forks. In that case the owner must
+open the **Actions** tab once and press **"I understand my workflows, enable
+them"** before any workflow can run — API tokens cannot flip that switch.
+
+## Post-mortem: the "Build native library (.so files)" failure (2026-07-31)
+
+All `build-apk.yml` runs (mymes1's repo and this fork) died within ~5 minutes
+at the native build step. Root cause: **the checkout uses `submodules: false`,
+so the `MarathonRecompResources` gitlink (~70 MB of fonts/images/sounds/music
+that `MarathonRecomp/CMakeLists.txt`'s `BIN2C` steps embed into libmain.so)
+was an empty directory**, and `ninja` fails instantly with "missing and no
+known rule to make it" against the generated resource sources. mymes1's local
+Replit builds had the submodule checked out, which is why the released APKs
+exist at all.
+
+Fixed in `build-android.sh`: when the sentinel file
+`MarathonRecompResources/images/game_icon.bmp` is missing, the pinned commit
+is read from the index's gitlink and the snapshot is fetched + extracted from
+`https://codeload.github.com/sonicnext-dev/MarathonRecompResources/tar.gz/<sha>`
+— no submodule protocol, no LFS, works on shallow clones.

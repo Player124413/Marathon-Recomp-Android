@@ -131,6 +131,7 @@ elseif (ANDROID)
         "os/android/storage_android.cpp"
         "os/android/user_android.cpp"
         "os/android/version_android.cpp"
+        "os/android/vulkan_driver_android.cpp"
     )
 endif()
 
@@ -470,6 +471,16 @@ endif()
 if (ANDROID)
     # __android_log_print (os/android/logger_android.cpp) lives in liblog.
     target_link_libraries(MarathonRecomp PRIVATE log)
+
+    # libadrenotools (os/android/vulkan_driver_android.cpp): the static
+    # adrenotools library is linked in; its hook shared libraries
+    # (libmain_hook/libfile_redirect_hook/libgsl_alloc_hook + their
+    # libhook_impl dependency) are dlopen'ed by name at runtime from
+    # nativeLibraryDir, so they only need to be *built* (and later copied into
+    # android-apk/app/jniLibs, done by build-android.sh) - hence a plain
+    # target-level dependency rather than target_link_libraries.
+    target_link_libraries(MarathonRecomp PRIVATE adrenotools)
+    add_dependencies(MarathonRecomp main_hook file_redirect_hook gsl_alloc_hook)
 endif()
 
 target_precompile_headers(MarathonRecomp PUBLIC ${MARATHON_RECOMP_PRECOMPILED_HEADERS})

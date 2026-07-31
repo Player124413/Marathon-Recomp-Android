@@ -268,6 +268,12 @@ int main(int argc, char *argv[])
         const auto logPath = (Config::GetConfigPath().parent_path() / "_game_log.txt").string();
         os::logger::SetLogFilePath(logPath);
     }
+    // Let the crash reporter write into the same data directory (_game_log.txt
+    // crash section + _crash_sentinel reason).  This was previously never called
+    // anywhere, so catchable crashes (SIGSEGV/SIGABRT/...) produced no report —
+    // the log simply stopped, which made real Russian-Adreno crash reports
+    // ("game dies right after archive loading") undiagnosable.
+    os::crash_reporter::SetDataPath(Config::GetConfigPath().parent_path().string());
     LOGN("=== Marathon Recompiled starting ===");
     LOGFN("Android native build fingerprint: {}", g_versionString);
     LOGFN("Config path: {}", Config::GetConfigPath().string());

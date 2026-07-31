@@ -14,6 +14,24 @@ WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
 NDK="$WORKSPACE/.ndk-tools/android-ndk-r27c"
 LLVM_BIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
+# CI self-diagnostics: runners' artifact/log blobs are not always reachable
+# from outside GitHub, so on failure also emit the tail of the shared build
+# log as a workflow annotation (::error::) - those are visible on the run
+# page and via the REST API immediately.
+_ci_fail_trap() {
+  local rc=$?
+  if [[ $rc -ne 0 && -n "${GITHUB_ACTIONS:-}" ]]; then
+    local LOG="${BUILD_LOG:-$WORKSPACE/build-logs/build.log}"
+    if [[ -f "$LOG" ]]; then
+      local ENC
+      ENC="$(tail -c 5000 "$LOG" | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' | head -c 7000)"
+      printf '\n::error title=build-android.sh exited %d (last log chunk)::%s\n' "$rc" "$ENC"
+    fi
+  fi
+  return 0
+}
+trap _ci_fail_trap EXIT
+
 if [[ ! -d "$NDK" ]]; then
   echo "ERROR: NDK not found at $NDK"
   echo "Run: mkdir -p .ndk-tools && cd .ndk-tools && curl -sL -o ndk.zip https://dl.google.com/android/repository/android-ndk-r27c-linux.zip && unzip -q ndk.zip && rm ndk.zip"
@@ -26,6 +44,35 @@ export PATH="$WORKSPACE/.local/bin:$PATH"
 export ANDROID_NDK_HOME="$NDK"
 export ANDROID_NDK_ROOT="$NDK"
 export ANDROID_NDK="$NDK"
+
+# MarathonRecompResources is a git submodule holding ~70 MB of UI resources
+# (fonts/images/sounds/music) that BIN2C embeds into libmain.so. CI checks the
+# repository out with submodules:false (and the workflow YAML lives outside
+# this branch's reach), so an absent checkout previously made ninja die
+# instantly with "missing and no known rule to make it" deep into the
+# "Build native library" step. Fetch the pinned snapshot straight from
+# codeload instead - works on shallow clones and needs no LFS.
+MRR_DIR="$WORKSPACE/MarathonRecompResources"
+MRR_SENTINEL="$MRR_DIR/images/game_icon.bmp"
+if [[ ! -f "$MRR_SENTINEL" ]]; then
+  # Prefer the exact commit recorded in the index's gitlink; fall back to the
+  # pin this script was written against.
+  MRR_PIN="$(git -C "$WORKSPACE" ls-tree HEAD MarathonRecompResources 2>/dev/null | awk '{print $3}')"
+  MRR_PIN="${MRR_PIN:-763b3f8b5f37c77e6737d15dd31b28badd6d69a5}"
+  echo "==> MarathonRecompResources missing; fetching pinned snapshot $MRR_PIN"
+  mkdir -p "$MRR_DIR"
+  MRR_TMP="$(mktemp -d)"
+  curl -fsSL --retry 3 -o "$MRR_TMP/mrr.tar.gz" \
+    "https://codeload.github.com/sonicnext-dev/MarathonRecompResources/tar.gz/$MRR_PIN"
+  tar -xzf "$MRR_TMP/mrr.tar.gz" --strip-components=1 -C "$MRR_DIR"
+  rm -rf "$MRR_TMP"
+  if [[ ! -f "$MRR_SENTINEL" ]]; then
+    echo "ERROR: MarathonRecompResources could not be fetched." >&2
+    echo "       CMake's BIN2C steps embed these files; without them the build cannot proceed." >&2
+    exit 1
+  fi
+  echo "==> MarathonRecompResources populated"
+fi
 
 PRESET="android-debug"
 DO_CONFIGURE=true
@@ -152,4 +199,18 @@ if $DO_BUILD; then
     cp "$BUILT_LIBMAIN" "$JNI_LIBS_DIR/libmain.so"
     echo "==> Copied libmain.so into $JNI_LIBS_DIR (picked up by Gradle's jniLibs.srcDirs)"
   fi
+
+  # Custom Vulkan driver support (libadrenotools): the hook shared libraries
+  # are dlopen'ed by name from nativeLibraryDir at runtime, so they must be
+  # packaged into the APK next to libmain.so. libhook_impl.so is a dependency
+  # of the hook libs and is loaded by name as well.
+  for HOOK_NAME in libmain_hook.so libhook_impl.so libfile_redirect_hook.so libgsl_alloc_hook.so; do
+    BUILT_HOOK="$(find "$WORKSPACE/out/build/$PRESET" -type f -name "$HOOK_NAME" | head -n1)"
+    if [[ -n "$BUILT_HOOK" ]]; then
+      cp "$BUILT_HOOK" "${JNI_LIBS_DIR:-$WORKSPACE/android-apk/app/jniLibs/arm64-v8a}/$HOOK_NAME"
+      echo "==> Copied $HOOK_NAME into android-apk/app/jniLibs/arm64-v8a (Turnip driver support)"
+    else
+      echo "!! $HOOK_NAME not found in the build tree - custom Turnip driver loading will not work" >&2
+    fi
+  done
 fi

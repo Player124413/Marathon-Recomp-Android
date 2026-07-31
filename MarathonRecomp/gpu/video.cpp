@@ -41,6 +41,7 @@
 
 #ifdef __ANDROID__
 #include <filesystem>
+#include <os/android/vulkan_driver_android.h>
 #endif
 
 // Software BC (block compression) decoder used when the Vulkan device does not
@@ -1970,22 +1971,9 @@ static bool CreateImGuiBackend()
     return true;
 }
 
-#ifdef __ANDROID__
-// Remove the GPU crash sentinel once the first frame has been successfully
-// presented. The sentinel is written at startup so that if the driver kills
-// the process the launcher can warn the user. An idempotent removal here is
-// safe even if main() already removed it on a clean exit path.
-static void AndroidMarkVulkanStartupSuccessful()
-{
-    static bool s_done = false;
-    if (s_done)
-        return;
-
-    std::error_code ec;
-    std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", ec);
-    s_done = true;
-}
-#endif
+// AndroidMarkVulkanStartupSuccessful() moved to os/android/vulkan_driver_android.cpp:
+// besides removing the generic GPU crash sentinel it now also discharges the
+// custom-driver (Turnip) boot-recovery marker. Declared via the include above.
 
 // Rebuilds g_gammaCorrectionPipeline using the specified render target format.
 // Called once at startup (format = BACKBUFFER_FORMAT) and again if the swapchain
