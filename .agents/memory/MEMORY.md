@@ -16,3 +16,4 @@
 - [NtSetEvent does not wake KeWaitForMultipleObjects](nt-set-event-generation-wake.md) — second half of the post-archive deadlock; NtSetEvent now bumps g_keSetEventGeneration; crash_reporter SetDataPath/InitThread are now actually wired (were never called).
 - [Turnip driver import](turnip-driver-import.md) — user-installable Mesa Turnip via SAF zip + libadrenotools; SDL_Vulkan_CreateSurface must never touch a custom-driver instance (PLUME_SDL_VULKAN_ENABLED forced OFF on Android).
 - [MarathonRecompResources submodule buildbreak](marathon-resources-submodule-buildbreak.md) — CI died in 5 min at native build: BIN2C needs the one remaining submodule; build-android.sh now fetches the pinned tarball from codeload.
+- [NDK libc++ string-vs-path](ndk-libcpp-string-path-op.md) — std::string is NOT an implicit operator/ LHS under NDK libc++; CI log fetching impossible (blob blocked) → ::error:: annotations trap in build scripts is the telemetry channel.
