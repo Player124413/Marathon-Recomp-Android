@@ -1,0 +1,431 @@
+diff --git a/MarathonRecomp/gpu/video.cpp b/MarathonRecomp/gpu/video.cpp
+index 7bd717dd..0a7aed9c 100755
+--- a/MarathonRecomp/gpu/video.cpp
++++ b/MarathonRecomp/gpu/video.cpp
+@@ -9,6 +9,7 @@
+ #include <cpu/guest_thread.h>
+ #include <cstdint>
+ #include <cstdio>
++#include <new>
+ #include <decompressor.h>
+ #include <kernel/function.h>
+ #include <kernel/heap.h>
+@@ -212,10 +213,15 @@ struct PipelineState
+ 
+ struct UploadAllocation
+ {
+-    const RenderBuffer* buffer;
+-    uint64_t offset;
+-    uint8_t* memory;
+-    uint64_t deviceAddress;
++    const RenderBuffer* buffer = nullptr;
++    uint64_t offset = 0;
++    uint8_t* memory = nullptr;
++    uint64_t deviceAddress = 0;
++
++    bool isValid() const
++    {
++        return buffer != nullptr && memory != nullptr;
++    }
+ };
+ 
+ struct SharedConstants
+@@ -543,42 +549,103 @@ static xxHashMap<GuestVertexDeclaration*> g_vertexDeclarations;
+ 
+ struct UploadBuffer
+ {
+-    static constexpr size_t SIZE = 16 * 1024 * 1024;
++    static constexpr uint64_t SIZE = 16 * 1024 * 1024;
+ 
+     std::unique_ptr<RenderBuffer> buffer;
+     uint8_t* memory = nullptr;
+     uint64_t deviceAddress = 0;
++    uint64_t size = 0;
+ };
+ 
+ struct UploadAllocator
+ {
+     std::vector<UploadBuffer> buffers;
+     uint32_t index = 0;
+-    uint32_t offset = 0;
++    uint64_t offset = 0;
+ 
+     UploadAllocation allocate(uint32_t size, uint32_t alignment)
+     {
+-        assert(size <= UploadBuffer::SIZE);
++        if (size == 0)
++            return {};
++
++        if (alignment == 0 || (alignment & (alignment - 1)) != 0)
++        {
++            LOGF_ERROR("UploadAllocator: invalid alignment {}", alignment);
++            return {};
++        }
+ 
+-        offset = (offset + alignment - 1) & ~(alignment - 1);
++        const uint64_t alignedOffset = (offset + alignment - 1) & ~(uint64_t(alignment) - 1);
++        const bool needsNewBuffer =
++            alignedOffset > UploadBuffer::SIZE ||
++            size > UploadBuffer::SIZE ||
++            size > UploadBuffer::SIZE - alignedOffset;
+ 
+-        if (offset + size > UploadBuffer::SIZE)
++        if (needsNewBuffer)
+         {
+             ++index;
+             offset = 0;
+         }
++        else
++        {
++            offset = alignedOffset;
++        }
+ 
+         if (buffers.size() <= index)
+-            buffers.resize(index + 1);
++        {
++            try
++            {
++                buffers.resize(index + 1);
++            }
++            catch (const std::bad_alloc&)
++            {
++                LOGF_ERROR("UploadAllocator: buffer list allocation failed ({} bytes)", size);
++                return {};
++            }
++        }
+ 
+         auto& buffer = buffers[index];
++        const uint64_t bufferSize = std::max(UploadBuffer::SIZE, uint64_t(size));
+         if (buffer.buffer == nullptr)
+         {
+-            buffer.buffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(UploadBuffer::SIZE, RenderBufferFlag::CONSTANT | RenderBufferFlag::VERTEX | RenderBufferFlag::INDEX | RenderBufferFlag::DEVICE_ADDRESSABLE));
++            try
++            {
++                buffer.buffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(
++                    bufferSize,
++                    RenderBufferFlag::CONSTANT | RenderBufferFlag::VERTEX |
++                    RenderBufferFlag::INDEX | RenderBufferFlag::DEVICE_ADDRESSABLE));
++            }
++            catch (const std::bad_alloc&)
++            {
++                LOGF_ERROR("UploadAllocator: upload buffer allocation threw ({} bytes)", bufferSize);
++                return {};
++            }
++
++            if (!buffer.buffer || !buffer.buffer->isValid())
++            {
++                LOGF_ERROR("UploadAllocator: upload buffer allocation failed ({} bytes)", bufferSize);
++                buffer.buffer.reset();
++                return {};
++            }
++
+             buffer.memory = reinterpret_cast<uint8_t*>(buffer.buffer->map());
++            if (buffer.memory == nullptr)
++            {
++                LOGF_ERROR("UploadAllocator: upload buffer map failed ({} bytes)", bufferSize);
++                buffer.buffer.reset();
++                return {};
++            }
++
+             buffer.deviceAddress = buffer.buffer->getDeviceAddress();
++            buffer.size = bufferSize;
+         }
+-        
++
++        if (offset > buffer.size || size > buffer.size - offset)
++        {
++            LOGF_ERROR("UploadAllocator: allocation does not fit (offset={}, size={}, capacity={})",
++                offset, size, buffer.size);
++            return {};
++        }
++
+         auto ref = buffer.buffer->at(offset);
+         offset += size;
+ 
+@@ -589,6 +656,8 @@ struct UploadAllocator
+     UploadAllocation allocate(const T* memory, uint32_t size, uint32_t alignment)
+     {
+         auto result = allocate(size, alignment);
++        if (!result.isValid())
++            return result;
+ 
+         if constexpr (TByteSwap)
+         {
+@@ -611,6 +680,16 @@ struct UploadAllocator
+ 
+     void reset()
+     {
++        // A frame can temporarily need several pages (or one oversized page),
++        // but retaining every peak-sized page permanently turns a transient
++        // upload spike into an Android process OOM. The current frame has
++        // already passed its fence when reset is called, so surplus pages are
++        // safe to release here. Keep one normal page hot for the common case.
++        if (buffers.size() > 1)
++            buffers.resize(1);
++        if (!buffers.empty() && buffers[0].size != UploadBuffer::SIZE)
++            buffers.clear();
++
+         index = 0;
+         offset = 0;
+     }
+@@ -628,23 +707,54 @@ struct IntermediaryUploadAllocator
+ 
+     uint8_t* allocate(uint32_t size)
+     {
+-        assert(size <= SIZE);
++        if (size == 0)
++            return nullptr;
++        if (size > SIZE)
++        {
++            LOGF_ERROR("IntermediaryUploadAllocator: allocation exceeds page size ({} bytes)", size);
++            return nullptr;
++        }
+ 
+-        if (offset + size > SIZE)
++        const uint64_t alignedOffset = (offset + 0xF) & ~uint64_t(0xF);
++        if (alignedOffset > SIZE || size > SIZE - alignedOffset)
+         {
+             ++index;
+             offset = 0;
+         }
++        else
++        {
++            offset = alignedOffset;
++        }
+ 
+         if (buffers.size() <= index)
+-            buffers.resize(index + 1);
++        {
++            try
++            {
++                buffers.resize(index + 1);
++            }
++            catch (const std::bad_alloc&)
++            {
++                LOGF_ERROR("IntermediaryUploadAllocator: buffer list allocation failed ({} bytes)", size);
++                return nullptr;
++            }
++        }
+ 
+         auto& buffer = buffers[index];
+         if (buffer == nullptr)
+-            buffer = std::make_unique_for_overwrite<uint8_t[]>(SIZE);
++        {
++            try
++            {
++                buffer = std::make_unique_for_overwrite<uint8_t[]>(SIZE);
++            }
++            catch (const std::bad_alloc&)
++            {
++                LOGF_ERROR("IntermediaryUploadAllocator: page allocation failed ({} bytes)", SIZE);
++                return nullptr;
++            }
++        }
+ 
+         auto result = buffer.get() + offset;
+-        offset += ((size + 0xF) & ~0xF);
++        offset += ((uint64_t(size) + 0xF) & ~uint64_t(0xF));
+ 
+         return result;
+     }
+@@ -652,12 +762,18 @@ struct IntermediaryUploadAllocator
+     uint8_t* allocate(const void* memory, uint32_t size)
+     {
+         auto result = allocate(size);
++        if (result == nullptr)
++            return nullptr;
+         memcpy(result, memory, size);
+         return result;
+     }
+ 
+     void reset()
+     {
++        // Release pages created by a temporary command burst instead of
++        // carrying the burst's high-water mark for the rest of the process.
++        if (buffers.size() > 1)
++            buffers.resize(1);
+         index = 0;
+         offset = 0;
+     }
+@@ -734,6 +850,13 @@ struct PrimitiveIndexData
+         if (indexBuffer == NULL || currentIndexCount < indexCount)
+         {
+             auto allocation = g_uploadAllocators[g_frame].allocate<false>(indexData.data(), indexCount * 2, 2);
++            if (!allocation.isValid())
++            {
++                LOGF_ERROR("PrimitiveIndexData: index upload allocation failed ({} bytes)", indexCount * 2);
++                indexBuffer = {};
++                currentIndexCount = 0;
++                return 0;
++            }
+             indexBuffer = allocation.buffer->at(allocation.offset);
+             currentIndexCount = indexCount;
+         }
+@@ -2953,6 +3076,11 @@ static void ProcUnlockTextureRect(const RenderCommand& cmd)
+     }
+ 
+     auto allocation = g_uploadAllocators[g_frame].allocate(slicePitch, PLACEMENT_ALIGNMENT);
++    if (!allocation.isValid())
++    {
++        LOGF_ERROR("ProcUnlockTextureRect: upload allocation failed ({} bytes)", slicePitch);
++        return;
++    }
+     memcpy(allocation.memory, args.texture->mappedMemory, slicePitch);
+ 
+     g_commandLists[g_frame]->copyTextureRegion(
+@@ -3514,6 +3642,12 @@ static void ProcDrawImGui(const RenderCommand& cmd)
+ 
+         auto vertexBufferAllocation = g_uploadAllocators[g_frame].allocate<false>(drawList->VtxBuffer.Data, drawList->VtxBuffer.Size * sizeof(ImDrawVert), alignof(ImDrawVert));
+         auto indexBufferAllocation = g_uploadAllocators[g_frame].allocate<false>(drawList->IdxBuffer.Data, drawList->IdxBuffer.Size * sizeof(uint16_t), alignof(uint16_t));
++        if (!vertexBufferAllocation.isValid() || !indexBufferAllocation.isValid())
++        {
++            LOGF_ERROR("DrawImGui: upload allocation failed (vertex={} bytes, index={} bytes)",
++                drawList->VtxBuffer.Size * sizeof(ImDrawVert), drawList->IdxBuffer.Size * sizeof(uint16_t));
++            return;
++        }
+ 
+         const RenderVertexBufferView vertexBufferView(vertexBufferAllocation.buffer->at(vertexBufferAllocation.offset), drawList->VtxBuffer.Size * sizeof(ImDrawVert));
+         const RenderInputSlot inputSlot(0, sizeof(ImDrawVert));
+@@ -3746,6 +3880,9 @@ void Video::StartPipelinePrecompilation()
+ 
+ static void SetRootDescriptor(const UploadAllocation& allocation, size_t index)
+ {
++    if (!allocation.isValid())
++        return;
++
+     auto& commandList = g_commandLists[g_frame];
+ 
+     if (g_backend != Backend::D3D12)
+@@ -3804,7 +3941,11 @@ static void ProcExecuteCommandList(const RenderCommand& cmd)
+             commandList->setGraphicsPipelineLayout(g_pipelineLayout.get());
+             commandList->setPipeline(g_gammaCorrectionPipeline.get());
+             commandList->setGraphicsDescriptorSet(g_textureDescriptorSet.get(), 0);
+-            SetRootDescriptor(g_uploadAllocators[g_frame].allocate<false>(&constants, sizeof(constants), 0x100), 2);
++            auto allocation = g_uploadAllocators[g_frame].allocate<false>(&constants, sizeof(constants), 0x100);
++            if (allocation.isValid())
++                SetRootDescriptor(allocation, 2);
++            else
++                LOGF_ERROR("{}", "BeginCommandList: gamma constants upload allocation failed");
+             commandList->setFramebuffer(framebuffer.get());
+             commandList->setViewports(RenderViewport(0.0f, 0.0f, g_swapChain->getWidth(), g_swapChain->getHeight()));
+             commandList->setScissors(RenderRect(0, 0, g_swapChain->getWidth(), g_swapChain->getHeight()));
+@@ -5464,13 +5605,21 @@ static void FlushRenderStateForMainThread(GuestDevice* device, LocalRenderComman
+         uint32_t index = startRegister * 16;
+         uint32_t size = (endRegister - startRegister) * 64;
+ 
+-        auto& cmd = queue.enqueue();
+-        cmd.type = RenderCommandType::SetVertexShaderConstants;
+-        cmd.setVertexShaderConstants.memory = g_intermediaryUploadAllocator.allocate(&device->vertexShaderFloatConstants[index], size);
+-        cmd.setVertexShaderConstants.index = index;
+-        cmd.setVertexShaderConstants.size = size;
++        auto memory = g_intermediaryUploadAllocator.allocate(&device->vertexShaderFloatConstants[index], size);
++        if (memory != nullptr)
++        {
++            auto& cmd = queue.enqueue();
++            cmd.type = RenderCommandType::SetVertexShaderConstants;
++            cmd.setVertexShaderConstants.memory = memory;
++            cmd.setVertexShaderConstants.index = index;
++            cmd.setVertexShaderConstants.size = size;
+ 
+-        device->dirtyFlags[0] = 0;
++            device->dirtyFlags[0] = 0;
++        }
++        else
++        {
++            LOGF_ERROR("{}", "FlushRenderStateForMainThread: vertex constants upload allocation failed");
++        }
+     }
+ 
+     dirtyFlags = device->dirtyFlags[1].get();
+@@ -5482,13 +5631,21 @@ static void FlushRenderStateForMainThread(GuestDevice* device, LocalRenderComman
+         uint32_t index = startRegister * 16;
+         uint32_t size = (endRegister - startRegister) * 64;
+ 
+-        auto& cmd = queue.enqueue();
+-        cmd.type = RenderCommandType::SetPixelShaderConstants;
+-        cmd.setPixelShaderConstants.memory = g_intermediaryUploadAllocator.allocate(&device->pixelShaderFloatConstants[index], size);
+-        cmd.setPixelShaderConstants.index = index;
+-        cmd.setPixelShaderConstants.size = size;
++        auto memory = g_intermediaryUploadAllocator.allocate(&device->pixelShaderFloatConstants[index], size);
++        if (memory != nullptr)
++        {
++            auto& cmd = queue.enqueue();
++            cmd.type = RenderCommandType::SetPixelShaderConstants;
++            cmd.setPixelShaderConstants.memory = memory;
++            cmd.setPixelShaderConstants.index = index;
++            cmd.setPixelShaderConstants.size = size;
+ 
+-        device->dirtyFlags[1] = 0;
++            device->dirtyFlags[1] = 0;
++        }
++        else
++        {
++            LOGF_ERROR("{}", "FlushRenderStateForMainThread: pixel constants upload allocation failed");
++        }
+     }
+ }
+ 
+@@ -5661,19 +5818,28 @@ static void FlushRenderStateForRenderThread()
+     if (g_dirtyStates.vertexShaderConstants)
+     {
+         auto vertexShaderConstants = g_uploadAllocators[g_frame].allocate<true>(g_vertexShaderConstants, sizeof(g_vertexShaderConstants), 0x100);
+-        SetRootDescriptor(vertexShaderConstants, 0);
++        if (vertexShaderConstants.isValid())
++            SetRootDescriptor(vertexShaderConstants, 0);
++        else
++            LOGF_ERROR("{}", "FlushRenderStateForRenderThread: vertex constants upload allocation failed");
+     }
+ 
+     if (g_dirtyStates.pixelShaderConstants)
+     {
+         auto pixelShaderConstants = g_uploadAllocators[g_frame].allocate<true>(g_pixelShaderConstants, sizeof(g_pixelShaderConstants), 0x100);
+-        SetRootDescriptor(pixelShaderConstants, 1);
++        if (pixelShaderConstants.isValid())
++            SetRootDescriptor(pixelShaderConstants, 1);
++        else
++            LOGF_ERROR("{}", "FlushRenderStateForRenderThread: pixel constants upload allocation failed");
+     }
+ 
+     if (g_dirtyStates.sharedConstants)
+     {
+         auto sharedConstants = g_uploadAllocators[g_frame].allocate<false>(&g_sharedConstants, sizeof(g_sharedConstants), 0x100);
+-        SetRootDescriptor(sharedConstants, 2);
++        if (sharedConstants.isValid())
++            SetRootDescriptor(sharedConstants, 2);
++        else
++            LOGF_ERROR("{}", "FlushRenderStateForRenderThread: shared constants upload allocation failed");
+     }
+ 
+     if (g_dirtyStates.vertexStreamFirst <= g_dirtyStates.vertexStreamLast)
+@@ -5776,10 +5942,18 @@ static void DrawPrimitiveUP(GuestDevice* device, uint32_t primitiveType, uint32_
+     FlushRenderStateForMainThread(device, queue);
+ 
+     auto& cmd = queue.enqueue();
++    auto vertexStreamData = g_intermediaryUploadAllocator.allocate(vertexStreamZeroData, primitiveCount * vertexStreamZeroStride);
++    if (vertexStreamData == nullptr)
++    {
++        LOGF_ERROR("DrawPrimitiveUP: intermediary upload allocation failed ({} bytes)",
++            primitiveCount * vertexStreamZeroStride);
++        return;
++    }
++
+     cmd.type = RenderCommandType::DrawPrimitiveUP;
+     cmd.drawPrimitiveUP.primitiveType = primitiveType;
+     cmd.drawPrimitiveUP.primitiveCount = primitiveCount;
+-    cmd.drawPrimitiveUP.vertexStreamZeroData = g_intermediaryUploadAllocator.allocate(vertexStreamZeroData, primitiveCount * vertexStreamZeroStride);
++    cmd.drawPrimitiveUP.vertexStreamZeroData = vertexStreamData;
+     cmd.drawPrimitiveUP.vertexStreamZeroSize = primitiveCount * vertexStreamZeroStride;
+     cmd.drawPrimitiveUP.vertexStreamZeroStride = vertexStreamZeroStride;
+     cmd.drawPrimitiveUP.csdFilterState = g_csdFilterState;
+@@ -5795,6 +5969,11 @@ static void ProcDrawPrimitiveUP(const RenderCommand& cmd)
+     SetDirtyValue(g_dirtyStates.pipelineState, g_pipelineState.vertexStrides[0], uint8_t(args.vertexStreamZeroStride));
+ 
+     auto allocation = g_uploadAllocators[g_frame].allocate<true>(reinterpret_cast<const uint32_t*>(args.vertexStreamZeroData), args.vertexStreamZeroSize, 0x4);
++    if (!allocation.isValid())
++    {
++        LOGF_ERROR("ProcDrawPrimitiveUP: upload allocation failed ({} bytes)", args.vertexStreamZeroSize);
++        return;
++    }
+ 
+     auto& vertexBufferView = g_vertexBufferViews[0];
+     vertexBufferView.size = args.primitiveCount * args.vertexStreamZeroStride;
