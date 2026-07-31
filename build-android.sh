@@ -152,4 +152,18 @@ if $DO_BUILD; then
     cp "$BUILT_LIBMAIN" "$JNI_LIBS_DIR/libmain.so"
     echo "==> Copied libmain.so into $JNI_LIBS_DIR (picked up by Gradle's jniLibs.srcDirs)"
   fi
+
+  # Custom Vulkan driver support (libadrenotools): the hook shared libraries
+  # are dlopen'ed by name from nativeLibraryDir at runtime, so they must be
+  # packaged into the APK next to libmain.so. libhook_impl.so is a dependency
+  # of the hook libs and is loaded by name as well.
+  for HOOK_NAME in libmain_hook.so libhook_impl.so libfile_redirect_hook.so libgsl_alloc_hook.so; do
+    BUILT_HOOK="$(find "$WORKSPACE/out/build/$PRESET" -type f -name "$HOOK_NAME" | head -n1)"
+    if [[ -n "$BUILT_HOOK" ]]; then
+      cp "$BUILT_HOOK" "${JNI_LIBS_DIR:-$WORKSPACE/android-apk/app/jniLibs/arm64-v8a}/$HOOK_NAME"
+      echo "==> Copied $HOOK_NAME into android-apk/app/jniLibs/arm64-v8a (Turnip driver support)"
+    else
+      echo "!! $HOOK_NAME not found in the build tree - custom Turnip driver loading will not work" >&2
+    fi
+  done
 fi

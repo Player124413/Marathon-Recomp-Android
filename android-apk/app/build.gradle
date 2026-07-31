@@ -18,8 +18,8 @@ android {
         }
         minSdkVersion 28
         targetSdkVersion 34
-        versionCode 3
-        versionName "1.0.1-android-debug-postarchive-fix"
+        versionCode 4
+        versionName "1.0.2-android-debug-turnip"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -47,6 +47,17 @@ android {
             manifest.srcFile 'src/main/AndroidManifest.xml'
             res.srcDirs = ['src/main/res']
             assets.srcDirs = ['src/main/assets']
+        }
+    }
+
+    // Legacy (extracted-to-disk) native lib packaging is required for custom
+    // Turnip driver loading: libadrenotools dlopen's its hook libraries
+    // (libmain_hook.so / libhook_impl.so) from ApplicationInfo.nativeLibraryDir
+    // on disk, which only exists with real files when libs are extracted rather
+    // than mapped directly from the (compressed) APK zip.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
         }
     }
 

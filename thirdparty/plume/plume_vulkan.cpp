@@ -2221,14 +2221,12 @@ namespace plume {
             fprintf(stderr, "vkCreateWin32SurfaceKHR failed with error code 0x%X.\n", res);
             return;
         }
-#   elif defined(PLUME_SDL_VULKAN_ENABLED)
-        VulkanInterface *renderInterface = commandQueue->device->renderInterface;
-        SDL_bool sdlRes = SDL_Vulkan_CreateSurface(desc.renderWindow, renderInterface->instance, &surface);
-        if (sdlRes == SDL_FALSE) {
-            fprintf(stderr, "SDL_Vulkan_CreateSurface failed with error %s.\n", SDL_GetError());
-            return;
-        }
 #   elif defined(__ANDROID__)
+        // Android takes precedence over the SDL path even when
+        // PLUME_SDL_VULKAN_ENABLED is set: SDL_Vulkan_CreateSurface resolves
+        // vkCreateAndroidSurfaceKHR through the *system* Vulkan loader, which
+        // cannot service an instance created by a custom (Turnip) driver
+        // loaded into an isolated namespace via libadrenotools.
         assert(desc.renderWindow != nullptr);
         VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
         surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
@@ -2240,6 +2238,13 @@ namespace plume {
         PLUME_LOGW("SwapChain ctor step 1: done, res=%d surface=%p", (int)res, (void*)surface);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vkCreateAndroidSurfaceKHR failed with error code 0x%X.\n", res);
+            return;
+        }
+#   elif defined(PLUME_SDL_VULKAN_ENABLED)
+        VulkanInterface *renderInterface = commandQueue->device->renderInterface;
+        SDL_bool sdlRes = SDL_Vulkan_CreateSurface(desc.renderWindow, renderInterface->instance, &surface);
+        if (sdlRes == SDL_FALSE) {
+            fprintf(stderr, "SDL_Vulkan_CreateSurface failed with error %s.\n", SDL_GetError());
             return;
         }
 #   elif defined(__linux__)
@@ -2721,11 +2726,11 @@ namespace plume {
         GetClientRect(desc.renderWindow, &rect);
         dstWidth = rect.right - rect.left;
         dstHeight = rect.bottom - rect.top;
-#   elif defined(PLUME_SDL_VULKAN_ENABLED)
-        SDL_GetWindowSizeInPixels(desc.renderWindow, (int *)(&dstWidth), (int *)(&dstHeight));
 #   elif defined(__ANDROID__)
         dstWidth = ANativeWindow_getWidth(renderWindow);
         dstHeight = ANativeWindow_getHeight(renderWindow);
+#   elif defined(PLUME_SDL_VULKAN_ENABLED)
+        SDL_GetWindowSizeInPixels(desc.renderWindow, (int *)(&dstWidth), (int *)(&dstHeight));
 #   elif defined(__linux__)
         XWindowAttributes attributes;
         XGetWindowAttributes(desc.renderWindow.display, desc.renderWindow.window, &attributes);
@@ -4889,15 +4894,35 @@ namespace plume {
 
     // VulkanInterface
 
+#if defined(__ANDROID__)
+    // Custom Vulkan driver support: loads a user-imported Mesa Turnip ICD via
+    // libadrenotools instead of the vendor proprietary driver. Implemented in
+    // MarathonRecomp/os/android/vulkan_driver_android.cpp; returns nullptr
+    // (meaning: use the normal loader) if no custom driver is installed on the
+    // device or loading fails, in which case boot recovery already reverted to
+    // the system driver.
+    extern "C" void *AndroidGetCustomVulkanLoader();
+#endif
+
 #if PLUME_SDL_VULKAN_ENABLED
     VulkanInterface::VulkanInterface(RenderWindow sdlWindow) {
 #else
     VulkanInterface::VulkanInterface() {
 #endif
-        VkResult res = volkInitialize();
-        if (res != VK_SUCCESS) {
-            fprintf(stderr, "volkInitialize failed with error code 0x%X.\n", res);
-            return;
+        VkResult res = VK_SUCCESS;
+#if defined(__ANDROID__)
+        void *customLoader = AndroidGetCustomVulkanLoader();
+        if (customLoader != nullptr) {
+            volkInitializeCustom(reinterpret_cast<PFN_vkGetInstanceProcAddr>(customLoader));
+        }
+        else
+#endif
+        {
+            res = volkInitialize();
+            if (res != VK_SUCCESS) {
+                fprintf(stderr, "volkInitialize failed with error code 0x%X.\n", res);
+                return;
+            }
         }
 
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;

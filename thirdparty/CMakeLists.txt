@@ -18,8 +18,19 @@ set(SDL2MIXER_VORBIS "STB")
 set(SDL2MIXER_WAVPACK OFF)
 
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR ANDROID)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT ANDROID)
     set(PLUME_SDL_VULKAN_ENABLED ON CACHE BOOL "")
+endif()
+
+# SDL's Vulkan helper must stay OFF on Android: SDL_Vulkan_CreateSurface loads
+# the *system* libvulkan.so loader and resolves surface functions from it,
+# which only works while the instance also comes from the system loader. That
+# breaks the custom Turnip driver path (libadrenotools isolated namespace),
+# where the instance is created by a different loader instance. On Android
+# plume creates VkSurfaceKHR directly from the ANativeWindow instead. FORCE so
+# a stale build directory that cached the previous ON value is corrected.
+if (ANDROID)
+    set(PLUME_SDL_VULKAN_ENABLED OFF CACHE BOOL "" FORCE)
 endif()
 
 if (WIN32)
@@ -62,6 +73,11 @@ if (ANDROID)
     if (NOT TARGET ffmpeg)
         add_library(ffmpeg INTERFACE)
     endif()
+
+    # libadrenotools: loads a custom Vulkan ICD (Mesa Turnip) into an isolated
+    # linker namespace with the platform loader's driver lookup hooked. Used by
+    # MarathonRecomp/os/android/vulkan_driver_android.cpp.
+    add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/libadrenotools")
 else()
     add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/nativefiledialog-extended")
     add_subdirectory("${MARATHON_RECOMP_THIRDPARTY_ROOT}/ffmpeg-core")

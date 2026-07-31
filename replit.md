@@ -148,7 +148,11 @@ This round:
   SDL_main and all).
 - `build-android.sh` now copies the built `libmain.so` into
   `android-apk/app/jniLibs/arm64-v8a/` after a successful build, which
-  Gradle's existing `jniLibs.srcDirs` config picks up automatically.
+  Gradle's existing `jniLibs.srcDirs` config picks up automatically. It also
+  copies the libadrenotools hook libraries (`libmain_hook.so`,
+  `libhook_impl.so`, `libfile_redirect_hook.so`, `libgsl_alloc_hook.so`) used
+  by the custom Turnip driver loader — they are dlopen'ed by name from
+  `nativeLibraryDir` at runtime, so the APK uses `useLegacyPackaging true`.
 - Added `android-apk/app/jniLibs/` to `.gitignore` (build output).
 - Not done: no Android SDK/Gradle wrapper JDK is available in this
   container to actually run `./gradlew assembleDebug` and confirm the APK

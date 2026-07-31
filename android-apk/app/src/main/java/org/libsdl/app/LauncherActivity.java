@@ -54,7 +54,8 @@ import java.util.LinkedHashMap;
  */
 public final class LauncherActivity extends Activity {
 
-    private static final int REQUEST_GAME_TREE = 1001;
+    private static final int REQUEST_GAME_TREE  = 1001;
+    private static final int REQUEST_DRIVER_ZIP = 1002;
 
     // Launcher-only prefs (one-time UI state — NOT game settings).
     private static final String LAUNCHER_PREFS = "launcher_ui_state";
@@ -76,11 +77,24 @@ public final class LauncherActivity extends Activity {
     private ProgressBar progressBar;
     private volatile boolean copying = false;
 
+    // ── GPU driver (Turnip) card ────────────────────────────────────────────
+    private TextView driverStatusText;
+    private Button   driverInstallButton;
+    private Button   driverCompatButton;
+    private Button   driverSystemButton;
+    private Button   driverReEnableButton;
+    private volatile boolean installingDriver = false;
+
     // ── lifecycle ─────────────────────────────────────────────────────────────
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Ensure the internal turnip/ directory exists on first launch: it
+        // ships the readme the native side writes, and DriverManager writes
+        // the boot-recovery state there too.
+        DriverManager.ensureFilesystem(this);
 
         // Seed a default config.toml on the very first launch.
         // If the file already exists (subsequent launches, post-game saves,
@@ -89,13 +103,15 @@ public final class LauncherActivity extends Activity {
 
         setContentView(buildPage());
         refreshStatus();
+        refreshDriverCard();
         checkGpuCompatibilityAsync();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!copying) {
+        refreshDriverCard();
+        if (!copying && !installingDriver) {
             refreshStatus();
             checkCrashSentinel();
         }
@@ -124,7 +140,11 @@ public final class LauncherActivity extends Activity {
                 "• Set Shadow Resolution to Medium (1024) or lower\n" +
                 "• Set Anti-Aliasing to Off\n" +
                 "• Lower Resolution Scale to 0.75× or 0.5×\n" +
-                "• Set Graphics Driver to Auto (not System)\n\n" +
+                "• Set Graphics Driver to Auto (not System)\n" +
+                "• On Snapdragon (Adreno) devices, try the open-source Turnip " +
+                "driver: it's often more stable than the vendor driver with " +
+                "this engine. Install it from a zip in the GPU DRIVER card " +
+                "on this screen.\n\n" +
                 "On Mali GPUs (Galaxy Tab A9, etc.) shadow resolutions above " +
                 "1024 and any MSAA level cause driver crashes.\n\n" +
                 (logTail != null
@@ -314,6 +334,9 @@ public final class LauncherActivity extends Activity {
         btnAreaP.topMargin = dp(1);
         page.addView(btnArea, btnAreaP);
 
+        page.addView(buildDriverCard(), new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         // ── footer ────────────────────────────────────────────────────────────
         TextView footer = new TextView(this);
         footer.setText("Android debug build: Mali guards enabled\n"
@@ -345,6 +368,205 @@ public final class LauncherActivity extends Activity {
     private void styleSecondaryButton(Button btn) {
         btn.setBackgroundColor(C_BTN_SEC);
         btn.setTextColor(C_TEXT_PRI);
+    }
+
+    // ── GPU driver (Turnip) ─────────────────────────────────────────────────
+
+    /**
+     * Driver management card. The native side
+     * (os/android/vulkan_driver_android.cpp) loads whatever driver_name.txt
+     * selects through libadrenotools; here we only manage the files.
+     * Requires an Adreno GPU (A6xx+) — Turnip does not work on Mali/PowerVR.
+     */
+    private View buildDriverCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundColor(C_CARD);
+        card.setPadding(dp(20), dp(14), dp(20), dp(18));
+        LinearLayout.LayoutParams cardP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cardP.topMargin = dp(1);
+        card.setLayoutParams(cardP);
+
+        TextView title = new TextView(this);
+        title.setText("GPU DRIVER (VULKAN / TURNIP)");
+        title.setTextColor(C_ACCENT);
+        title.setTextSize(12);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setLetterSpacing(0.12f);
+        card.addView(title);
+
+        driverStatusText = new TextView(this);
+        driverStatusText.setTextSize(13);
+        driverStatusText.setTextColor(C_TEXT_SEC);
+        LinearLayout.LayoutParams statusP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        statusP.topMargin = dp(8);
+        card.addView(driverStatusText, statusP);
+
+        driverInstallButton = new Button(this);
+        driverInstallButton.setText("Install Turnip Driver (.zip)");
+        driverInstallButton.setTextSize(13);
+        styleSecondaryButton(driverInstallButton);
+        driverInstallButton.setOnClickListener(v -> chooseDriverZip());
+        LinearLayout.LayoutParams installP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(42));
+        installP.topMargin = dp(10);
+        card.addView(driverInstallButton, installP);
+
+        driverCompatButton = new Button(this);
+        driverCompatButton.setTextSize(12);
+        driverCompatButton.setBackgroundColor(0x00000000);
+        driverCompatButton.setTextColor(C_TEXT_SEC);
+        driverCompatButton.setOnClickListener(v -> toggleCompatMode());
+        LinearLayout.LayoutParams compatP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(38));
+        card.addView(driverCompatButton, compatP);
+
+        driverReEnableButton = new Button(this);
+        driverReEnableButton.setText("Re-enable Turnip Driver");
+        driverReEnableButton.setTextSize(12);
+        driverReEnableButton.setBackgroundColor(0x00000000);
+        driverReEnableButton.setTextColor(C_ACCENT);
+        driverReEnableButton.setOnClickListener(v -> reEnableDriver());
+        LinearLayout.LayoutParams reEnableP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(38));
+        card.addView(driverReEnableButton, reEnableP);
+
+        driverSystemButton = new Button(this);
+        driverSystemButton.setText("Use System Driver");
+        driverSystemButton.setTextSize(12);
+        driverSystemButton.setBackgroundColor(0x00000000);
+        driverSystemButton.setTextColor(C_TEXT_SEC);
+        driverSystemButton.setOnClickListener(v -> confirmUseSystemDriver());
+        LinearLayout.LayoutParams systemP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(38));
+        card.addView(driverSystemButton, systemP);
+
+        TextView hint = new TextView(this);
+        hint.setText(
+            "Install an open-source Mesa Turnip driver package (AdrenoTools-style zip, " +
+            "e.g. from the AdrenoToolsDrivers releases) to replace the vendor driver. " +
+            "Adreno GPUs only. If booting fails, the game automatically falls back to " +
+            "the system driver and the custom one is disabled here.");
+        hint.setTextSize(11);
+        hint.setTextColor(C_TEXT_HINT);
+        LinearLayout.LayoutParams hintP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        hintP.topMargin = dp(8);
+        card.addView(hint, hintP);
+
+        return card;
+    }
+
+    private void refreshDriverCard() {
+        if (driverStatusText == null) return;
+
+        DriverManager.Status status = DriverManager.getStatus(this);
+        switch (status.state) {
+            case CUSTOM:
+                driverStatusText.setText("✔  Custom driver active:\n" + status.driverName);
+                driverStatusText.setTextColor(0xFF4CAF50);
+                break;
+            case DISABLED:
+                driverStatusText.setText("⚠  " + status.driverName + "\ncrashed during boot and was auto-disabled — the system driver is in use.");
+                driverStatusText.setTextColor(0xFFFFB74D);
+                break;
+            case SYSTEM:
+            default:
+                driverStatusText.setText("System driver (default)");
+                driverStatusText.setTextColor(C_TEXT_SEC);
+                break;
+        }
+
+        driverCompatButton.setVisibility(
+                status.state == DriverManager.State.CUSTOM ? View.VISIBLE : View.GONE);
+        driverCompatButton.setText(status.compatMode
+                ? "Compatibility Mode (Sysmem): ON  — takes effect on next launch"
+                : "Compatibility Mode (Sysmem): OFF (fixes glitches on some Adreno 7xx)");
+
+        driverReEnableButton.setVisibility(
+                status.state == DriverManager.State.DISABLED ? View.VISIBLE : View.GONE);
+        driverSystemButton.setVisibility(
+                status.state == DriverManager.State.CUSTOM ? View.VISIBLE : View.GONE);
+    }
+
+    private void chooseDriverZip() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        // Some file managers ignore the zip MIME type or report driver
+        // packages as octet-stream; offer those alternatives too.
+        intent.putExtra(Intent.EXTRA_MIME_TYPES,
+                new String[] {"application/zip", "application/x-zip-compressed", "application/octet-stream"});
+        startActivityForResult(intent, REQUEST_DRIVER_ZIP);
+    }
+
+    private void installDriverZip(Uri uri) {
+        installingDriver = true;
+        driverInstallButton.setEnabled(false);
+        progressBar.setVisibility(View.VISIBLE);
+        statusText.setText("Installing Turnip driver\u2026");
+        statusText.setTextColor(C_TEXT_SEC);
+
+        new Thread(() -> {
+            String error = null;
+            String selected = null;
+            try {
+                selected = DriverManager.installDriverZip(this, uri);
+            } catch (IOException e) {
+                error = e.getMessage();
+                if (error == null) error = "Could not install the driver package.";
+            }
+
+            final String finalError = error;
+            final String finalSelected = selected;
+            runOnUiThread(() -> {
+                installingDriver = false;
+                driverInstallButton.setEnabled(true);
+                progressBar.setVisibility(View.GONE);
+                if (finalError != null) {
+                    Toast.makeText(this, finalError, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this,
+                            "Driver \"" + finalSelected + "\" installed — takes effect on the next launch.",
+                            Toast.LENGTH_LONG).show();
+                }
+                refreshStatus();
+                refreshDriverCard();
+            });
+        }).start();
+    }
+
+    private void toggleCompatMode() {
+        DriverManager.Status status = DriverManager.getStatus(this);
+        try {
+            DriverManager.setCompatMode(this, !status.compatMode);
+        } catch (IOException e) {
+            Toast.makeText(this, "Could not update compatibility mode.", Toast.LENGTH_SHORT).show();
+        }
+        refreshDriverCard();
+    }
+
+    private void reEnableDriver() {
+        DriverManager.reEnableDisabledDriver(this);
+        Toast.makeText(this, "Turnip driver re-enabled — takes effect on the next launch.",
+                Toast.LENGTH_SHORT).show();
+        refreshDriverCard();
+    }
+
+    private void confirmUseSystemDriver() {
+        new AlertDialog.Builder(this)
+            .setTitle("Use System Driver")
+            .setMessage("Stop using the custom Turnip driver and boot the game with the "
+                    + "vendor Vulkan driver instead?\n\nInstalled driver files are kept; "
+                    + "you can re-install a package at any time.")
+            .setPositiveButton("Use System Driver", (d, w) -> {
+                DriverManager.useSystemDriver(this);
+                refreshDriverCard();
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
     // ── game file management ──────────────────────────────────────────────────
@@ -383,6 +605,11 @@ public final class LauncherActivity extends Activity {
                 getContentResolver().takePersistableUriPermission(treeUri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 copyGameFiles(treeUri);
+            }
+        } else if (requestCode == REQUEST_DRIVER_ZIP && resultCode == Activity.RESULT_OK && data != null) {
+            Uri zipUri = data.getData();
+            if (zipUri != null) {
+                installDriverZip(zipUri);
             }
         }
     }
