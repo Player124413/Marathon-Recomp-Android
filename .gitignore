@@ -411,3 +411,7 @@ android-apk/local.properties
 
 # Prebuilt libmain.so copied in by build-android.sh (build output, not source)
 android-apk/app/jniLibs/
+
+# Gradle/Android Studio build state (was accidentally committed; regenerated on every build)
+android-apk/.gradle/
+android-apk/app/build/

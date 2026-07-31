@@ -34,6 +34,17 @@ _ci_fail_trap() {
 }
 trap _ci_fail_trap EXIT
 
+# Same channel, but for successful runs: surface key facts about the produced
+# APK (which native libs got packaged, compressed or not) so CI runs are
+# debuggable without log/artifact blob access.
+_ci_notice() {
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    local ENC
+    ENC="$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' | head -c 7000)"
+    printf '\n::notice title=%s::%s\n' "$1" "$ENC"
+  fi
+}
+
 SKIP_NATIVE=false
 for arg in "$@"; do
   case "$arg" in
@@ -136,6 +147,8 @@ else
   echo "    Supply your Xbox 360 game dump and re-run to produce the full APK."
 fi
 
+JNI_BYTES=0
+JNI_SHA="absent"
 if [[ -f "$JNI_LIB" ]]; then
   JNI_BYTES="$(stat -c '%s' "$JNI_LIB")"
   JNI_SHA="$(sha256sum "$JNI_LIB" | awk '{print $1}')"
@@ -154,6 +167,10 @@ echo "▶ Stage 3: Gradle assembleDebug"
 
 cd "$WORKSPACE/android-apk"
 chmod +x gradlew
+
+# Old gradle outputs/intermediates were accidentally committed to the repo at
+# some point; wipe them so packaging can never pick up stale state.
+rm -rf "$WORKSPACE/android-apk/app/build" "$WORKSPACE/android-apk/.gradle"
 
 export PATH="$SDK/build-tools/34.0.0:$SDK/platform-tools:$PATH"
 
@@ -185,13 +202,28 @@ if [[ -f "$APK" ]]; then
   echo "  Packaged ARM64 libmain.so: ${PACKAGED_LIB_BYTES} bytes"
   echo "  Packaged ARM64 lib SHA-256: $PACKAGED_LIB_SHA"
 
-  # Hard gate: an APK without the game engine library is useless but was
-  # previously reported as "BUILD SUCCESSFUL" (the 2026-07-31 CI run that
-  # produced a ~51 MB artifact proving libmain.so was silently absent).
-  if [[ "$PACKAGED_LIB_BYTES" -eq 0 ]] && ! $SKIP_NATIVE; then
+  # Surface the native-lib packaging facts as a workflow annotation so CI runs
+  # are inspectable without artifact/log access. If the packaged lib differs
+  # from the staged one (size+sha), Gradle stripped it — that is fine for
+  # running, but good to know when comparing builds.
+  APK_LIB_REPORT="$(
+    echo "APK: ${APK_BYTES} bytes, sha256 $APK_SHA"
+    echo "staged  libmain.so: ${JNI_BYTES} bytes, sha256 $JNI_SHA"
+    echo "packaged lib/arm64-v8a/libmain.so: ${PACKAGED_LIB_BYTES} bytes, sha256 $PACKAGED_LIB_SHA"
+    echo "--- lib/ entries in APK (uncompressed_bytes method compressed_bytes name) ---"
+    unzip -lv "$APK" 'lib/*' 2>/dev/null | grep -E ' lib/' | awk '{print $1, $2, $3, $8}' | head -40
+  )"
+  echo "$APK_LIB_REPORT"
+  _ci_notice "APK native libraries" "$APK_LIB_REPORT"
+
+  # Hard gate: if build-android.sh staged a libmain.so for packaging, the APK
+  # MUST contain it. (Previously gated on "! --skip-native", which is exactly
+  # backwards: --skip-native is the CI path where the staged lib exists and
+  # packaging must be verified.)
+  if [[ "$PACKAGED_LIB_BYTES" -eq 0 ]] && [[ -f "$JNI_LIB" ]]; then
     echo ""
-    echo "✘ FATAL: APK was built but does NOT contain lib/arm64-v8a/libmain.so" >&2
-    echo "  jniLibs staging: $JNI_LIB ($([ -f \"$JNI_LIB\" ] && stat -c '%s' \"$JNI_LIB\" || echo MISSING) bytes)" >&2
+    echo "✘ FATAL: staged libmain.so exists but the APK does NOT contain lib/arm64-v8a/libmain.so" >&2
+    echo "  jniLibs staging: $JNI_LIB ($JNI_BYTES bytes)" >&2
     echo "  Check the Gradle sourceSets jniLibs.srcDirs / packagingOptions wiring." >&2
     exit 1
   fi
