@@ -152,12 +152,15 @@ This round:
   copies the libadrenotools hook libraries (`libmain_hook.so`,
   `libhook_impl.so`, `libfile_redirect_hook.so`, `libgsl_alloc_hook.so`) used
   by the custom Turnip driver loader — they are dlopen'ed by name from
-  `nativeLibraryDir` at runtime, so the APK uses `useLegacyPackaging true`.
+  `nativeLibraryDir` at runtime, so the manifest now sets
+  `android:extractNativeLibs="true"` explicitly (extract NativeLibs=true
+  guarantees real files on disk; `useLegacyPackaging` alone turned out not
+  to be honored by AGP 8.5 — see .agents/memory/apk-libs-gradle-strip-legacy.md).
 - Added `android-apk/app/jniLibs/` to `.gitignore` (build output).
-- Not done: no Android SDK/Gradle wrapper JDK is available in this
-  container to actually run `./gradlew assembleDebug` and confirm the APK
-  packages correctly — that's unverified until tried on a machine with the
-  Android SDK, or the user's own machine/CI.
+- APK packaging is CI-verified (run 30643170884, PR #1): the debug APK
+  contains the engine (Gradle strips it: 322 MB → 140 MB packaged) plus all
+  four adrenotools hook libs under lib/arm64-v8a/. What remains unverified
+  is only the on-device Turnip runtime behavior itself (needs a phone).
 
 ### Launcher gate (new, modeled on UnleashedRecomp-Android)
 The app now has a proper two-activity structure so it never silently tries to

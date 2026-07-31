@@ -210,6 +210,15 @@ if [[ -f "$APK" ]]; then
     echo "APK: ${APK_BYTES} bytes, sha256 $APK_SHA"
     echo "staged  libmain.so: ${JNI_BYTES} bytes, sha256 $JNI_SHA"
     echo "packaged lib/arm64-v8a/libmain.so: ${PACKAGED_LIB_BYTES} bytes, sha256 $PACKAGED_LIB_SHA"
+    echo "--- merged manifest facts ---"
+    AAPT2="$(find "$SDK/build-tools" -name aapt2 -type f 2>/dev/null | head -1)"
+    if [[ -n "$AAPT2" ]]; then
+      "$AAPT2" dump packagename "$APK" 2>/dev/null
+      "$AAPT2" dump xmltree --file AndroidManifest.xml "$APK" 2>/dev/null \
+        | grep -iE 'extractNativeLibs|versionName' | head -5
+    else
+      echo "aapt2 not found under $SDK/build-tools"
+    fi
     echo "--- lib/ entries in APK (uncompressed_bytes method compressed_bytes name) ---"
     unzip -lv "$APK" 'lib/*' 2>/dev/null | grep -E ' lib/' | awk '{print $1, $2, $3, $8}' | head -40
   )"

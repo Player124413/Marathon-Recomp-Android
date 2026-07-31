@@ -82,8 +82,15 @@ Key pieces:
   moved ahead of the SDL one because `SDL_Vulkan_CreateSurface` always binds
   to the **system** loader and cannot work with a custom driver's instance.
 - `android-apk` — `LauncherActivity`/`DriverManager` (zip import UI), and
-  `useLegacyPackaging true` in `build.gradle` so the hook libraries exist as
-  real files under `nativeLibraryDir` (adrenotools `dlopen`s them by name).
+  `android:extractNativeLibs="true"` (explicit) in `AndroidManifest.xml` so
+  the PackageManager extracts the APK's native libs at install: the hook
+  libraries must exist as real files under `nativeLibraryDir` (adrenotools
+  `dlopen`s them by path). (`packagingOptions.jniLibs.useLegacyPackaging`
+  was also set in `build.gradle`, but AGP 8.5 emits `Defl` zip entries
+  anyway — verified on CI run 30643170884 — so the manifest attribute is
+  the actual guarantee; extraction works fine with deflated entries.)
+  Also note: AGP **strips debug symbols** from `jniLibs` while packaging
+  (322 MB `libmain.so` → 140 MB in the APK; runtime unaffected).
 - `build-android.sh` — copies `libmain_hook.so`, `libhook_impl.so`,
   `libfile_redirect_hook.so`, `libgsl_alloc_hook.so` from the build tree into
   `android-apk/app/jniLibs/arm64-v8a/` so Gradle packages them.

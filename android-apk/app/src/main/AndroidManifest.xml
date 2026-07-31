@@ -40,11 +40,21 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
+    <!--
+      android:extractNativeLibs="true" (explicit): libadrenotools loads its
+      hook libraries (libhook_impl.so / libmain_hook.so) by real file path
+      from ApplicationInfo.nativeLibraryDir, which requires the PackageManager
+      to extract the APK's native libs onto disk at install time. The
+      attribute defaults to true, but we state it explicitly because the
+      custom Vulkan (Turnip) driver loading depends on it - if anything ever
+      flips it to false the Turnip feature silently breaks.
+    -->
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:hardwareAccelerated="true"
+        android:extractNativeLibs="true"
         android:theme="@style/AppTheme"
         android:resizeableActivity="false">
 
