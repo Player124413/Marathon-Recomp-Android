@@ -364,12 +364,17 @@ void *AndroidGetCustomVulkanLoader()
     if (g_loadedGetInstanceProcAddr != nullptr)
         return g_loadedGetInstanceProcAddr;
 
-    const std::string turnipDir = GetTurnipDir();
-    if (turnipDir.empty())
+    const std::string turnipDirStr = GetTurnipDir();
+    if (turnipDirStr.empty())
     {
         LOG_ERROR("Internal storage path unavailable, cannot set up the custom Vulkan driver.");
         return nullptr;
     }
+
+    // NOTE: std::string does NOT implicitly convert to std::filesystem::path
+    // for operator/ under the NDK libc++ (operator/ needs a path LHS), so keep
+    // both forms: path for joins, string for the adrenotools dir concat.
+    const std::filesystem::path turnipDir(turnipDirStr);
 
     std::error_code ec;
     std::filesystem::create_directories(turnipDir, ec);
@@ -418,7 +423,7 @@ void *AndroidGetCustomVulkanLoader()
             driverName, gpuDescription);
     }
 
-    const std::string driverPath = turnipDir + driverName;
+    const std::string driverPath = (turnipDir / driverName).string();
     struct stat buf {};
     if (stat(driverPath.c_str(), &buf) != 0)
     {
@@ -448,7 +453,7 @@ void *AndroidGetCustomVulkanLoader()
         ADRENOTOOLS_DRIVER_CUSTOM,
         nullptr, // tmpLibDir: unused on API >= 29 (memfd is used instead)
         nativeLibraryDir.c_str(),
-        turnipDir.c_str(),
+        turnipDirStr.c_str(),
         driverName.c_str(),
         nullptr,
         nullptr);
