@@ -228,26 +228,3 @@ jobs:
           name: MarathonRecomp-Android-libmain
           path: android-apk/app/jniLibs/arm64-v8a/libmain.so
           if-no-files-found: warn
-
-      # ── Publish a GitHub release with the APK ────────────────────────────────
-      - name: Create release with APK
-        if: success() && steps.build-apk.conclusion == 'success' && github.event_name != 'pull_request'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="ci-build.${GITHUB_RUN_NUMBER}"
-          RELEASE_NOTES_FILE=/tmp/release-notes.md
-          {
-            echo "Automated CI build of the Android APK."
-            echo ""
-            echo "- Commit: \`$GITHUB_SHA\`"
-            echo "- Branch: \`$GITHUB_REF_NAME\`"
-            echo "- Run: [$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
-            echo ""
-            echo "Install \`app-debug.apk\` on your Android device and copy your game files via the launcher."
-          } > "$RELEASE_NOTES_FILE"
-          gh release create "$TAG" \
-            --title "Android CI build $GITHUB_RUN_NUMBER (${GITHUB_SHA:0:7})" \
-            --notes-file "$RELEASE_NOTES_FILE" \
-            --target "$GITHUB_SHA" \
-            android-apk/app/build/outputs/apk/debug/app-debug.apk
