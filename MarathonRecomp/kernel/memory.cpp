@@ -80,7 +80,7 @@ extern "C" int MarathonDescribeGuestState(char* buf, size_t size)
 // crash report says nothing at all about where the game actually was. Turning
 // it into a message that names the guest address makes it directly actionable:
 // the address can be looked up in the XEX to find the missing function.
-extern "C" void PPCReportMissingIndirectFunction(unsigned int guestAddress)
+extern "C" [[noreturn]] void PPCReportMissingIndirectFunction(unsigned int guestAddress)
 {
     const bool inCodeRange =
         guestAddress >= PPC_CODE_BASE &&

@@ -114,7 +114,7 @@
 // Reports an indirect call through a null function-table entry and does not
 // return. Implemented in MarathonRecomp (kernel/function.cpp); the weak
 // fallback in ppc_func_mapping.cpp covers the standalone test harnesses.
-extern "C" void PPCReportMissingIndirectFunction(unsigned int guestAddress);
+extern "C" [[noreturn]] void PPCReportMissingIndirectFunction(unsigned int guestAddress);
 
 #ifndef PPC_CALL_INDIRECT_FUNC
 // The recompiled game reaches an indirect branch (bctrl/blr through a computed

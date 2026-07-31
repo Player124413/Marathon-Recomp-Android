@@ -5,6 +5,11 @@
 #define MEM_RESERVE 0x00002000  
 #endif
 
+// Implemented in kernel/memory.cpp. Reports an attempt to call a guest address
+// that has no recompiled function and does not return (it aborts, so the crash
+// reporter records the guest address instead of a bare "SIGSEGV pc=0").
+extern "C" [[noreturn]] void PPCReportMissingIndirectFunction(unsigned int guestAddress);
+
 struct Memory
 {
     uint8_t* base{};
@@ -34,7 +39,19 @@ struct Memory
 
     PPCFunc* FindFunction(uint32_t guest) const noexcept
     {
-        return PPC_LOOKUP_FUNC(base, guest);
+        PPCFunc* func = PPC_LOOKUP_FUNC(base, guest);
+
+        // Same failure as PPC_CALL_INDIRECT_FUNC, but for the paths that look a
+        // guest function up by hand instead of going through the generated
+        // macro: GuestThread::Start (every ExCreateThread), GuestToHostFunction
+        // (host code calling back into the game) and the XAudio client
+        // callback. A null here was called straight away, jumping to host
+        // address 0 - the "SIGSEGV pc=0 with an empty stack" crash, with no
+        // indication of which guest address was missing.
+        if (func == nullptr) [[unlikely]]
+            PPCReportMissingIndirectFunction(guest);
+
+        return func;
     }
 
     void InsertFunction(uint32_t guest, PPCFunc* host)

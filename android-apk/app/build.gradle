@@ -18,8 +18,8 @@ android {
         }
         minSdkVersion 28
         targetSdkVersion 34
-        versionCode 7
-        versionName "1.0.5-android-diag2"
+        versionCode 8
+        versionName "1.0.6-android-diag3"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

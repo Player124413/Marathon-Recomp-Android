@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <signal.h>
+#include <ucontext.h>
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
@@ -154,7 +155,68 @@ static _Unwind_Reason_Code UnwindCallback(struct _Unwind_Context* ctx, void* arg
 
 // ─── Core crash-report writer ─────────────────────────────────────────────────
 
-static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
+// Formats the faulting CPU state taken from the signal's ucontext.
+//
+// This is the single most important line in the report, and it was being
+// thrown away: the handler received the ucontext and ignored it. The stack
+// trace cannot substitute for it, because _Unwind_Backtrace cannot step
+// through the kernel's signal frame - every report therefore ends at
+// __kernel_rt_sigreturn and never shows the faulting function. The ucontext
+// holds the exact PC where the fault happened, plus LR (the return address of
+// whoever called it), which together identify the crash site precisely.
+static void FormatFaultContext(void* ucontextRaw, char* out, size_t outSize)
+{
+    out[0] = '\0';
+
+    if (ucontextRaw == nullptr)
+        return;
+
+#if defined(__aarch64__)
+    const ucontext_t* uc = static_cast<const ucontext_t*>(ucontextRaw);
+    const mcontext_t& mc = uc->uc_mcontext;
+
+    snprintf(out, outSize,
+        "pc=0x%016llx lr=0x%016llx sp=0x%016llx x0=0x%016llx x1=0x%016llx x2=0x%016llx",
+        (unsigned long long)mc.pc,
+        (unsigned long long)mc.regs[30],
+        (unsigned long long)mc.sp,
+        (unsigned long long)mc.regs[0],
+        (unsigned long long)mc.regs[1],
+        (unsigned long long)mc.regs[2]);
+#else
+    (void)outSize;
+#endif
+}
+
+// Resolves a host address to "library + offset (symbol)". The raw PC alone is
+// useless once ASLR is in play; the offset is what can be fed to addr2line.
+static void FormatAddressLocation(uintptr_t addr, char* out, size_t outSize)
+{
+    out[0] = '\0';
+
+    if (addr == 0)
+    {
+        snprintf(out, outSize, "address 0 (a call through a null function pointer)");
+        return;
+    }
+
+    Dl_info info{};
+    if (dladdr(reinterpret_cast<void*>(addr), &info) && info.dli_fname != nullptr)
+    {
+        const uintptr_t base = reinterpret_cast<uintptr_t>(info.dli_fbase);
+        snprintf(out, outSize, "%s + 0x%llx%s%s",
+            info.dli_fname,
+            (unsigned long long)(addr - base),
+            info.dli_sname ? "  in " : "",
+            info.dli_sname ? info.dli_sname : "");
+    }
+    else
+    {
+        snprintf(out, outSize, "unmapped address (not inside any loaded library)");
+    }
+}
+
+static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate, void* ucontextRaw = nullptr)
 {
     // ── Timestamp ──
     char tsBuf[64] = "<unknown time>";
@@ -192,6 +254,30 @@ static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
         if (si && (signum == SIGSEGV || signum == SIGBUS))
             __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG,
                 "FaultAt  : 0x%016" PRIxPTR, (uintptr_t)si->si_addr);
+    }
+
+    // ── Faulting CPU state (from ucontext) ──
+    // Printed before everything else: with the signal frame blocking the
+    // unwinder, this is the only reliable indication of where the crash was.
+    char faultCtx[256] = {};
+    char pcLocation[320] = {};
+    char lrLocation[320] = {};
+    FormatFaultContext(ucontextRaw, faultCtx, sizeof(faultCtx));
+
+#if defined(__aarch64__)
+    if (ucontextRaw != nullptr)
+    {
+        const ucontext_t* uc = static_cast<const ucontext_t*>(ucontextRaw);
+        FormatAddressLocation((uintptr_t)uc->uc_mcontext.pc, pcLocation, sizeof(pcLocation));
+        FormatAddressLocation((uintptr_t)uc->uc_mcontext.regs[30], lrLocation, sizeof(lrLocation));
+    }
+#endif
+
+    if (faultCtx[0])
+    {
+        __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG, "Registers: %s", faultCtx);
+        __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG, "PC       : %s", pcLocation);
+        __android_log_print(ANDROID_LOG_FATAL, CRASH_TAG, "LR       : %s", lrLocation);
     }
 
     // ── Guest CPU state ──
@@ -291,6 +377,13 @@ static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
                 FdWrite(fd, "\n");
             }
 
+            if (faultCtx[0])
+            {
+                FdWrite(fd, "Registers: "); FdWrite(fd, faultCtx);   FdWrite(fd, "\n");
+                FdWrite(fd, "PC       : "); FdWrite(fd, pcLocation); FdWrite(fd, "\n");
+                FdWrite(fd, "LR       : "); FdWrite(fd, lrLocation); FdWrite(fd, "\n");
+            }
+
             if (guestStateLen > 0)
             {
                 FdWrite(fd, "Guest    : ");
@@ -370,7 +463,7 @@ static void WriteCrashReport(int signum, siginfo_t* si, bool fromTerminate)
 
 // ─── Signal handler ───────────────────────────────────────────────────────────
 
-static void CrashSignalHandler(int signum, siginfo_t* si, void* /*ucontext*/)
+static void CrashSignalHandler(int signum, siginfo_t* si, void* ucontextRaw)
 {
     // Restore previous handlers for all caught signals before doing anything
     // else.  SA_RESETHAND already resets *this* signal, but we also restore
@@ -379,7 +472,7 @@ static void CrashSignalHandler(int signum, siginfo_t* si, void* /*ucontext*/)
     for (int s : kSignals)
         sigaction(s, &s_oldHandlers[s], nullptr);
 
-    WriteCrashReport(signum, si, false);
+    WriteCrashReport(signum, si, false, ucontextRaw);
 
     // Re-raise through the now-restored (default) handler so the OS generates
     // a tombstone / coredump normally.
