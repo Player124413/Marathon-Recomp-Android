@@ -184,6 +184,17 @@ if [[ -f "$APK" ]]; then
   echo "  APK SHA-256: $APK_SHA"
   echo "  Packaged ARM64 libmain.so: ${PACKAGED_LIB_BYTES} bytes"
   echo "  Packaged ARM64 lib SHA-256: $PACKAGED_LIB_SHA"
+
+  # Hard gate: an APK without the game engine library is useless but was
+  # previously reported as "BUILD SUCCESSFUL" (the 2026-07-31 CI run that
+  # produced a ~51 MB artifact proving libmain.so was silently absent).
+  if [[ "$PACKAGED_LIB_BYTES" -eq 0 ]] && ! $SKIP_NATIVE; then
+    echo ""
+    echo "✘ FATAL: APK was built but does NOT contain lib/arm64-v8a/libmain.so" >&2
+    echo "  jniLibs staging: $JNI_LIB ($([ -f \"$JNI_LIB\" ] && stat -c '%s' \"$JNI_LIB\" || echo MISSING) bytes)" >&2
+    echo "  Check the Gradle sourceSets jniLibs.srcDirs / packagingOptions wiring." >&2
+    exit 1
+  fi
 else
   echo "╔══════════════════════════════════════════════════════════╗"
   echo "║  ✘  BUILD FAILED — APK not produced                     ║"
