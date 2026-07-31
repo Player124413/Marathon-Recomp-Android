@@ -14,6 +14,24 @@ WORKSPACE="$(cd "$(dirname "$0")" && pwd)"
 NDK="$WORKSPACE/.ndk-tools/android-ndk-r27c"
 LLVM_BIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
+# CI self-diagnostics: runners' artifact/log blobs are not always reachable
+# from outside GitHub, so on failure also emit the tail of the shared build
+# log as a workflow annotation (::error::) - those are visible on the run
+# page and via the REST API immediately.
+_ci_fail_trap() {
+  local rc=$?
+  if [[ $rc -ne 0 && -n "${GITHUB_ACTIONS:-}" ]]; then
+    local LOG="${BUILD_LOG:-$WORKSPACE/build-logs/build.log}"
+    if [[ -f "$LOG" ]]; then
+      local ENC
+      ENC="$(tail -c 5000 "$LOG" | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' | head -c 7000)"
+      printf '\n::error title=build-android.sh exited %d (last log chunk)::%s\n' "$rc" "$ENC"
+    fi
+  fi
+  return 0
+}
+trap _ci_fail_trap EXIT
+
 if [[ ! -d "$NDK" ]]; then
   echo "ERROR: NDK not found at $NDK"
   echo "Run: mkdir -p .ndk-tools && cd .ndk-tools && curl -sL -o ndk.zip https://dl.google.com/android/repository/android-ndk-r27c-linux.zip && unzip -q ndk.zip && rm ndk.zip"

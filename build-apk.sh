@@ -15,6 +15,25 @@
 #
 set -euo pipefail
 
+# CI self-diagnostics: emit the tail of the shared build log as a workflow
+# annotation on failure (artifact blobs are not always reachable externally;
+# annotations always are).
+_ci_fail_trap() {
+  local rc=$?
+  if [[ $rc -ne 0 && -n "${GITHUB_ACTIONS:-}" ]]; then
+    local WORKSPACE_DIR
+    WORKSPACE_DIR="$(cd "$(dirname "$0")" && pwd)"
+    local LOG="${BUILD_LOG:-$WORKSPACE_DIR/build-logs/build.log}"
+    if [[ -f "$LOG" ]]; then
+      local ENC
+      ENC="$(tail -c 5000 "$LOG" | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' | head -c 7000)"
+      printf '\n::error title=build-apk.sh exited %d (last log chunk)::%s\n' "$rc" "$ENC"
+    fi
+  fi
+  return 0
+}
+trap _ci_fail_trap EXIT
+
 SKIP_NATIVE=false
 for arg in "$@"; do
   case "$arg" in
