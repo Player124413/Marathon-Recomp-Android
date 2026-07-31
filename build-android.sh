@@ -27,6 +27,35 @@ export ANDROID_NDK_HOME="$NDK"
 export ANDROID_NDK_ROOT="$NDK"
 export ANDROID_NDK="$NDK"
 
+# MarathonRecompResources is a git submodule holding ~70 MB of UI resources
+# (fonts/images/sounds/music) that BIN2C embeds into libmain.so. CI checks the
+# repository out with submodules:false (and the workflow YAML lives outside
+# this branch's reach), so an absent checkout previously made ninja die
+# instantly with "missing and no known rule to make it" deep into the
+# "Build native library" step. Fetch the pinned snapshot straight from
+# codeload instead - works on shallow clones and needs no LFS.
+MRR_DIR="$WORKSPACE/MarathonRecompResources"
+MRR_SENTINEL="$MRR_DIR/images/game_icon.bmp"
+if [[ ! -f "$MRR_SENTINEL" ]]; then
+  # Prefer the exact commit recorded in the index's gitlink; fall back to the
+  # pin this script was written against.
+  MRR_PIN="$(git -C "$WORKSPACE" ls-tree HEAD MarathonRecompResources 2>/dev/null | awk '{print $3}')"
+  MRR_PIN="${MRR_PIN:-763b3f8b5f37c77e6737d15dd31b28badd6d69a5}"
+  echo "==> MarathonRecompResources missing; fetching pinned snapshot $MRR_PIN"
+  mkdir -p "$MRR_DIR"
+  MRR_TMP="$(mktemp -d)"
+  curl -fsSL --retry 3 -o "$MRR_TMP/mrr.tar.gz" \
+    "https://codeload.github.com/sonicnext-dev/MarathonRecompResources/tar.gz/$MRR_PIN"
+  tar -xzf "$MRR_TMP/mrr.tar.gz" --strip-components=1 -C "$MRR_DIR"
+  rm -rf "$MRR_TMP"
+  if [[ ! -f "$MRR_SENTINEL" ]]; then
+    echo "ERROR: MarathonRecompResources could not be fetched." >&2
+    echo "       CMake's BIN2C steps embed these files; without them the build cannot proceed." >&2
+    exit 1
+  fi
+  echo "==> MarathonRecompResources populated"
+fi
+
 PRESET="android-debug"
 DO_CONFIGURE=true
 DO_BUILD=true

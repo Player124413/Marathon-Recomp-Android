@@ -302,3 +302,20 @@ jobs:
 GitHub disables Actions on newly-created forks. In that case the owner must
 open the **Actions** tab once and press **"I understand my workflows, enable
 them"** before any workflow can run — API tokens cannot flip that switch.
+
+## Post-mortem: the "Build native library (.so files)" failure (2026-07-31)
+
+All `build-apk.yml` runs (mymes1's repo and this fork) died within ~5 minutes
+at the native build step. Root cause: **the checkout uses `submodules: false`,
+so the `MarathonRecompResources` gitlink (~70 MB of fonts/images/sounds/music
+that `MarathonRecomp/CMakeLists.txt`'s `BIN2C` steps embed into libmain.so)
+was an empty directory**, and `ninja` fails instantly with "missing and no
+known rule to make it" against the generated resource sources. mymes1's local
+Replit builds had the submodule checked out, which is why the released APKs
+exist at all.
+
+Fixed in `build-android.sh`: when the sentinel file
+`MarathonRecompResources/images/game_icon.bmp` is missing, the pinned commit
+is read from the index's gitlink and the snapshot is fetched + extracted from
+`https://codeload.github.com/sonicnext-dev/MarathonRecompResources/tar.gz/<sha>`
+— no submodule protocol, no LFS, works on shallow clones.
