@@ -11,5 +11,5 @@ const char* g_commitHashShort = "29855feb3";
 const char* g_versionMilestone = "";
 size_t g_versionMajor = 1;
 size_t g_versionMinor = 0;
-size_t g_versionRevision = 0;
-const char* g_versionString = "v1.0.0.29855feb3-main (Debug)";
+size_t g_versionRevision = 3;
+const char* g_versionString = "v1.0.3";
