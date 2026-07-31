@@ -9,6 +9,7 @@
 #include <cpu/guest_thread.h>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <decompressor.h>
 #include <kernel/function.h>
 #include <kernel/heap.h>
@@ -548,17 +549,135 @@ struct UploadBuffer
     std::unique_ptr<RenderBuffer> buffer;
     uint8_t* memory = nullptr;
     uint64_t deviceAddress = 0;
+    size_t capacity = 0;
 };
 
 struct UploadAllocator
 {
     std::vector<UploadBuffer> buffers;
+    std::vector<UploadBuffer> oversizedBuffers;
+    UploadBuffer emergencyBuffer;
     uint32_t index = 0;
     uint32_t offset = 0;
 
+    // Throttled counters so an out-of-memory storm doesn't flood the log file.
+    static inline uint32_t s_chunkFailLogCount = 0;
+    static inline uint32_t s_fallbackLogCount = 0;
+
+    void createChunk(UploadBuffer& buffer, size_t size)
+    {
+        buffer.buffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(size, RenderBufferFlag::CONSTANT | RenderBufferFlag::VERTEX | RenderBufferFlag::INDEX | RenderBufferFlag::DEVICE_ADDRESSABLE));
+
+        if (buffer.buffer == nullptr || !buffer.buffer->isValid())
+        {
+            // vmaCreateBuffer failed (VK_ERROR_OUT_OF_DEVICE_MEMORY on memory
+            // constrained devices). plume only prints to logcat there, so log
+            // the failure here too — this is visible in _game_log.txt.
+            if (s_chunkFailLogCount < 8)
+            {
+                ++s_chunkFailLogCount;
+                LOGF_ERROR("UploadAllocator: failed to create a {} MiB upload buffer (out of device memory?); will fall back to reusing older chunks. Total chunks held: {} + {} oversized.", size / (1024 * 1024), buffers.size(), oversizedBuffers.size());
+            }
+            buffer.buffer.reset();
+            buffer.memory = nullptr;
+            buffer.deviceAddress = 0;
+            buffer.capacity = 0;
+            return;
+        }
+
+        buffer.memory = reinterpret_cast<uint8_t*>(buffer.buffer->map());
+        buffer.deviceAddress = buffer.buffer->getDeviceAddress();
+
+        if (buffer.memory == nullptr)
+        {
+            if (s_chunkFailLogCount < 8)
+            {
+                ++s_chunkFailLogCount;
+                LOGF_ERROR("UploadAllocator: failed to map a {} MiB upload buffer.", size / (1024 * 1024));
+            }
+            buffer.capacity = 0;
+            return;
+        }
+
+        buffer.capacity = size;
+    }
+
+    // Called when a fresh chunk could not be created. Serving slightly stale
+    // or garbage GPU data is vastly preferable to the null dereference that
+    // used to SIGSEGV with pc=0 (which looked like an empty, untraceable
+    // crash on the device). MUST return a pointer-range capable of holding the
+    // full requested size — callers memcpy into it unconditionally.
+    UploadAllocation allocateFallback(uint32_t size)
+    {
+        if (s_fallbackLogCount < 8)
+        {
+            ++s_fallbackLogCount;
+            LOGF_ERROR("UploadAllocator: device memory exhausted; reusing an older/emergency upload chunk (expect visual corruption rather than a crash). Requested {} bytes.", size);
+        }
+
+        const bool oversized = size > UploadBuffer::SIZE;
+        auto& pool = oversized ? oversizedBuffers : buffers;
+
+        for (auto& candidate : pool)
+        {
+            if (candidate.buffer != nullptr && candidate.buffer->isValid() && candidate.memory != nullptr && candidate.capacity >= size)
+            {
+                auto ref = candidate.buffer->at(0);
+                return { ref.ref, ref.offset, candidate.memory, candidate.deviceAddress };
+            }
+        }
+
+        // Nothing reusable. Give the allocator exactly one more chance:
+        // a permanent emergency chunk for regular uploads (kept for the whole
+        // session — command lists from previous frames may still reference
+        // it), or one more dedicated chunk for oversized uploads.
+        UploadBuffer* target = nullptr;
+        if (oversized)
+        {
+            oversizedBuffers.resize(oversizedBuffers.size() + 1);
+            target = &oversizedBuffers.back();
+        }
+        else if (emergencyBuffer.buffer == nullptr || !emergencyBuffer.buffer->isValid())
+        {
+            target = &emergencyBuffer;
+        }
+
+        if (target != nullptr)
+            createChunk(*target, oversized ? size : UploadBuffer::SIZE);
+
+        if (target != nullptr && target->memory != nullptr && target->capacity >= size)
+        {
+            auto ref = target->buffer->at(0);
+            return { ref.ref, ref.offset, target->memory, target->deviceAddress };
+        }
+
+        LOGF_ERROR("UploadAllocator: no upload memory could be allocated at all ({} bytes requested) — the device heap is exhausted. Aborting cleanly instead of segfaulting; see the earlier log lines for the failing sizes.", size);
+        std::abort();
+    }
+
     UploadAllocation allocate(uint32_t size, uint32_t alignment)
     {
-        assert(size <= UploadBuffer::SIZE);
+        // The assert() used to be the only guard — and it is compiled out in
+        // release builds, allowing a large upload to silently overflow a chunk
+        // and corrupt memory far away from the real cause. Handle it properly.
+        if (size > UploadBuffer::SIZE)
+        {
+            if (s_chunkFailLogCount < 8)
+            {
+                ++s_chunkFailLogCount;
+                LOGF_ERROR("UploadAllocator: single upload of {} bytes exceeds the {} MiB chunk size; allocating a dedicated buffer.", size, UploadBuffer::SIZE / (1024 * 1024));
+            }
+
+            oversizedBuffers.resize(oversizedBuffers.size() + 1);
+            auto& oversizedBuffer = oversizedBuffers.back();
+            createChunk(oversizedBuffer, size);
+
+            if (oversizedBuffer.memory == nullptr)
+                return allocateFallback(size);
+
+            auto oversizedRef = oversizedBuffer.buffer->at(0);
+            return { oversizedRef.ref, oversizedRef.offset, oversizedBuffer.memory, oversizedBuffer.deviceAddress };
+        }
 
         offset = (offset + alignment - 1) & ~(alignment - 1);
 
@@ -574,11 +693,11 @@ struct UploadAllocator
         auto& buffer = buffers[index];
         if (buffer.buffer == nullptr)
         {
-            buffer.buffer = g_device->createBuffer(RenderBufferDesc::UploadBuffer(UploadBuffer::SIZE, RenderBufferFlag::CONSTANT | RenderBufferFlag::VERTEX | RenderBufferFlag::INDEX | RenderBufferFlag::DEVICE_ADDRESSABLE));
-            buffer.memory = reinterpret_cast<uint8_t*>(buffer.buffer->map());
-            buffer.deviceAddress = buffer.buffer->getDeviceAddress();
+            createChunk(buffer, UploadBuffer::SIZE);
+            if (buffer.memory == nullptr)
+                return allocateFallback(size);
         }
-        
+
         auto ref = buffer.buffer->at(offset);
         offset += size;
 
@@ -611,6 +730,22 @@ struct UploadAllocator
 
     void reset()
     {
+        // Burst shrink: archive-loading bursts can push this pool to dozens of
+        // chunks (16 MiB each) for a single frame. Without shrinking, that
+        // peak capacity is retained for the whole session, permanently
+        // reserving hundreds of megabytes of GPU memory — which is exactly
+        // what takes memory-constrained devices into VK_ERROR_OUT_OF_DEVICE_
+        // MEMORY territory. reset() runs only after this frame slot's fence
+        // was waited on, so destroyed chunks are no longer in flight.
+        const uint32_t used = (offset != 0 || index != 0) ? (index + 1) : 0;
+        constexpr uint32_t SPARE = 2;           // keep used + 2 chunks (32 MiB)
+        constexpr uint32_t SHRINK_THRESHOLD = 4; // act only on >= 4 excess chunks
+
+        if (buffers.size() > used + SPARE + SHRINK_THRESHOLD)
+            buffers.resize(used + SPARE);
+
+        oversizedBuffers.clear();
+
         index = 0;
         offset = 0;
     }

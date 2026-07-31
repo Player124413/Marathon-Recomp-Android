@@ -508,3 +508,37 @@ void AndroidMarkVulkanStartupSuccessful()
     std::error_code ec;
     std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", ec);
 }
+
+// plume (thirdparty/plume/plume_vulkan.cpp) reports its internal failures via
+// PLUME_LOG* to logcat only, and end users can neither see nor share logcat
+// when debugging a crash. plume calls this hook (Android only) to mirror the
+// meaningful lines - Vulkan memory layout at device creation and every VMA
+// allocation failure - into the game's own log file (_game_log.txt).
+extern "C" void MarathonPlumeGameLog(int isError, const char *message)
+{
+    if (message == nullptr || *message == '\0')
+        return;
+
+    // One call may carry several newline-separated lines; split so each line
+    // is logged through the engine logger with proper log-type tagging.
+    const char *line = message;
+    for (const char *p = message; ; ++p)
+    {
+        if (*p != '\n' && *p != '\0')
+            continue;
+
+        std::string entry(line, p - line);
+        if (!entry.empty())
+        {
+            if (isError)
+                LOGF_ERROR("{}", entry);
+            else
+                LOGF("{}", entry);
+        }
+
+        if (*p == '\0')
+            break;
+
+        line = p + 1;
+    }
+}

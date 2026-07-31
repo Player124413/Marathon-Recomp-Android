@@ -27,6 +27,12 @@
 #   define PLUME_LOGI(fmt, ...) __android_log_print(ANDROID_LOG_INFO,  "MarathonRecomp", fmt, ##__VA_ARGS__)
 #   define PLUME_LOGW(fmt, ...) __android_log_print(ANDROID_LOG_WARN,  "MarathonRecomp", fmt, ##__VA_ARGS__)
 #   define PLUME_LOGE(fmt, ...) __android_log_print(ANDROID_LOG_ERROR, "MarathonRecomp", fmt, ##__VA_ARGS__)
+
+// Implemented on the game side (MarathonRecomp/os/android/vulkan_driver_android.cpp).
+// Mirrors plume's internal log into the game's own log file (_game_log.txt),
+// which is what users can actually see and share when things go wrong —
+// logcat alone is effectively invisible to end users debugging crashes.
+extern "C" void MarathonPlumeGameLog(int isError, const char *message);
 #else
 #   define PLUME_LOGI(fmt, ...) fprintf(stdout, "[plume] "   fmt "\n", ##__VA_ARGS__)
 #   define PLUME_LOGW(fmt, ...) fprintf(stderr, "[plume/W] " fmt "\n", ##__VA_ARGS__)
@@ -910,6 +916,18 @@ namespace plume {
 
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vmaCreateBuffer failed with error code 0x%X.\n", res);
+#       ifdef __ANDROID__
+            {
+                char plumeError[384];
+                snprintf(plumeError, sizeof(plumeError),
+                    "vmaCreateBuffer failed: VkResult=0x%X (size=%llu bytes, usage flags=0x%X, heapType=%d). This is almost always VK_ERROR_OUT_OF_DEVICE_MEMORY — the GPU memory heap is exhausted.",
+                    (unsigned int)res,
+                    (unsigned long long)desc.size,
+                    (unsigned int)bufferInfo.usage,
+                    (int)desc.heapType);
+                MarathonPlumeGameLog(1, plumeError);
+            }
+#       endif
             return;
         }
     }
@@ -925,6 +943,15 @@ namespace plume {
         VkResult res = vmaMapMemory(device->allocator, allocation, &data);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vmaMapMemory failed with error code 0x%X.\n", res);
+#       ifdef __ANDROID__
+            {
+                char plumeError[256];
+                snprintf(plumeError, sizeof(plumeError),
+                    "vmaMapMemory failed: VkResult=0x%X (map on a buffer whose allocation failed earlier, or host memory exhausted).",
+                    (unsigned int)res);
+                MarathonPlumeGameLog(1, plumeError);
+            }
+#       endif
             return nullptr;
         }
 
@@ -1039,6 +1066,21 @@ namespace plume {
         VkResult res = vmaCreateImage(device->allocator, &imageInfo, &createInfo, &vk, &allocation, &allocationInfo);
         if (res != VK_SUCCESS) {
             fprintf(stderr, "vmaCreateImage failed with error code 0x%X.\n", res);
+#       ifdef __ANDROID__
+            {
+                char plumeError[384];
+                snprintf(plumeError, sizeof(plumeError),
+                    "vmaCreateImage failed: VkResult=0x%X (%ux%ux%u, format=%u, mipLevels=%u, samples=%u). This is almost always VK_ERROR_OUT_OF_DEVICE_MEMORY — the GPU memory heap is exhausted.",
+                    (unsigned int)res,
+                    (unsigned int)imageInfo.extent.width,
+                    (unsigned int)imageInfo.extent.height,
+                    (unsigned int)imageInfo.extent.depth,
+                    (unsigned int)imageInfo.format,
+                    (unsigned int)imageInfo.mipLevels,
+                    (unsigned int)imageInfo.samples);
+                MarathonPlumeGameLog(1, plumeError);
+            }
+#       endif
             return;
         }
 
@@ -4467,6 +4509,43 @@ namespace plume {
             VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
         PLUME_LOGI("  vram         : %llu MiB",
             (unsigned long long)(memoryHeapSize / (1024ULL * 1024ULL)));
+
+        // Full memory layout dump. When a device runs out of GPU heap (the
+        // VK_ERROR_OUT_OF_DEVICE_MEMORY class of crashes) this table is the
+        // first thing needed to understand the budget — record it everywhere
+        // while the device is being created.
+        for (uint32_t i = 0; i < memoryProps->memoryHeapCount; i++) {
+            const VkMemoryHeap &heap = memoryProps->memoryHeaps[i];
+            PLUME_LOGI("  heap[%u]      : %llu MiB%s", i,
+                (unsigned long long)(heap.size / (1024ULL * 1024ULL)),
+                (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) ? " DEVICE_LOCAL" : "");
+        }
+        for (uint32_t i = 0; i < memoryProps->memoryTypeCount; i++) {
+            const VkMemoryType &type = memoryProps->memoryTypes[i];
+            PLUME_LOGI("  type[%u]      : heap=%u flags=0x%03X", i, type.heapIndex, type.propertyFlags);
+        }
+#   ifdef __ANDROID__
+        {
+            std::string memoryDump;
+            char memoryLine[192];
+            for (uint32_t i = 0; i < memoryProps->memoryHeapCount; i++) {
+                const VkMemoryHeap &heap = memoryProps->memoryHeaps[i];
+                snprintf(memoryLine, sizeof(memoryLine), "[plume] heap[%u]: %llu MiB%s", i,
+                    (unsigned long long)(heap.size / (1024ULL * 1024ULL)),
+                    (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) ? " DEVICE_LOCAL" : "");
+                memoryDump += memoryLine;
+                memoryDump += '\n';
+            }
+            for (uint32_t i = 0; i < memoryProps->memoryTypeCount; i++) {
+                const VkMemoryType &type = memoryProps->memoryTypes[i];
+                snprintf(memoryLine, sizeof(memoryLine), "[plume] type[%u]: heap=%u flags=0x%03X", i, type.heapIndex, type.propertyFlags);
+                memoryDump += memoryLine;
+                memoryDump += '\n';
+            }
+            memoryDump += "[plume] uaM=" + std::to_string(hasHostVisibleDeviceLocalMemory ? 1 : 0);
+            MarathonPlumeGameLog(0, memoryDump.c_str());
+        }
+#   endif
 
         // Fill capabilities.
         capabilities.geometryShader = deviceFeatures.features.geometryShader;
