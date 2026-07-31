@@ -4,8 +4,34 @@
 #include "function.h"
 #include "xdm.h"
 
+#include <os/logger.h>
+
 constexpr size_t RESERVED_BEGIN = 0x7FEA0000;
 constexpr size_t RESERVED_END = 0xA0000000;
+
+// Guest heap exhaustion used to be signalled by assert(ptr) only, which is
+// compiled out in release builds: the allocation silently returned 0 and the
+// guest code then dereferenced a null guest pointer somewhere far away from
+// the real cause. Report it explicitly, with the heap's own diagnostics, so
+// "the game closed with nothing in the log" becomes an actionable line.
+static void ReportGuestHeapExhaustion(const char* what, size_t size, bool physical)
+{
+    static std::atomic<uint32_t> s_reportCount{0};
+    if (s_reportCount.fetch_add(1, std::memory_order_relaxed) >= 8)
+        return;
+
+    const O1HeapDiagnostics diag = physical
+        ? o1heapGetDiagnostics(g_userHeap.physicalHeap)
+        : o1heapGetDiagnostics(g_userHeap.heap);
+
+    LOGF_ERROR("{} FAILED: the {} guest heap is exhausted — requested {} bytes, "
+               "capacity {} MiB, allocated {} MiB, peak {} MiB, largest request so far {} MiB, previous OOMs {}. "
+               "The game will now behave as if it ran out of Xbox 360 memory (usually an immediate crash or freeze).",
+               what, physical ? "physical" : "virtual", size,
+               diag.capacity / (1024 * 1024), diag.allocated / (1024 * 1024),
+               diag.peak_allocated / (1024 * 1024), diag.peak_request_size / (1024 * 1024),
+               (unsigned long long)diag.oom_count);
+}
 
 void Heap::Init()
 {
@@ -66,7 +92,10 @@ uint32_t RtlAllocateHeap(uint32_t heapHandle, uint32_t flags, uint32_t size)
     void* ptr = g_userHeap.Alloc(size);
     assert(ptr);
     if (ptr == nullptr)
+    {
+        ReportGuestHeapExhaustion("RtlAllocateHeap", size, false);
         return 0;
+    }
     if ((flags & 0x8) != 0)
         memset(ptr, 0, size);
     return g_memory.MapVirtual(ptr);
@@ -77,7 +106,10 @@ uint32_t RtlReAllocateHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryP
     void* ptr = g_userHeap.Alloc(size);
     assert(ptr);
     if (ptr == nullptr)
+    {
+        ReportGuestHeapExhaustion("RtlReAllocateHeap", size, false);
         return 0;
+    }
     if ((flags & 0x8) != 0)
         memset(ptr, 0, size);
     if (memoryPointer != 0)
@@ -107,13 +139,17 @@ uint32_t RtlSizeHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryPointer
 
 uint32_t XAllocMem(uint32_t size, uint32_t flags)
 {
-    void* ptr = (flags & 0x80000000) != 0 ?
+    const bool physical = (flags & 0x80000000) != 0;
+    void* ptr = physical ?
         g_userHeap.AllocPhysical(size, (1ull << ((flags >> 24) & 0xF))) :
         g_userHeap.Alloc(size);
 
     assert(ptr);
     if (ptr == nullptr)
+    {
+        ReportGuestHeapExhaustion("XAllocMem", size, physical);
         return 0;
+    }
     if ((flags & 0x40000000) != 0)
         memset(ptr, 0, size);
     return g_memory.MapVirtual(ptr);

@@ -10,6 +10,9 @@
 #include <user/config.h>
 #include <user/paths.h>
 #include <user/registry.h>
+#ifdef __ANDROID__
+#include <os/android/watchdog_android.h>
+#endif
 
 static std::thread::id g_mainThreadId = std::this_thread::get_id();
 
@@ -25,6 +28,18 @@ void App::Exit()
 
 #ifdef _WIN32
     timeEndPeriod(1);
+#endif
+
+#ifdef __ANDROID__
+    // This is the exit path actually taken on Android (SDL_QUIT -> here ->
+    // _Exit), so main()'s cleanup below never runs. Clear the abnormal-exit
+    // markers here as well, otherwise a perfectly normal quit would be
+    // reported to the user as a crash on the next launch.
+    {
+        std::error_code ec;
+        std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", ec);
+        std::filesystem::remove(Config::GetConfigPath().parent_path() / "_session_active", ec);
+    }
 #endif
 
     std::_Exit(0);
@@ -95,6 +110,12 @@ PPC_FUNC(sub_825EA610)
     // for the pipelines to finish compiling in video.cpp.
     if (std::this_thread::get_id() == g_mainThreadId)
     {
+#ifdef __ANDROID__
+        // Reaching the per-frame update means boot finished and frames are
+        // being produced; a hang reported after this point is a gameplay
+        // deadlock rather than a boot/loading one.
+        os::android::watchdog::SetStage("in game (frame update)");
+#endif
         SDL_PumpEvents();
         SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
         GameWindow::Update();

@@ -132,6 +132,7 @@ elseif (ANDROID)
         "os/android/user_android.cpp"
         "os/android/version_android.cpp"
         "os/android/vulkan_driver_android.cpp"
+        "os/android/watchdog_android.cpp"
     )
 endif()
 

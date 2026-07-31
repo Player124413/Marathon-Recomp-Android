@@ -1074,7 +1074,24 @@ uint32_t MmAllocatePhysicalMemoryEx
 )
 {
     LOGF_UTILITY("0x{:x}, 0x{:x}, 0x{:x}, 0x{:x}, 0x{:x}, 0x{:x}", flags, size, protect, minAddress, maxAddress, alignment);
-    return g_memory.MapVirtual(g_userHeap.AllocPhysical(size, alignment));
+
+    void* ptr = g_userHeap.AllocPhysical(size, alignment);
+
+    // AllocPhysical returns null when the physical guest heap is exhausted.
+    // This path had no check at all, so the failure was mapped to guest
+    // address 0 and handed to the game as if it had succeeded — the guest then
+    // wrote through it and died somewhere unrelated. Report it instead: this
+    // is the allocator the archive loader uses for its big buffers, so it is a
+    // prime suspect whenever the game dies while loading stage archives.
+    if (ptr == nullptr)
+    {
+        LOGF_ERROR("MmAllocatePhysicalMemoryEx FAILED: {} bytes (alignment 0x{:x}) could not be allocated — "
+                   "the physical guest heap is exhausted. Returning a null guest pointer; the game will most "
+                   "likely crash or freeze immediately after this line.", size, alignment);
+        return 0;
+    }
+
+    return g_memory.MapVirtual(ptr);
 }
 
 void ObDeleteSymbolicLink()
@@ -1718,6 +1735,16 @@ void NetDll_XNetGetTitleXnAddr()
     LOG_UTILITY("!!! STUB !!!");
 }
 
+// Periodic wakeup for the wait-any loop below, called by the Android watchdog.
+// Waking a waiter that has nothing to do is harmless (it re-polls every object
+// and goes back to sleep), and it guarantees the loop's stall detection runs
+// even in a total deadlock, where by definition nothing else will ever signal.
+extern "C" void MarathonKernelWakeWaiters()
+{
+    ++g_keSetEventGeneration;
+    g_keSetEventGeneration.notify_all();
+}
+
 uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* Objects, uint32_t WaitType, uint32_t WaitReason, uint32_t WaitMode, uint32_t Alertable, be<int64_t>* Timeout)
 {
     // Dispatch a single wait on any kernel object type we recognise.
@@ -1736,8 +1763,21 @@ uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* 
             case 5:
                 return QueryKernelObject<Semaphore>(hdr)->Wait(timeoutMs);
             default:
+            {
+                // assert() is compiled out in release, and an object that can
+                // never report success turns the wait-any loop below into a
+                // permanent sleep — a silent freeze with the log simply
+                // stopping. Make it loud instead.
+                static std::atomic<uint32_t> s_unknownTypeLogs{0};
+                if (s_unknownTypeLogs.fetch_add(1, std::memory_order_relaxed) < 8)
+                {
+                    LOGF_ERROR("KeWaitForMultipleObjects: unsupported kernel object type {} — this wait can never "
+                               "be satisfied and will hang the calling thread. Please report this log.",
+                               (uint32_t)hdr.Type);
+                }
                 assert(false && "Unrecognized kernel object type in KeWaitForMultipleObjects.");
                 return STATUS_TIMEOUT;
+            }
         }
     };
 
@@ -1751,6 +1791,14 @@ uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* 
     }
     else // Wait any
     {
+        // Stall reporting: this loop is where the two previously-diagnosed
+        // post-archive freezes lived. If it ever sleeps for a long time
+        // without any object becoming signalled, say so — with the object
+        // types involved — instead of hanging silently and leaving the log
+        // ending mid-boot with no explanation.
+        const auto waitStart = std::chrono::steady_clock::now();
+        bool stallReported = false;
+
         while (true)
         {
             uint32_t generation = g_keSetEventGeneration.load();
@@ -1758,9 +1806,40 @@ uint32_t KeWaitForMultipleObjects(uint32_t Count, xpointer<XDISPATCHER_HEADER>* 
             for (size_t i = 0; i < Count; i++)
             {
                 if (waitOne(*Objects[i], 0) == STATUS_SUCCESS)
+                {
+                    if (stallReported)
+                    {
+                        LOGF_WARNING("KeWaitForMultipleObjects: the stalled wait finally completed on object {} — "
+                                     "it was a very slow wait, not a permanent deadlock.", (uint32_t)i);
+                    }
                     return STATUS_WAIT_0 + i;
+                }
             }
 
+            if (!stallReported &&
+                std::chrono::steady_clock::now() - waitStart > std::chrono::seconds(20))
+            {
+                stallReported = true;
+
+                std::string types;
+                for (size_t i = 0; i < Count; i++)
+                {
+                    if (!types.empty())
+                        types += ", ";
+                    types += std::to_string((uint32_t)Objects[i]->Type);
+                }
+
+                LOGF_ERROR("KeWaitForMultipleObjects: waiting on {} object(s) (types: {}) for over 20s with no "
+                           "signal — this thread is deadlocked. Every path that signals an event or releases a "
+                           "semaphore must bump g_keSetEventGeneration; if one does not, this wait never wakes.",
+                           Count, types);
+            }
+
+            // Blocking wait, so a signalled object wakes this thread with no
+            // added latency. The Android watchdog bumps the generation every
+            // couple of seconds (MarathonKernelWakeWaiters below), which makes
+            // this return periodically so the stall check above can run even
+            // when nothing is ever signalled.
             g_keSetEventGeneration.wait(generation);
         }
     }

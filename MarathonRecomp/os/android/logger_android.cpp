@@ -1,5 +1,9 @@
 #include <os/logger.h>
 
+#include <os/android/watchdog_android.h>
+#include <os/crash_reporter.h>
+
+#include <algorithm>
 #include <android/log.h>
 #include <cstdio>
 #include <ctime>
@@ -64,6 +68,26 @@ void os::logger::Log(const std::string_view str, ELogType type, const char* func
     else
         __android_log_print(priority, MARATHON_RECOMP_ANDROID_LOG_TAG,
                             "%.*s", (int)str.size(), str.data());
+
+    // Feed the crash reporter's ring buffer. It is dumped into the crash
+    // report, which is the only way to see what the game was doing in the
+    // instants before a fatal signal - the log file's own tail can be stale
+    // because a crash may happen between two flushes. This was declared and
+    // implemented but never actually called, so every crash report so far had
+    // an empty "Last log lines" section.
+    {
+        char ringLine[320];
+        int n = func
+            ? snprintf(ringLine, sizeof(ringLine), "[%s] %.*s", func, (int)str.size(), str.data())
+            : snprintf(ringLine, sizeof(ringLine), "%.*s", (int)str.size(), str.data());
+        if (n > 0)
+            os::crash_reporter::internal::PushLogLine(ringLine, (size_t)std::min<int>(n, (int)sizeof(ringLine) - 1));
+    }
+
+    // Any log line that isn't the watchdog's own output means the process is
+    // still doing something; that is what the hang detector measures.
+    if (!os::android::watchdog::IsWatchdogThread())
+        os::android::watchdog::Heartbeat();
 
     std::lock_guard<std::mutex> lock(s_logMutex);
     if (!s_logFile) return;

@@ -125,17 +125,34 @@ public final class LauncherActivity extends Activity {
      */
     private void checkCrashSentinel() {
         File sentinel = new File(AppStorage.dataRoot(this), "_crash_sentinel");
-        if (!sentinel.exists()) return;
+        File hangSentinel = new File(AppStorage.dataRoot(this), "_hang_sentinel");
+        boolean hung = hangSentinel.exists();
+        if (hung) hangSentinel.delete();
+        if (!sentinel.exists() && !hung) return;
         sentinel.delete();
+
+        // Ask Android itself why the previous process died. This is the only
+        // authoritative answer: a low-memory kill (REASON_LOW_MEMORY /
+        // "SIGKILL" from lmkd) is uncatchable, so the native crash reporter
+        // cannot log anything for it, and the log just stops mid-boot looking
+        // exactly like a crash. Available since API 30; older devices simply
+        // get no extra detail.
+        final String exitReason = describeLastExitReason();
 
         // Read the tail of the persistent log file so the user (or a dev)
         // can see exactly what happened before the crash.
         final String logTail = readLogTail(AppStorage.logFile(this), 4000);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
-            .setTitle("⚠  Game Exited Unexpectedly")
+            .setTitle(hung ? "⚠  Game Stopped Responding" : "⚠  Game Exited Unexpectedly")
             .setMessage(
-                "The game was killed by a graphics driver crash.\n\n" +
+                (exitReason != null
+                    ? "Why the game closed (reported by Android):\n" + exitReason + "\n\n"
+                    : "") +
+                (hung
+                    ? "The game froze (a deadlock was detected by the built-in watchdog). "
+                      + "The log below contains a thread dump taken at that moment — please share it.\n\n"
+                    : "") +
                 "Suggested fixes:\n" +
                 "• Set Shadow Resolution to Medium (1024) or lower\n" +
                 "• Set Anti-Aliasing to Off\n" +
@@ -160,6 +177,73 @@ public final class LauncherActivity extends Activity {
         }
 
         builder.show();
+    }
+
+    /**
+     * Asks ActivityManager why the app's previous process died.
+     *
+     * This is the single most useful diagnostic for "the game just closes with
+     * nothing in the log": the native crash reporter can only report signals
+     * it is allowed to catch, and the most common death on a memory-limited
+     * phone — Android's low-memory killer sending an uncatchable SIGKILL —
+     * produces no log entry whatsoever. ApplicationExitInfo records it.
+     *
+     * Returns a human-readable description, or null if unavailable
+     * (API < 30, or no record kept by the system).
+     */
+    private String describeLastExitReason() {
+        if (android.os.Build.VERSION.SDK_INT < 30) return null;
+        try {
+            android.app.ActivityManager am =
+                (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am == null) return null;
+
+            java.util.List<android.app.ApplicationExitInfo> reasons =
+                am.getHistoricalProcessExitReasons(getPackageName(), 0, 5);
+            if (reasons == null || reasons.isEmpty()) return null;
+
+            android.app.ApplicationExitInfo info = reasons.get(0);
+            String what;
+            switch (info.getReason()) {
+                case android.app.ApplicationExitInfo.REASON_LOW_MEMORY:
+                    what = "OUT OF MEMORY — Android's low-memory killer terminated the game. "
+                         + "This is not a bug in the graphics driver: the device simply ran out of RAM. "
+                         + "Close other apps and lower Resolution Scale / Shadow Resolution.";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_CRASH_NATIVE:
+                    what = "NATIVE CRASH — the game's own code crashed (see the crash report in the log).";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_CRASH:
+                    what = "JAVA CRASH — an unhandled exception in the Java layer.";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_ANR:
+                    what = "NOT RESPONDING (ANR) — the game froze and Android closed it. "
+                         + "This means a deadlock, not a crash.";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_SIGNALED:
+                    what = "KILLED BY SIGNAL " + info.getStatus() + ".";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_EXIT_SELF:
+                    what = "The game exited by itself with status " + info.getStatus() + ".";
+                    break;
+                case android.app.ApplicationExitInfo.REASON_USER_REQUESTED:
+                    what = "Closed by the user.";
+                    break;
+                default:
+                    what = "Reason code " + info.getReason() + ", status " + info.getStatus() + ".";
+                    break;
+            }
+
+            String rss = "";
+            if (info.getPss() > 0) {
+                rss = "  (memory in use at exit: " + (info.getPss() / 1024) + " MB PSS, "
+                    + (info.getRss() / 1024) + " MB RSS)";
+            }
+            String desc = info.getDescription();
+            return what + rss + (desc != null && !desc.isEmpty() ? "\n" + desc : "");
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     /** Reads the last {@code maxChars} characters of a file, or null if unavailable. */

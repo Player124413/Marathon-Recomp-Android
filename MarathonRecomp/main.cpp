@@ -28,6 +28,7 @@
 #include <version.h>
 #ifdef __ANDROID__
 #include <os/android/storage_android.h>
+#include <os/android/watchdog_android.h>
 #endif
 #include <ui/game_window.h>
 #include <ui/installer_wizard.h>
@@ -274,6 +275,13 @@ int main(int argc, char *argv[])
     // the log simply stopped, which made real Russian-Adreno crash reports
     // ("game dies right after archive loading") undiagnosable.
     os::crash_reporter::SetDataPath(Config::GetConfigPath().parent_path().string());
+    // Memory + hang telemetry. The crash reporter only covers *catchable*
+    // deaths; the two ways this port has actually died on user devices - an
+    // Android low-memory SIGKILL and a worker-thread deadlock - both leave the
+    // log simply ending mid-boot with no report. The watchdog samples RSS and
+    // system memory, and dumps every thread's wait state if progress stops, so
+    // those two cases are finally distinguishable from _game_log.txt alone.
+    os::android::watchdog::Init(Config::GetConfigPath().parent_path().string());
     LOGN("=== Marathon Recompiled starting ===");
     LOGFN("Android native build fingerprint: {}", g_versionString);
     LOGFN("Config path: {}", Config::GetConfigPath().string());
@@ -304,6 +312,15 @@ int main(int argc, char *argv[])
     {
         std::error_code _ec;
         std::ofstream(Config::GetConfigPath().parent_path() / "_crash_sentinel").flush();
+
+        // Separate, longer-lived marker. _crash_sentinel is deliberately
+        // cleared the moment Vulkan has a working swapchain
+        // (AndroidMarkVulkanStartupSuccessful), which means a death *later* in
+        // the boot - during archive loading, for example - left no marker at
+        // all, so the launcher showed nothing and the user saw the game
+        // "just close" with no explanation. This one is removed only on a
+        // clean exit, so any abnormal termination is still reported.
+        std::ofstream(Config::GetConfigPath().parent_path() / "_session_active").flush();
     }
     LOGFN("SDL video driver config: {}",
         Config::SDLVideoDriver == ESDLVideoDriver::Auto   ? "Auto" :
@@ -429,14 +446,19 @@ int main(int argc, char *argv[])
     LOGN_WARNING(modulePath.string());
     // Video::StartPipelinePrecompilation();
 
+#ifdef __ANDROID__
+    os::android::watchdog::SetStage("guest thread running (game boot / archive loading)");
+#endif
+
     GuestThread::Start({ entry, 0, 0 });
 
 
 #ifdef __ANDROID__
-    // Clean exit: remove the sentinel so the launcher knows we didn't crash.
+    // Clean exit: remove the sentinels so the launcher knows we didn't crash.
     {
         std::error_code _ec;
         std::filesystem::remove(Config::GetConfigPath().parent_path() / "_crash_sentinel", _ec);
+        std::filesystem::remove(Config::GetConfigPath().parent_path() / "_session_active", _ec);
     }
 #endif
 
