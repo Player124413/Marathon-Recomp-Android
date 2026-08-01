@@ -62,7 +62,11 @@ android {
     }
 
     // CI provides the release keystore through environment variables (see
-    // .github/workflows/android.yml); local release builds stay unsigned.
+    // .github/workflows/android.yml); local release builds without env vars
+    // were previously unsigned. For one-click Release, build-apk.sh --release
+    // generates android-apk/app/release-signing.properties with a debug
+    // keystore so the APK is installable out of the box.
+    def keystorePropsFile = file('release-signing.properties')
     if (System.getenv("ANDROID_KEYSTORE_FILE") != null) {
         signingConfigs {
             ci {
@@ -71,10 +75,38 @@ android {
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword System.getenv("ANDROID_KEY_PASSWORD")
             }
+            // One-click local release signing (debug keystore) - used when --release without CI env
+            if (keystorePropsFile.exists()) {
+                oneClickRelease {
+                    Properties props = new Properties()
+                    props.load(new FileInputStream(keystorePropsFile))
+                    storeFile file(props['storeFile'])
+                    storePassword props['storePassword']
+                    keyAlias props['keyAlias']
+                    keyPassword props['keyPassword']
+                }
+            }
         }
         buildTypes {
             release {
                 signingConfig signingConfigs.ci
+            }
+        }
+    } else if (keystorePropsFile.exists()) {
+        // One-click mode: no CI env, but release-signing.properties exists (created by build-apk.sh --release)
+        signingConfigs {
+            oneClickRelease {
+                Properties props = new Properties()
+                props.load(new FileInputStream(keystorePropsFile))
+                storeFile file(props['storeFile'])
+                storePassword props['storePassword']
+                keyAlias props['keyAlias']
+                keyPassword props['keyPassword']
+            }
+        }
+        buildTypes {
+            release {
+                signingConfig signingConfigs.oneClickRelease
             }
         }
     }
