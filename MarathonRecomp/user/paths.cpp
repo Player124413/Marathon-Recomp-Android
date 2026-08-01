@@ -25,7 +25,7 @@ std::filesystem::path BuildUserPath()
     // via os::android::GetDataRoot(). During static init SDL is not ready, so return an empty
     // placeholder here; GetUserPath() will lazily resolve to GetDataRoot() once it's available.
     // This prevents static_assert and HOME/.config lookup from running on Android.
-    userPath = {};
+    userPath.clear();
 #elif defined(_WIN32)
     PWSTR knownPath = NULL;
     if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &knownPath) == S_OK)
