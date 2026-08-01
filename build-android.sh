@@ -74,6 +74,33 @@ if [[ ! -f "$MRR_SENTINEL" ]]; then
   echo "==> MarathonRecompResources populated"
 fi
 
+# dxc-bin is also a git submodule (tools/XenosRecomp/thirdparty/dxc-bin) holding the
+# DirectXShaderCompiler binary (libdxcompiler.so + dxc-linux) that XenosRecomp links against
+# at build time to produce SPIR-V shader cache. On CI / shallow clones it is often missing,
+# causing the host-tools-only configure to fail with "missing libdxcompiler.so". Fetch it
+# from the upstream mirror if absent.
+DXC_DIR="$WORKSPACE/tools/XenosRecomp/thirdparty/dxc-bin"
+DXC_SENTINEL="$DXC_DIR/lib/x64/libdxcompiler.so"
+if [[ ! -f "$DXC_SENTINEL" ]]; then
+  echo "==> dxc-bin missing (no $DXC_SENTINEL); fetching from renderbag/dxc-bin"
+  mkdir -p "$DXC_DIR"
+  DXC_TMP="$(mktemp -d)"
+  curl -fsSL --retry 3 -o "$DXC_TMP/dxc.tar.gz" \
+    "https://codeload.github.com/renderbag/dxc-bin/tar.gz/refs/heads/main"
+  tar -xzf "$DXC_TMP/dxc.tar.gz" --strip-components=1 -C "$DXC_TMP"
+  # codeload extracts to dxc-bin-main/ - copy bin/lib/inc
+  cp -r "$DXC_TMP/bin" "$DXC_DIR/" 2>/dev/null || true
+  cp -r "$DXC_TMP/lib" "$DXC_DIR/" 2>/dev/null || true
+  cp -r "$DXC_TMP/inc" "$DXC_DIR/" 2>/dev/null || true
+  chmod +x "$DXC_DIR/bin/x64/dxc-linux" 2>/dev/null || true
+  rm -rf "$DXC_TMP"
+  if [[ ! -f "$DXC_SENTINEL" ]]; then
+    echo "ERROR: dxc-bin could not be fetched - $DXC_SENTINEL still missing." >&2
+    exit 1
+  fi
+  echo "==> dxc-bin populated"
+fi
+
 PRESET="android-debug"
 DO_CONFIGURE=true
 DO_BUILD=true
@@ -167,20 +194,21 @@ fi
 if $DO_BUILD; then
   echo "==> Building preset: $PRESET"
 
-  # When using prebuilt host tools, the cmake add_custom_command for XenosRecomp
-  # invokes it with NO arguments (the non-prebuilt path bakes paths in at compile
-  # time via -DXENOS_RECOMP_INPUT etc.). A prebuilt binary without those defines
-  # just prints usage and exits 0 — "succeeding" without producing shader_cache.cpp.
-  # Pre-run it explicitly here with the correct arguments so the file is always
-  # present before ninja checks its dependency graph.
+  # MarathonRecompLib/CMakeLists.txt now passes explicit CLI args to XenosRecomp even when
+  # using prebuilt host tools (previously it relied on baked-in -DXENOS_RECOMP_INPUT etc.),
+  # so ninja can correctly generate shader_cache.cpp on its own. We keep an optional
+  # pre-generation step here as a fast-path / extra safety: if the shader directory is newer
+  # than the cache, generate it now so ninja's dependency scan doesn't have to.
   SHADER_CACHE="$WORKSPACE/MarathonRecompLib/shader/shader_cache.cpp"
   SHADER_INPUT="$WORKSPACE/MarathonRecompLib/private/shader"
   XENOS_INCLUDE="$WORKSPACE/tools/XenosRecomp/XenosRecomp/shader_common.h"
-  if [[ ! -f "$SHADER_CACHE" ]] || [[ "$SHADER_INPUT" -nt "$SHADER_CACHE" ]]; then
-    echo "==> Pre-generating shader_cache.cpp via XenosRecomp..."
-    "$HOST_XENOS_RECOMP" "$SHADER_INPUT" "$SHADER_CACHE" "$XENOS_INCLUDE"
-  else
-    echo "==> shader_cache.cpp is up-to-date, skipping XenosRecomp."
+  if [[ -d "$SHADER_INPUT" ]] && [[ -x "$HOST_XENOS_RECOMP" ]]; then
+    if [[ ! -f "$SHADER_CACHE" ]] || [[ "$SHADER_INPUT" -nt "$SHADER_CACHE" ]]; then
+      echo "==> Pre-generating shader_cache.cpp via XenosRecomp (fast-path)..."
+      "$HOST_XENOS_RECOMP" "$SHADER_INPUT" "$SHADER_CACHE" "$XENOS_INCLUDE" || echo "!! Pre-generation failed - ninja will retry"
+    else
+      echo "==> shader_cache.cpp is up-to-date, skipping pre-generation."
+    fi
   fi
 
   # Invoke ninja directly instead of cmake --build: on Nix, exporting the NDK

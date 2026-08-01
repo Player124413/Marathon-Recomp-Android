@@ -163,6 +163,10 @@ void UpdateChecker::visitWebsite()
 {
 #if defined(WIN32)
     ShellExecuteA(0, 0, VISIT_URL, 0, 0, SW_SHOW);
+#elif defined(__ANDROID__)
+    // On Android, opening a browser is handled by the Java launcher via an intent.
+    // There is no desktop shell to call; log the URL so the user can open it manually.
+    LOGF("Visit website: {} (open from Java layer on Android)", VISIT_URL);
 #elif defined(__linux__)
     std::string command = "xdg-open " + std::string(VISIT_URL) + " &";
     std::system(command.c_str());

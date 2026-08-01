@@ -64,13 +64,30 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 if (MARATHON_RECOMP_HOST_TOOLS_ONLY)
+    # Native host pass - only build host tools, no Android checks needed.
     add_subdirectory(${MARATHON_RECOMP_TOOLS_ROOT})
 else()
+    # Android cross-compilation without prebuilt host tools is not supported - it would try to build
+    # XenonRecomp/XenosRecomp for arm64-android (un-runnable, missing libdxcompiler.so).
+    # Fail early with an actionable message instead of cryptic link errors.
+    # Distinguish native Android build (Termux, CMAKE_CROSSCOMPILING=OFF) from cross-compile.
+    if (ANDROID AND CMAKE_CROSSCOMPILING AND NOT MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS)
+        message(FATAL_ERROR
+            "Android cross-compile without prebuilt host tools is not supported.\n"
+            "Run ./build-android.sh which builds host tools natively first, or configure host tools manually:\n"
+            "  cmake -S . -B out/build/host-tools -DMARATHON_RECOMP_HOST_TOOLS_ONLY=ON -DCMAKE_BUILD_TYPE=Release\n"
+            "  cmake --build out/build/host-tools --target XenonRecomp XenosRecomp file_to_c u8extract x_decompress\n"
+            "Then pass:\n"
+            "  -DMARATHON_RECOMP_HOST_XENON_RECOMP=... -DMARATHON_RECOMP_HOST_XENOS_RECOMP=... etc.\n")
+    endif()
+
     add_subdirectory(${MARATHON_RECOMP_THIRDPARTY_ROOT})
 
     # tools/ also provides shared thirdparty libraries (fmt, zstd, xxHash) that
     # MarathonRecomp links against directly, so it's always added even when the
     # recompiler executables themselves are swapped out for prebuilt host binaries above.
+    # On Android with USE_PREBUILT_HOST_TOOLS, tools/CMakeLists.txt itself skips the executables
+    # and only provides fmt/zstd/xxHash.
     add_subdirectory(${MARATHON_RECOMP_TOOLS_ROOT})
 
     # Include sub-projects.

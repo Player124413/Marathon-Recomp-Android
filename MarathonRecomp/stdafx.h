@@ -12,9 +12,11 @@
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__ANDROID__)
 #include <unistd.h>
+#if !defined(__ANDROID__)
 #include <pwd.h>
+#endif
 #endif
 
 #ifdef MARATHON_RECOMP_D3D12

@@ -10,6 +10,10 @@ else()
     add_compile_options(-ffp-model=strict)
 endif()
 
+if (ANDROID AND CMAKE_CROSSCOMPILING AND NOT MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS)
+    message(FATAL_ERROR "MarathonRecompLib: Android cross-compile requires MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS=ON with host binaries. Use build-android.sh.")
+endif()
+
 if (MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS)
     set(MARATHON_RECOMP_XENON_RECOMP_COMMAND "${MARATHON_RECOMP_HOST_XENON_RECOMP}")
     set(MARATHON_RECOMP_XENON_RECOMP_TOOL_DEPENDS "${MARATHON_RECOMP_HOST_XENON_RECOMP}")
@@ -21,9 +25,12 @@ else()
     # These paths are baked into the host tool binaries as compile-time definitions
     # (they read this same source tree), so they only need to be set when the tools
     # are actually being built in this pass, not when reusing prebuilt host binaries.
-    target_compile_definitions(XenonRecomp PRIVATE 
-        XENON_RECOMP_CONFIG_FILE_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/config/Marathon.toml\"
-        XENON_RECOMP_HEADER_FILE_PATH=\"${MARATHON_RECOMP_TOOLS_ROOT}/XenonRecomp/XenonUtils/ppc_context.h\")
+    # Guard target existence - when ANDROID with prebuilt, XenonRecomp target does not exist.
+    if (TARGET XenonRecomp)
+        target_compile_definitions(XenonRecomp PRIVATE 
+            XENON_RECOMP_CONFIG_FILE_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/config/Marathon.toml\"
+            XENON_RECOMP_HEADER_FILE_PATH=\"${MARATHON_RECOMP_TOOLS_ROOT}/XenonRecomp/XenonUtils/ppc_context.h\")
+    endif()
 
     set(MARATHON_RECOMP_XENON_RECOMP_COMMAND "$<TARGET_FILE:XenonRecomp>")
     set(MARATHON_RECOMP_XENON_RECOMP_TOOL_DEPENDS XenonRecomp)
@@ -78,7 +85,7 @@ add_custom_command(
 set(XENOS_RECOMP_ROOT "${MARATHON_RECOMP_TOOLS_ROOT}/XenosRecomp/XenosRecomp")
 set(XENOS_RECOMP_INCLUDE "${XENOS_RECOMP_ROOT}/shader_common.h")
 
-if (NOT MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS)
+if (NOT MARATHON_RECOMP_USE_PREBUILT_HOST_TOOLS AND TARGET XenosRecomp)
     target_compile_definitions(XenosRecomp PRIVATE 
         XENOS_RECOMP_INPUT=\"${CMAKE_CURRENT_SOURCE_DIR}/private/shader\" 
         XENOS_RECOMP_OUTPUT=\"${CMAKE_CURRENT_SOURCE_DIR}/shader/shader_cache.cpp\"
@@ -92,11 +99,16 @@ file(GLOB XENOS_RECOMP_SOURCES
     "${XENOS_RECOMP_ROOT}/*.cpp"
 )
 
+# When using prebuilt host tools, pass explicit CLI args (prebuilt binaries don't have baked-in paths).
+# When using in-tree tools, the same args are harmless - binaries with baked-in definitions ignore them.
 add_custom_command(
     OUTPUT 
         "${CMAKE_CURRENT_SOURCE_DIR}/shader/shader_cache.cpp"
     COMMAND
         ${MARATHON_RECOMP_XENOS_RECOMP_COMMAND}
+            "${CMAKE_CURRENT_SOURCE_DIR}/private/shader"
+            "${CMAKE_CURRENT_SOURCE_DIR}/shader/shader_cache.cpp"
+            "${XENOS_RECOMP_INCLUDE}"
     DEPENDS 
         "${CMAKE_CURRENT_SOURCE_DIR}/private/shader"
         ${XENOS_RECOMP_SOURCES}

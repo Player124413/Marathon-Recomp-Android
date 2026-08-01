@@ -13,6 +13,14 @@ endif()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+# XenonRecomp is a HOST code-generator (PowerPC -> C++). It must NOT be built for Android ABI.
+# See XenosRecomp/CMakeLists.txt and tools/CMakeLists.txt for the full rationale and the two-pass build.
+if (ANDROID AND CMAKE_CROSSCOMPILING AND NOT DEFINED MARATHON_RECOMP_HOST_TOOLS_ONLY)
+    message(STATUS "XenonRecomp: Skipping Android target build - this is a host tool (use prebuilt host binary via MARATHON_RECOMP_HOST_XENON_RECOMP)")
+    project("XenonRecomp-ALL")
+    return()
+endif()
+
 add_subdirectory(${THIRDPARTY_ROOT})
 set(XENONANALYSE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/XenonAnalyse)
 set(XENONUTILS_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/XenonUtils)
