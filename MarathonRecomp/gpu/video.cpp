@@ -2659,6 +2659,11 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     
     g_textureDescriptorSet = descriptorSetBuilder.create(g_device.get());
     LOGF_WARNING("{}", "VkInit: texture descriptor set created");
+    if (!g_textureDescriptorSet || !g_textureDescriptorSet->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: texture descriptor set creation failed - device may not support 32768 descriptors. Aborting");
+        return false;
+    }
     
     for (size_t i = 0; i < TEXTURE_DESCRIPTOR_NULL_COUNT; i++)
     {
@@ -2704,7 +2709,13 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
         }
 
         texture = g_device->createTexture(desc);
-        textureView = texture->createTextureView(viewDesc);
+        textureView = texture ? texture->createTextureView(viewDesc) : nullptr;
+
+        if (!texture || !texture->isValid() || !textureView || !textureView->isValid())
+        {
+            LOGF_ERROR("VkInit: blank texture {} creation failed", i);
+            return false;
+        }
 
         g_textureDescriptorSet->setTexture(i, texture.get(), RenderTextureLayout::SHADER_READ, textureView.get());
     }
@@ -2721,9 +2732,19 @@ bool Video::CreateHostDevice(const char *sdlVideoDriver, bool graphicsApiRetry)
     
     g_samplerDescriptorSet = descriptorSetBuilder.create(g_device.get());
     LOGF_WARNING("{}", "VkInit: sampler descriptor set created");
+    if (!g_samplerDescriptorSet || !g_samplerDescriptorSet->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: sampler descriptor set creation failed. Aborting");
+        return false;
+    }
     auto& [descriptorIndex, sampler] = g_samplerStates[XXH3_64bits(&g_samplerDescs[0], sizeof(RenderSamplerDesc))];
     descriptorIndex = 1;
     sampler = g_device->createSampler(g_samplerDescs[0]);
+    if (!sampler || !sampler->isValid())
+    {
+        LOGF_ERROR("{}", "VkInit: default sampler creation failed. Aborting");
+        return false;
+    }
     g_samplerDescriptorSet->setSampler(0, sampler.get());
 
     pipelineLayoutBuilder.addDescriptorSet(descriptorSetBuilder);
