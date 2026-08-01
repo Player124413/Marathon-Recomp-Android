@@ -43,6 +43,7 @@
 #ifdef __ANDROID__
 #include <filesystem>
 #include <os/android/vulkan_driver_android.h>
+#include <os/crash_reporter.h>
 #endif
 
 // Software BC (block compression) decoder used when the Vulkan device does not
@@ -6574,6 +6575,9 @@ static std::thread g_renderThread([]
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
         GuestThread::SetThreadName(GetCurrentThreadId(), "Render Thread");
 #endif
+#ifdef __ANDROID__
+        os::crash_reporter::InitThread();
+#endif
 
         RenderCommand commands[32];
 
@@ -7491,6 +7495,9 @@ static void PipelineCompilerThread()
     int threadPriority = THREAD_PRIORITY_LOWEST;
     SetThreadPriority(GetCurrentThread(), threadPriority);
     GuestThread::SetThreadName(GetCurrentThreadId(), "Pipeline Compiler Thread");
+#endif
+#ifdef __ANDROID__
+    os::crash_reporter::InitThread();
 #endif
 
     std::unique_ptr<GuestThreadContext> ctx;
