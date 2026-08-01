@@ -161,6 +161,7 @@ namespace plume {
 
         VulkanSampler(VulkanDevice *device, const RenderSamplerDesc &desc);
         ~VulkanSampler();
+        bool isValid() const override { return vk != VK_NULL_HANDLE; }
     };
 
     struct VulkanPipeline : RenderPipeline {
@@ -220,6 +221,7 @@ namespace plume {
 
         VulkanDescriptorSet(VulkanDevice *device, const RenderDescriptorSetDesc &desc);
         ~VulkanDescriptorSet() override;
+        bool isValid() const override { return vk != VK_NULL_HANDLE && descriptorPool != VK_NULL_HANDLE && setLayout && setLayout->vk != VK_NULL_HANDLE; }
         void setBuffer(uint32_t descriptorIndex, const RenderBuffer *buffer, uint64_t bufferSize, const RenderBufferStructuredView *bufferStructuredView, const RenderBufferFormattedView *bufferFormattedView) override;
         void setTexture(uint32_t descriptorIndex, const RenderTexture *texture, RenderTextureLayout textureLayout, const RenderTextureView *textureView) override;
         void setSampler(uint32_t descriptorIndex, const RenderSampler *sampler) override;

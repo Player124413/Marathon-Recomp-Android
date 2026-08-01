@@ -57,6 +57,7 @@ namespace plume {
 
     struct RenderSampler {
         virtual ~RenderSampler() { }
+        virtual bool isValid() const { return true; }
     };
 
     struct RenderPipeline {
@@ -90,6 +91,7 @@ namespace plume {
         // assume it was all allocated in one contiguous array. This allows efficient mapping between Vulkan and D3D12's descriptor models.
 
         virtual ~RenderDescriptorSet() { }
+        virtual bool isValid() const { return true; }
         virtual void setBuffer(uint32_t descriptorIndex, const RenderBuffer *buffer, uint64_t bufferSize = 0, const RenderBufferStructuredView *bufferStructuredView = nullptr, const RenderBufferFormattedView *bufferFormattedView = nullptr) = 0;
         virtual void setTexture(uint32_t descriptorIndex, const RenderTexture *texture, RenderTextureLayout textureLayout, const RenderTextureView *textureView = nullptr) = 0;
         virtual void setSampler(uint32_t descriptorIndex, const RenderSampler *sampler) = 0;
