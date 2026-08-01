@@ -50,22 +50,54 @@ if (ANDROID AND CMAKE_CROSSCOMPILING)
             "See replit.md / .agents/memory/recomp-android-host-tools-split.md for details.")
     endif()
 
-    # Provide fmt / xxHash / zstd for MarathonRecomp target. These are normally pulled in
-    # via XenosRecomp/thirdparty, but since we skip building XenosRecomp itself on Android cross-compile,
-    # add them directly. The checks avoid duplicate targets when thirdparty/CMakeLists.txt
-    # already brought them (or when vcpkg provided them).
+    # For Android cross-compile we must NOT build the host executables (XenonRecomp, XenosRecomp, etc.)
+    # but we DO need the *library* parts that the game itself links:
+    #   - XenonUtils (XEX parser, used at runtime to load default.xex)
+    #   - its dependency disasm
+    #   - fmt / tomlplusplus / xxHash / zstd (also needed by the game, normally pulled via XenosRecomp thirdparty)
+    # The checks avoid duplicate targets when vcpkg or thirdparty/ already provided them.
+
+    set(_XENON_THIRDPARTY_ROOT "${MARATHON_RECOMP_TOOLS_ROOT}/XenonRecomp/thirdparty")
     set(_XENOS_THIRDPARTY_ROOT "${MARATHON_RECOMP_TOOLS_ROOT}/XenosRecomp/thirdparty")
+
+    # disasm (PPC disassembler) - static lib, needed by XenonUtils
+    if (EXISTS "${_XENON_THIRDPARTY_ROOT}/disasm/CMakeLists.txt" AND NOT TARGET disasm)
+        add_subdirectory("${_XENON_THIRDPARTY_ROOT}/disasm" "${CMAKE_BINARY_DIR}/tools_xenon_disasm")
+    endif()
+
+    # fmt
     if (EXISTS "${_XENOS_THIRDPARTY_ROOT}/fmt/CMakeLists.txt" AND NOT TARGET fmt::fmt)
         add_subdirectory("${_XENOS_THIRDPARTY_ROOT}/fmt")
+    elseif (EXISTS "${_XENON_THIRDPARTY_ROOT}/fmt/CMakeLists.txt" AND NOT TARGET fmt::fmt)
+        add_subdirectory("${_XENON_THIRDPARTY_ROOT}/fmt" "${CMAKE_BINARY_DIR}/tools_xenon_fmt")
     endif()
+
+    # tomlplusplus (header-only, used by MarathonRecomp itself for config, not just by XenonRecomp)
+    if (EXISTS "${_XENON_THIRDPARTY_ROOT}/tomlplusplus/CMakeLists.txt" AND NOT TARGET tomlplusplus::tomlplusplus)
+        add_subdirectory("${_XENON_THIRDPARTY_ROOT}/tomlplusplus")
+    endif()
+
+    # xxHash
     if (EXISTS "${_XENOS_THIRDPARTY_ROOT}/xxHash/cmake_unofficial/CMakeLists.txt" AND NOT TARGET xxHash::xxhash)
         add_subdirectory("${_XENOS_THIRDPARTY_ROOT}/xxHash/cmake_unofficial")
+    elseif (EXISTS "${_XENON_THIRDPARTY_ROOT}/xxHash/cmake_unofficial/CMakeLists.txt" AND NOT TARGET xxHash::xxhash)
+        add_subdirectory("${_XENON_THIRDPARTY_ROOT}/xxHash/cmake_unofficial" "${CMAKE_BINARY_DIR}/tools_xenon_xxhash")
     endif()
+
+    # zstd (needed by file_to_c BIN2C, but also used by game)
     if (EXISTS "${_XENOS_THIRDPARTY_ROOT}/zstd/build/cmake/CMakeLists.txt" AND NOT TARGET libzstd_static AND NOT TARGET libzstd_shared)
         add_subdirectory("${_XENOS_THIRDPARTY_ROOT}/zstd/build/cmake")
     endif()
 
-    # Nothing else to build for Android cross-compile in this directory - host tools come from prebuilt binaries.
+    # XenonUtils - the actual XEX parsing library that MarathonRecomp links.
+    # It expects THIRDPARTY_ROOT to be set (points to XenonRecomp/thirdparty)
+    if (NOT TARGET XenonUtils)
+        set(THIRDPARTY_ROOT "${_XENON_THIRDPARTY_ROOT}")
+        # Ensure its private include dirs exist (libmspack, tiny-AES-c, TinySHA1 are part of XenonRecomp thirdparty)
+        add_subdirectory("${MARATHON_RECOMP_TOOLS_ROOT}/XenonRecomp/XenonUtils" "${CMAKE_BINARY_DIR}/tools_xenon_utils")
+    endif()
+
+    # Nothing else to build for Android cross-compile in this directory - host executables come from prebuilt binaries.
     return()
 endif()
 
